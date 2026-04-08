@@ -17,8 +17,8 @@
 /*********************
  *      DEFINES
  *********************/
-#define MY_DISP_HOR_RES    320
-#define MY_DISP_VER_RES    240
+#define MY_DISP_HOR_RES    LCD_DISPLAY_WIDTH
+#define MY_DISP_VER_RES    LCD_DISPLAY_HEIGHT
 
 /**********************
  *      TYPEDEFS
@@ -43,7 +43,7 @@ static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px
 /**********************
  *   GLOBAL FUNCTIONS
  **********************/
-uint16_t gram[MY_DISP_HOR_RES * MY_DISP_VER_RES / 8];
+uint16_t gram[MY_DISP_HOR_RES * MY_DISP_VER_RES / 16];
 
 void lv_port_disp_init(void)
 {
