@@ -1,0 +1,13 @@
+
+#ifndef _CRC_H
+#define _CRC_H
+
+#include "stdint.h"
+#include "stdbool.h"
+
+
+uint16_t crc16_ccitt(const uint8_t *puchMsg, uint32_t usDataLen);
+uint16_t crc16_ibm(const uint8_t *data, uint32_t length);
+uint32_t crc32_ieee(uint32_t crc, const uint8_t *buffer, uint32_t size);
+
+#endif

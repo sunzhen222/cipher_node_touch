@@ -1,0 +1,56 @@
+{
+    "configurations": [
+        {
+            "name": "Linux",
+            "defines": [
+                "USE_HAL_DRIVER",
+                "STM32F405xx",
+                "LV_LVGL_H_INCLUDE_SIMPLE"
+            ],
+            "compilerPath": "C:/msys64/mingw64/bin/gcc.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "includePath": [
+                "C:/msys64/mingw64/include/**",
+                "C:/msys64/mingw64/arm-none-eabi/include/**",
+                "${workspaceFolder}/src/core",
+                "${workspaceFolder}/src/application",
+                "${workspaceFolder}/src/usb_device/App",
+                "${workspaceFolder}/src/usb_device/Target",
+                "${workspaceFolder}/src/usb_device/STM32_USB_Device_Library/Core/Inc",
+                "${workspaceFolder}/src/usb_device/STM32_USB_Device_Library/Class",
+                "${workspaceFolder}/src/usb_device/STM32_USB_Device_Library/Class/CDC/Inc",
+                "${workspaceFolder}/src/usb_device/STM32_USB_Device_Library/Class/MSC/Inc",
+                "${workspaceFolder}/src/st_libs/STM32F4xx_HAL_Driver/Inc",
+                "${workspaceFolder}/src/st_libs/STM32F4xx_HAL_Driver/Inc/Legacy",
+                "${workspaceFolder}/src/st_libs/CMSIS/Device/ST/STM32F4xx/Include",
+                "${workspaceFolder}/src/st_libs/CMSIS/Include",
+                "${workspaceFolder}/src/FreeRTOS",
+                "${workspaceFolder}/src/FreeRTOS/Source",
+                "${workspaceFolder}/src/FreeRTOS/Source/include",
+                "${workspaceFolder}/src/FreeRTOS/Source/portable/GCC/ARM_CM4F",
+                "${workspaceFolder}/src/FreeRTOS/CMSIS_RTOS_V2",
+                "${workspaceFolder}/src/driver",
+                "${workspaceFolder}/src/utils",
+                "${workspaceFolder}/src/tasks",
+                "${workspaceFolder}/src/test",
+                "${workspaceFolder}/src/msg",
+                "${workspaceFolder}/src/cm_backtrace",
+                "${workspaceFolder}/src/fatfs",
+                "${workspaceFolder}/src/porting",
+                "${workspaceFolder}/src/components",
+                "${workspaceFolder}/src/components/checksum",
+                "${workspaceFolder}/src/components/cjson",
+                "${workspaceFolder}/src/ui",
+                "${workspaceFolder}/src/ui/framework",
+                "${workspaceFolder}/src/ui/pages",
+                "${workspaceFolder}/src/ui/widgets",
+                "${workspaceFolder}/src/ui/images",
+                "${workspaceFolder}/src/ui/themes",
+                "${workspaceFolder}/src/ui/i18n",
+                "${workspaceFolder}/third/lvgl"
+            ]
+        }
+    ],
+    "version": 4
+}

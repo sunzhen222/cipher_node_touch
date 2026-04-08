@@ -1,0 +1,24 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "dependencies": {
+    "lv_i18n": "^0.2.1"
+  },
+  "scripts": {},
+  "name": "cipher_node_touch",
+  "description": "本项目使用 arm-none-eabi-gcc 进行编译，建议使用 MSYS2 进行环境搭建。",
+  "main": "index.js",
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sunzhen222/CIPHER_NODE_TOUCH.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sunzhen222/CIPHER_NODE_TOUCH/issues"
+  },
+  "homepage": "https://github.com/sunzhen222/CIPHER_NODE_TOUCH#readme"
+}

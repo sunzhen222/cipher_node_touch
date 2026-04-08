@@ -1,0 +1,164 @@
+'en':
+  # Home page
+  config: Config
+  speed_ctrl: Speed ctrl
+  firmware: Firmware
+  system: System
+
+  # Config page
+  save: Save
+  load: Load
+  unsaved: "unsaved*"
+  config_load_first: Please load settings first
+  config_save_confirm: Save settings to AM32?
+  config_load_unsaved_warning: You have unsaved changes. Load settings from AM32? Unsaved changes will be lost.
+  config_back_unsaved_warning: You have unsaved changes. Are you sure to leave without saving?
+  config_read_failed: Failed to read parameters from AM32. Check power or connection.
+  config_write_failed: Failed to write parameters to AM32. Check power or connection.
+
+  # Speed control page
+  speed_control: Speed control
+  smooth: Smooth
+  disable_smooth_warning: Sudden speed changes may damage the ESC. Confirm to disable smooth mode?
+  speed_format: "Speed: %lu%%"
+
+  # Widget color page
+  widget_color: Widget color
+
+  # LCD brightness page
+  lcd_brightness: LCD Brightness
+
+  # System page
+  system_widget_color: Widget color
+  system_lcd_brightness: LCD brightness
+  system_factory_reset: Factory Reset
+  system_language: Language
+  system_about: About
+  factory_reset_confirm: Are you sure to reset to factory settings?
+
+  # Language page
+  language_english: English
+  language_chinese: 中文(简体)
+  language_korean: 한국어
+
+  # About page
+  about_hardware_version_format: "Hardware version: %s"
+  about_software_version_format: "Software version: %s"
+  about_build_time_format: "Build time: %s"
+  about_uid_format: "UID: %08lX %08lX %08lX"
+
+  # Firmware page
+  select_file: "Select file:"
+  success: success
+  update_firmware: Update firmware
+  no_hex_files_found: "No *.hex files found"
+  firmware_updating_wait: "Firmware updating, please wait..."
+  error_unknown: unknown error
+  error_invalid_path: Invalid file path
+  error_invalid_path_length: Invalid file path length
+  error_hex_start_address: Hex file start address is invalid
+  error_open_hex_failed: Failed to open hex file
+  error_check_hex_failed: "Check hex failed(%ld)"
+  error_write_flash: "failed to write flash at address %08lX"
+  error_read_hex: "error reading hex file(%ld)"
+
+  # Brake tile
+  car_type_reverse_braking: Car type reverse braking
+  brake_on_stop: Brake on stop
+  brake_on_stop_option_off: Off
+  brake_on_stop_option_brake: Brake on stop
+  brake_on_stop_option_active: Active brake
+  off: Off
+  brake_strength: Brake strength
+  running_brake_level: Running brake level
+  active_brake_power: Active brake power
+  duty_cycle: "%u%% duty cycle"
+
+  # Essentials tile
+  protocol: "Protocol:"
+  protocol_option_auto: AUTO
+  protocol_option_dshot: Dshot
+  protocol_option_servo: Servo
+  protocol_option_serial: Serial
+  protocol_option_edt_arm: EDT ARM
+  motor_direction_reverse: Motor direction reverse
+  disable_stick_calibration: Disable Stick Calibration
+
+  # Motor1 tile
+  stuck_rotor_protection: Stuck Rotor Protection
+  stall_protection: Stall protection
+  use_hall_sensors: Use hall sensors
+  telemetry_30ms: 30ms interval telemetry
+  complementary_pwm: Complementary PWM
+
+  # Motor2 tile
+  auto_timing_advance: Auto timing advance
+  timing_advance: Timing Advance
+  startup_power: Startup power
+  motor_kv: Motor KV
+
+  # Motor3 tile
+  motor_poles: Motor poles
+  beeper_volume: Beeper volume
+  ramp_rate: Ramp rate
+  ramp_rate_format: "%u.%u%% duty cycle per ms"
+
+  # Motor4 tile
+  pwm_type: PWM Type
+  pwm_type_option_fixed: Fixed
+  pwm_type_option_variable: Variable
+  pwm_type_option_by_rpm: by RPM
+  pwm_frequency: PWM Frequency
+  minimum_duty_cycle: Minimum duty cycle
+
+  # Limits tile
+  low_voltage_cut_off: Low Voltage Cut Off
+  lvco_option_off: Off
+  lvco_option_cell_based: Cell based
+  lvco_option_absolute: Absolute
+  temperature_limit: Temperature limit
+  current_limit: Current limit
+  disabled: Disabled
+  low_voltage_cut_off_threshold: Low voltage cut off threshold
+  absolute_voltage_cutoff: Absolute voltage cutoff
+
+  # PID tile
+  editable_if_current_limit: Editable if current limit works
+  current_p: Current P
+  current_i: Current I
+  current_d: Current D
+
+  # Servo tile
+  low_threshold: Low threshold
+  high_threshold: High threshold
+  neutral: Neutral
+  dead_band: Dead band
+
+  # Sin tile
+  sinusoidal_startup: Sinusoidal startup
+  sine_mode_range: Sine mode range
+  sine_mode_power: Sine mode power
+
+  # Firmware tile
+  bootloader: Bootloader
+  pin: "PIN:"
+  pin_format: "PIN: P%c%c"
+  version: "Version:"
+  version_format: "Version: %d"
+  flash_colon: "Flash:"
+  flash_colon_format: "Flash: 0x%02X"
+  mcu: MCU
+  type: "Type:"
+  type_format: "Type: %s"
+  eeprom: "EEPROM:"
+  eeprom_format: "EEPROM: v%d"
+  firmware_info: Firmware
+  name: "Name:"
+  name_format: "Name: %s"
+  version_firmware: "Version:"
+  version_firmware_format: "Version: %u.%02u"
+  need_startup: (Need startup)
+  default_settings: Default Settings
+  default_settings_confirm: Are you sure to overwrite the current config with default settings?
+  version_default: "Version: default"
+
