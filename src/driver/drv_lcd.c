@@ -48,7 +48,7 @@ void LcdInit(void)
     LcdReset();
     LcdConfig();
     RegisterTestCmd("lcd:", LcdTestFunc);
-    LcdClear(0x0000);
+    LcdClear(0);
     Timer5Init();
     SetLcdBackLight(100);
 }
@@ -204,8 +204,8 @@ static void LcdConfig(void)
     LcdWritByte(0x22);
     LcdWritByte(0x80);
 
-    LcdWriteCmd(0x36);      // Memory Access Control
-    LcdWritByte(0x48);
+    LcdWriteCmd(0x36);      // Memory Access Control (color order + scan direction)
+    LcdWritByte(0x40);      //RGB-BGR Order
     //LcdWritByte(0x88);
     //LcdWritByte(0x28);
     //LcdWritByte(0xE8);
@@ -214,7 +214,7 @@ static void LcdConfig(void)
     LcdWriteCmd(0x3A);      //Interface Mode Control
     LcdWritByte(0x66);
 
-    LcdWriteCmd(0XB0);      //Interface Mode Control
+    LcdWriteCmd(0xB0);      //Interface Mode Control
     LcdWritByte(0x00);
     LcdWriteCmd(0xB1);      //Frame rate 70HZ
     LcdWritByte(0xB0);
@@ -230,7 +230,7 @@ static void LcdConfig(void)
     LcdWriteCmd(0xE9);
     LcdWritByte(0x00);
 
-    LcdWriteCmd(0XF7);
+    LcdWriteCmd(0xF7);
     LcdWritByte(0xA9);
     LcdWritByte(0x51);
     LcdWritByte(0x2C);
