@@ -3,9 +3,11 @@
 #include "user_utils.h"
 #include "drv_touch.h"
 #include "user_msg.h"
+#include "drv_button.h"
 
 void GpioInit(void)
 {
+    GPIO_InitTypeDef gpioInit = {0};
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -22,6 +24,25 @@ void GpioInit(void)
     SetGpioOutput(GPIOD, GPIO_PIN_2, GPIO_PIN_SET);     //FLASH CS
 
     SetGpioOutput(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);   //LCD backlight
+
+    //PC9, LLCC68 DIO1.
+    gpioInit.Pin = GPIO_PIN_9;
+    gpioInit.Mode = GPIO_MODE_IT_RISING;
+    gpioInit.Pull = GPIO_NOPULL;
+    gpioInit.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOC, &gpioInit);
+    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+    //PA1, Button
+    gpioInit.Pin = GPIO_PIN_1;
+    gpioInit.Mode = GPIO_MODE_IT_FALLING;
+    gpioInit.Pull = GPIO_PULLUP;
+    gpioInit.Speed = GPIO_SPEED_FREQ_LOW;
+    HAL_GPIO_Init(GPIOA, &gpioInit);
+    HAL_NVIC_SetPriority(EXTI1_IRQn, 5, 0);
+    HAL_NVIC_EnableIRQ(EXTI1_IRQn);
+
 }
 
 void SetGpioOutput(GPIO_TypeDef *GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState)
@@ -50,5 +71,9 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == GPIO_PIN_8) {
         TouchPadIntHandler();
+    } else if (GPIO_Pin == GPIO_PIN_9) {
+        //PubValueMsg(BACKGROUND_MSG_LORA_IRQ, 0);
+    } else if (GPIO_Pin == GPIO_PIN_1) {
+        ButtonIntHandler();
     }
 }

@@ -30,6 +30,7 @@
 #include "software_version.h"
 #include "draw_on_lcd.h"
 #include "drv_power_switch.h"
+#include "drv_button.h"
 
 void Startup(void)
 {
@@ -53,6 +54,7 @@ void Startup(void)
     FsMount();
     SaveLastError();
     DeviceSettingsInit();
+    ButtonInit();
 
     //hardware start
     Uart1Start();

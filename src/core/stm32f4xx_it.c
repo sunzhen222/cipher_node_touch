@@ -124,6 +124,14 @@ void USART2_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles EXTI line1 interrupts.
+  */
+void EXTI1_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+}
+
+/**
   * @brief This function handles EXTI line2 interrupts.
   */
 void EXTI2_IRQHandler(void)
@@ -137,8 +145,8 @@ void EXTI2_IRQHandler(void)
 void EXTI9_5_IRQHandler(void)
 {
     HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
 }
-
 
 /**
   * @brief This function handles EXTI line[15:10] interrupts.
