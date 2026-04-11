@@ -164,8 +164,6 @@ static void LcdConfig(void)
     LcdWritByte(0x82);
     LcdWriteCmd(0x36);
     LcdWritByte(0x40);      //RGB-BGR Order
-    LcdWriteCmd(0x3A);
-    LcdWritByte(0x55);
     LcdWriteCmd(0xB4);
     LcdWritByte(0x02);
     LcdWriteCmd(0xB1);
@@ -174,48 +172,53 @@ static void LcdConfig(void)
     LcdWriteCmd(0xC0);
     LcdWritByte(0x0F);
     LcdWritByte(0x0F);
-    LcdWriteCmd(0xc1);
+    LcdWriteCmd(0xC1);
     LcdWritByte(0x41);
     LcdWriteCmd(0xC2);
     LcdWritByte(0x22);
     LcdWriteCmd(0xB7);
     LcdWritByte(0xC6);
-    LcdWriteCmd(0xc5);
+    LcdWriteCmd(0xC5);
     LcdWritByte(0x00);
-    LcdWritByte(0x53);
+    //LcdWritByte(0x53);
+    LcdWritByte(0x22);
     LcdWritByte(0x80);
+
+    //Gamma Positive
     LcdWriteCmd(0xE0);
     LcdWritByte(0x00);
     LcdWritByte(0x08);
-    LcdWritByte(0x0c);
+    LcdWritByte(0x0C);
     LcdWritByte(0x02);
-    LcdWritByte(0x0e);
+    LcdWritByte(0x0E);
     LcdWritByte(0x04);
     LcdWritByte(0x30);
     LcdWritByte(0x45);
     LcdWritByte(0x47);
     LcdWritByte(0x04);
     LcdWritByte(0x0C);
-    LcdWritByte(0x0a);
-    LcdWritByte(0x2e);
+    LcdWritByte(0x0A);
+    LcdWritByte(0x2E);
     LcdWritByte(0x34);
     LcdWritByte(0x0F);
+    //Gamma Negative
     LcdWriteCmd(0xE1);
     LcdWritByte(0x00);
     LcdWritByte(0x11);
-    LcdWritByte(0x0d);
+    LcdWritByte(0x0D);
     LcdWritByte(0x01);
-    LcdWritByte(0x0f);
+    LcdWritByte(0x0F);
     LcdWritByte(0x05);
     LcdWritByte(0x39);
     LcdWritByte(0x36);
     LcdWritByte(0x51);
     LcdWritByte(0x06);
-    LcdWritByte(0x0f);
-    LcdWritByte(0x0d);
+    LcdWritByte(0x0F);
+    LcdWritByte(0x0D);
     LcdWritByte(0x33);
     LcdWritByte(0x37);
     LcdWritByte(0x0F);
+
     LcdWriteCmd(0x21);
     LcdWritByte(0x00);
     LcdWriteCmd(0x3A);
