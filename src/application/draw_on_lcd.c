@@ -17,7 +17,7 @@
 
 void DrawImageOnLcd(uint16_t x, uint16_t y, const lv_img_dsc_t *imgDsc)
 {
-    uint16_t *colors;
+    uint8_t *colors;
 
     colors = SRAM_MALLOC(imgDsc->header.w * imgDsc->header.h * 3);
     memcpy(colors, imgDsc->data, imgDsc->data_size);

@@ -154,93 +154,77 @@ static void LcdSetAddress(uint16_t startX, uint16_t startY, uint16_t endX, uint1
     LcdWriteCmd(0x2C);
 }
 
-
 static void LcdConfig(void)
 {
     osDelay(120);
-    LcdWriteCmd(0xE0);
-    LcdWritByte(0x00);
-    LcdWritByte(0x07);
-    LcdWritByte(0x0f);
-    LcdWritByte(0x0D);
-    LcdWritByte(0x1B);
-    LcdWritByte(0x0A);
-    LcdWritByte(0x3c);
-    LcdWritByte(0x78);
-    LcdWritByte(0x4A);
-    LcdWritByte(0x07);
-    LcdWritByte(0x0E);
-    LcdWritByte(0x09);
-    LcdWritByte(0x1B);
-    LcdWritByte(0x1e);
-    LcdWritByte(0x0f);
-
-    LcdWriteCmd(0xE1);
-    LcdWritByte(0x00);
-    LcdWritByte(0x22);
-    LcdWritByte(0x24);
-    LcdWritByte(0x06);
-    LcdWritByte(0x12);
-    LcdWritByte(0x07);
-    LcdWritByte(0x36);
-    LcdWritByte(0x47);
-    LcdWritByte(0x47);
-    LcdWritByte(0x06);
-    LcdWritByte(0x0a);
-    LcdWritByte(0x07);
-    LcdWritByte(0x30);
-    LcdWritByte(0x37);
-    LcdWritByte(0x0f);
-
-    LcdWriteCmd(0xC0);
-    LcdWritByte(0x10);
-    LcdWritByte(0x10);
-
-    LcdWriteCmd(0xC1);
-    LcdWritByte(0x41);
-
-    LcdWriteCmd(0xC5);
-    LcdWritByte(0x00);
-    LcdWritByte(0x22);
-    LcdWritByte(0x80);
-
-    LcdWriteCmd(0x36);      // Memory Access Control (color order + scan direction)
-    LcdWritByte(0x40);      //RGB-BGR Order
-    //LcdWritByte(0x88);
-    //LcdWritByte(0x28);
-    //LcdWritByte(0xE8);
-
-
-    LcdWriteCmd(0x3A);      //Interface Mode Control
-    LcdWritByte(0x66);
-
-    LcdWriteCmd(0xB0);      //Interface Mode Control
-    LcdWritByte(0x00);
-    LcdWriteCmd(0xB1);      //Frame rate 70HZ
-    LcdWritByte(0xB0);
-    LcdWritByte(0x11);
-    LcdWriteCmd(0xB4);
-    LcdWritByte(0x02);
-    LcdWriteCmd(0xB6);      //RGB/MCU Interface Control
-    LcdWritByte(0x02);
-    LcdWritByte(0x02);
-
-    LcdWriteCmd(0xB7);
-    LcdWritByte(0xC6);
-    LcdWriteCmd(0xE9);
-    LcdWritByte(0x00);
-
     LcdWriteCmd(0xF7);
     LcdWritByte(0xA9);
     LcdWritByte(0x51);
     LcdWritByte(0x2C);
     LcdWritByte(0x82);
+    LcdWriteCmd(0x36);
+    LcdWritByte(0x40);      //RGB-BGR Order
+    LcdWriteCmd(0x3A);
+    LcdWritByte(0x55);
+    LcdWriteCmd(0xB4);
+    LcdWritByte(0x02);
+    LcdWriteCmd(0xB1);
+    LcdWritByte(0xA0);
+    LcdWritByte(0x11);
+    LcdWriteCmd(0xC0);
+    LcdWritByte(0x0F);
+    LcdWritByte(0x0F);
+    LcdWriteCmd(0xc1);
+    LcdWritByte(0x41);
+    LcdWriteCmd(0xC2);
+    LcdWritByte(0x22);
+    LcdWriteCmd(0xB7);
+    LcdWritByte(0xC6);
+    LcdWriteCmd(0xc5);
+    LcdWritByte(0x00);
+    LcdWritByte(0x53);
+    LcdWritByte(0x80);
+    LcdWriteCmd(0xE0);
+    LcdWritByte(0x00);
+    LcdWritByte(0x08);
+    LcdWritByte(0x0c);
+    LcdWritByte(0x02);
+    LcdWritByte(0x0e);
+    LcdWritByte(0x04);
+    LcdWritByte(0x30);
+    LcdWritByte(0x45);
+    LcdWritByte(0x47);
+    LcdWritByte(0x04);
+    LcdWritByte(0x0C);
+    LcdWritByte(0x0a);
+    LcdWritByte(0x2e);
+    LcdWritByte(0x34);
+    LcdWritByte(0x0F);
+    LcdWriteCmd(0xE1);
+    LcdWritByte(0x00);
+    LcdWritByte(0x11);
+    LcdWritByte(0x0d);
+    LcdWritByte(0x01);
+    LcdWritByte(0x0f);
+    LcdWritByte(0x05);
+    LcdWritByte(0x39);
+    LcdWritByte(0x36);
+    LcdWritByte(0x51);
+    LcdWritByte(0x06);
+    LcdWritByte(0x0f);
+    LcdWritByte(0x0d);
+    LcdWritByte(0x33);
+    LcdWritByte(0x37);
+    LcdWritByte(0x0F);
+    LcdWriteCmd(0x21);
+    LcdWritByte(0x00);
+    LcdWriteCmd(0x3A);
+    LcdWritByte(0x66);      //RGB666
 
     LcdWriteCmd(0x11);
     osDelay(120);
-
-    LcdWriteCmd(0x21);
     LcdWriteCmd(0x29);
+    osDelay(50);
 }
 
 static void LcdTestFunc(int argc, char *argv[])
