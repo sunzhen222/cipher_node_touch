@@ -3,6 +3,7 @@
 SET build_simulator=false
 SET build_rebuild=false
 SET build_copy=false
+SET build_flash=false
 
 
 for %%i in (%*) do (
@@ -14,6 +15,9 @@ for %%i in (%*) do (
     )
     if /I "%%i"=="copy" (
         set build_copy=true
+    )
+    if /I "%%i"=="flash" (
+        set build_flash=true
     )
 )
 
@@ -61,6 +65,12 @@ if exist cipher_node_touch.bin (
     %CD%/../tools/ota_file_maker/OTA_File_Maker_Console.exe mcu cipher_node_touch.bin update.bin aes
     if "%build_copy%"=="true" (
         copy /b "update.bin" "j:/update.bin"
+    )
+)
+
+if exist cipher_node_touch.hex (
+    if "%build_flash%"=="true" (
+        JLink -CommanderScript "../program.jlink"
     )
 )
 
