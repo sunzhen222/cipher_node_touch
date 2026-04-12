@@ -36,6 +36,7 @@ set(CM_BACKTRACE_DIR "${SOURCE_DIR}/cm_backtrace")
 set(FATFS_DIR "${SOURCE_DIR}/fatfs")
 set(COMPONENTS_DIR "${SOURCE_DIR}/components")
 set(PORTING_DIR "${SOURCE_DIR}/porting")
+set(WIRELESS_DIR "${SOURCE_DIR}/wireless")
 set(UI_DIR "${SOURCE_DIR}/ui")
 set(UI_FRAMEWORK_DIR "${UI_DIR}/framework")
 set(UI_PAGES_DIR "${UI_DIR}/pages")
@@ -110,6 +111,7 @@ include_directories(${COMPONENTS_DIR})
 include_directories(${COMPONENTS_DIR}/checksum)
 include_directories(${COMPONENTS_DIR}/cjson)
 include_directories(${PORTING_DIR})
+include_directories(${WIRELESS_DIR})
 include_directories(${UI_FRAMEWORK_DIR})
 include_directories(${UI_PAGES_DIR})
 include_directories(${UI_IMAGES_DIR})
@@ -173,6 +175,10 @@ file(GLOB_RECURSE COMPONENTS_FILES
 
 file(GLOB PORTING_FILES
     "${PORTING_DIR}/*.c"
+)
+
+file(GLOB WIRELESS_FILES
+    "${WIRELESS_DIR}/*.c"
 )
 
 file(GLOB HAL_DRIVER_FILES
@@ -255,6 +261,7 @@ set(objsrc
     ${FATFS_FILES}
     ${COMPONENTS_FILES}
     ${PORTING_FILES}
+    ${WIRELESS_FILES}
     ${HAL_DRIVER_FILES}
     ${FREERTOS_DIR_FILES}
     ${USBD_FILES}

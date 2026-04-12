@@ -6,6 +6,7 @@
 #include "user_msg.h"
 #include "user_utils.h"
 #include "ui_msg.h"
+#include "lora.h"
 
 typedef struct {
     BackgroundAsyncFunc_t func;
@@ -72,6 +73,10 @@ static void BackgroundTask(void *argument)
         }
         switch (rcvMsg.id) {
         case BACKGROUND_MSG_SECOND: {
+        }
+        break;
+        case BACKGROUND_MSG_LORA_IRQ: {
+            LoraIrqHandler();
         }
         break;
         case BACKGROUND_MSG_EXECUTE: {

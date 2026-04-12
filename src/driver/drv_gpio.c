@@ -24,6 +24,7 @@ void GpioInit(void)
     SetGpioOutput(GPIOD, GPIO_PIN_2, GPIO_PIN_SET);     //FLASH CS
 
     SetGpioOutput(GPIOA, GPIO_PIN_0, GPIO_PIN_RESET);   //LCD backlight
+    SetGpioOutput(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);   //LED
 
     //PC9, LLCC68 DIO1.
     gpioInit.Pin = GPIO_PIN_9;
@@ -72,7 +73,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
     if (GPIO_Pin == GPIO_PIN_8) {
         TouchPadIntHandler();
     } else if (GPIO_Pin == GPIO_PIN_9) {
-        //PubValueMsg(BACKGROUND_MSG_LORA_IRQ, 0);
+        PubValueMsg(BACKGROUND_MSG_LORA_IRQ, 0);
     } else if (GPIO_Pin == GPIO_PIN_1) {
         ButtonIntHandler();
     }

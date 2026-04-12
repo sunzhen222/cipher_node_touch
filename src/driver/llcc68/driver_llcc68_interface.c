@@ -91,14 +91,14 @@ uint8_t llcc68_interface_spi_write_read(uint8_t *in_buf, uint32_t in_len,
     __disable_irq();
     HAL_GPIO_WritePin(LLCC68_CS_GPIO, LLCC68_CS_PIN, GPIO_PIN_RESET);
     if (in_buf != NULL && in_len > 0) {
-        if (HAL_SPI_Transmit(&hspi1, in_buf, in_len, 100) != HAL_OK) {
+        if (HAL_SPI_Transmit(&hspi2, in_buf, in_len, 100) != HAL_OK) {
             HAL_GPIO_WritePin(LLCC68_CS_GPIO, LLCC68_CS_PIN, GPIO_PIN_SET);
             __enable_irq();
             return 1;
         }
     }
     if (out_buf != NULL && out_len > 0) {
-        if (HAL_SPI_Receive(&hspi1, out_buf, out_len, 100) != HAL_OK) {
+        if (HAL_SPI_Receive(&hspi2, out_buf, out_len, 100) != HAL_OK) {
             HAL_GPIO_WritePin(LLCC68_CS_GPIO, LLCC68_CS_PIN, GPIO_PIN_SET);
             __enable_irq();
             return 1;

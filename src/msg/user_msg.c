@@ -6,6 +6,7 @@ osMessageQueueId_t g_cmdQueue;
 osMessageQueueId_t g_usbQueue;
 osMessageQueueId_t g_uiQueue;
 osMessageQueueId_t g_backgroundQueue;
+osMessageQueueId_t g_wirelessQueue;
 
 void UserMsgInit(void)
 {
@@ -14,7 +15,7 @@ void UserMsgInit(void)
     g_usbQueue = osMessageQueueNew(10, sizeof(Message_t), NULL);
     g_uiQueue = osMessageQueueNew(10, sizeof(Message_t), NULL);
     g_backgroundQueue = osMessageQueueNew(10, sizeof(Message_t), NULL);
-
+    g_wirelessQueue = osMessageQueueNew(10, sizeof(Message_t), NULL);
     //All messages are registered here
     SubMessageID(CMD_MSG_FRAME, g_cmdQueue);
 
@@ -27,5 +28,8 @@ void UserMsgInit(void)
 
 
     SubMessageID(BACKGROUND_MSG_SECOND, g_backgroundQueue);
+    SubMessageID(BACKGROUND_MSG_LORA_IRQ, g_backgroundQueue);
     SubMessageID(BACKGROUND_MSG_EXECUTE, g_backgroundQueue);
+
+    SubMessageID(WIRELESS_MSG_LORA_SEND, g_wirelessQueue);
 }

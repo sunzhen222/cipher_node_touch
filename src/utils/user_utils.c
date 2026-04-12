@@ -189,10 +189,11 @@ int32_t GetIntValue(const cJSON *obj, const char *key, int32_t defaultValue)
  * @brief       Get string value from cJSON object.
  * @param[in]   obj : cJSON object.
  * @param[in]   key : key name.
+ * @param[in]   defaultValue : if key does not exist, return this value.
  * @param[out]  value : return string value, if the acquisition fails, the string will be cleared.
  * @retval
  */
-void GetStringValue(const cJSON *obj, const char *key, char *value)
+void GetStringValue(const cJSON *obj, const char *key, const char *defaultValue, char *value)
 {
     cJSON *json;
     char *strTemp;
@@ -203,7 +204,7 @@ void GetStringValue(const cJSON *obj, const char *key, char *value)
         strcpy(value, strTemp);
     } else {
         printf("key:%s does not exist\r\n", key);
-        value[0] = '\0';
+        strcpy(value, defaultValue);
     }
 }
 

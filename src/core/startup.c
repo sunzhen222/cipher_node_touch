@@ -23,6 +23,7 @@
 #include "background_task.h"
 #include "ui_task.h"
 #include "touch_task.h"
+#include "wireless_task.h"
 #include "user_fs.h"
 #include "device_settings.h"
 #include "save_error.h"
@@ -31,6 +32,7 @@
 #include "draw_on_lcd.h"
 #include "drv_power_switch.h"
 #include "drv_button.h"
+#include "lora.h"
 
 void Startup(void)
 {
@@ -55,6 +57,7 @@ void Startup(void)
     SaveLastError();
     DeviceSettingsInit();
     ButtonInit();
+    LoraInit();
 
     //hardware start
     Uart1Start();
@@ -67,4 +70,5 @@ void Startup(void)
     CreateBackgroundTask();
     CreateUiTask();
     CreateTouchTask();
+    CreateWirelessTask();
 }

@@ -10,6 +10,7 @@
 #include "test_cmd.h"
 #include "flash_map.h"
 #include "lvgl.h"
+#include "lora.h"
 
 
 #define VERSION_MAX_LENGTH                  32
@@ -21,12 +22,24 @@
 #define KEY_SPEED_CTRL_SMOOTH               "speed_ctrl_smooth"
 #define KEY_WIDGET_COLOR                    "widget_color"
 #define KEY_LANGUAGE                        "language"
+#define KEY_LORA_FREQ                       "lora_freq"
+#define KEY_DEVICE_ID                       "device_id"
+#define KEY_LORA_NET_ID                     "lora_net_id"
+#define KEY_LORA_SECRET_KEY                 "lora_secret_key"
+#define KEY_LORA_SPREADING_FACTOR           "lora_sf"
+#define KEY_LORA_BANDWIDTH                  "lora_bw"
 
 #define DEFAULT_BRIGHTNESS                  100
 #define DEFAULT_SPEED_CTRL_MODE             0
 #define DEFAULT_SPEED_CTRL_SMOOTH           1
 #define DEFAULT_WIDGET_COLOR                LV_PALETTE_BLUE
 #define DEFAULT_LANGUAGE                    0
+#define DEFAULT_LORA_FREQ                   434000000
+#define DEFAULT_DEVICE_ID                   1
+#define DEFAULT_LORA_NET_ID                 0
+#define DEFAULT_LORA_SECRET_KEY             "default_lora_secret_key"
+#define DEFAULT_LORA_SPREADING_FACTOR       LLCC68_LORA_DEFAULT_SF
+#define DEFAULT_LORA_BANDWIDTH              LLCC68_LORA_DEFAULT_BANDWIDTH
 
 typedef struct {
     uint32_t brightness;
@@ -34,6 +47,12 @@ typedef struct {
     uint32_t speedCtrlSmooth;
     uint32_t widgetColor;
     uint32_t language;
+    uint32_t loraFreq;
+    uint32_t deviceId;
+    uint32_t loraNetId;
+    char loraSecretKey[96];
+    uint32_t loraSpreadingFactor;
+    uint32_t loraBandwidth;
 } DeviceSettings_t;
 
 static void SaveDeviceSettingsSync(void);
@@ -75,6 +94,13 @@ void DeviceSettingsInit(void)
         g_deviceSettings.speedCtrlSmooth = DEFAULT_SPEED_CTRL_SMOOTH;
         g_deviceSettings.widgetColor = DEFAULT_WIDGET_COLOR;
         g_deviceSettings.language = DEFAULT_LANGUAGE;
+        g_deviceSettings.loraFreq = DEFAULT_LORA_FREQ;
+        g_deviceSettings.deviceId = DEFAULT_DEVICE_ID;
+        g_deviceSettings.loraNetId = DEFAULT_LORA_NET_ID;
+        strncpy(g_deviceSettings.loraSecretKey, DEFAULT_LORA_SECRET_KEY, sizeof(g_deviceSettings.loraSecretKey) - 1);
+        g_deviceSettings.loraSecretKey[sizeof(g_deviceSettings.loraSecretKey) - 1] = '\0';
+        g_deviceSettings.loraSpreadingFactor = DEFAULT_LORA_SPREADING_FACTOR;
+        g_deviceSettings.loraBandwidth = DEFAULT_LORA_BANDWIDTH;
         SaveDeviceSettingsSync();
     }
     PrintDeviceSettings();
@@ -129,6 +155,70 @@ uint32_t DeviceSettingsGetLanguage(void)
 void DeviceSettingsSetLanguage(uint32_t language)
 {
     g_deviceSettings.language = language;
+}
+
+uint32_t DeviceSettingsGetLoraFreq(void)
+{
+    return g_deviceSettings.loraFreq;
+}
+
+void DeviceSettingsSetLoraFreq(uint32_t freq)
+{
+    g_deviceSettings.loraFreq = freq;
+}
+
+uint32_t DeviceSettingsGetDeviceId(void)
+{
+    return g_deviceSettings.deviceId;
+}
+
+void DeviceSettingsSetDeviceId(uint32_t id)
+{
+    g_deviceSettings.deviceId = id;
+}
+
+uint32_t DeviceSettingsGetLoraNetId(void)
+{
+    return g_deviceSettings.loraNetId;
+}
+
+void DeviceSettingsSetLoraNetId(uint32_t id)
+{
+    g_deviceSettings.loraNetId = id;
+}
+
+const char *DeviceSettingsGetLoraSecretKey(void)
+{
+    return g_deviceSettings.loraSecretKey;
+}
+
+void DeviceSettingsSetLoraSecretKey(const char *secretKey)
+{
+    if (secretKey == NULL) {
+        return;
+    }
+    strncpy(g_deviceSettings.loraSecretKey, secretKey, sizeof(g_deviceSettings.loraSecretKey) - 1);
+    g_deviceSettings.loraSecretKey[sizeof(g_deviceSettings.loraSecretKey) - 1] = '\0';
+}
+
+uint32_t DeviceSettingsGetLoraSpreadingFactor(void)
+{
+    return g_deviceSettings.loraSpreadingFactor;
+}
+
+void DeviceSettingsSetLoraSpreadingFactor(uint32_t sf)
+{
+    g_deviceSettings.loraSpreadingFactor = sf;
+}
+
+uint32_t DeviceSettingsGetLoraBandwidth(void)
+{
+    return g_deviceSettings.loraBandwidth;
+}
+
+void DeviceSettingsSetLoraBandwidth(uint32_t bw)
+{
+    g_deviceSettings.loraBandwidth = bw;
 }
 
 void SaveDeviceSettings(void)
@@ -194,7 +284,7 @@ static bool GetDeviceSettingsFromJsonString(const char *string)
             ret = false;
             break;
         }
-        GetStringValue(rootJson, KEY_VERSION, versionString);
+        GetStringValue(rootJson, KEY_VERSION, "", versionString);
         if (strcmp(versionString, g_deviceSettingsVersion) != 0) {
             printf("saved version:%s\n", versionString);
             printf("g_deviceSettingsVersion:%s\n", g_deviceSettingsVersion);
@@ -206,6 +296,12 @@ static bool GetDeviceSettingsFromJsonString(const char *string)
         g_deviceSettings.speedCtrlSmooth = GetIntValue(rootJson, KEY_SPEED_CTRL_SMOOTH, DEFAULT_SPEED_CTRL_SMOOTH);
         g_deviceSettings.widgetColor = GetIntValue(rootJson, KEY_WIDGET_COLOR, DEFAULT_WIDGET_COLOR);
         g_deviceSettings.language = GetIntValue(rootJson, KEY_LANGUAGE, DEFAULT_LANGUAGE);
+        g_deviceSettings.loraFreq = GetIntValue(rootJson, KEY_LORA_FREQ, DEFAULT_LORA_FREQ);
+        g_deviceSettings.deviceId = GetIntValue(rootJson, KEY_DEVICE_ID, DEFAULT_DEVICE_ID);
+        g_deviceSettings.loraNetId = GetIntValue(rootJson, KEY_LORA_NET_ID, DEFAULT_LORA_NET_ID);
+        GetStringValue(rootJson, KEY_LORA_SECRET_KEY, DEFAULT_LORA_SECRET_KEY, g_deviceSettings.loraSecretKey);
+        g_deviceSettings.loraSpreadingFactor = GetIntValue(rootJson, KEY_LORA_SPREADING_FACTOR, DEFAULT_LORA_SPREADING_FACTOR);
+        g_deviceSettings.loraBandwidth = GetIntValue(rootJson, KEY_LORA_BANDWIDTH, DEFAULT_LORA_BANDWIDTH);
     } while (0);
     cJSON_Delete(rootJson);
 
@@ -225,6 +321,12 @@ static char *GetJsonStringFromDeviceSettings(void)
     cJSON_AddItemToObject(rootJson, KEY_SPEED_CTRL_SMOOTH, cJSON_CreateNumber(g_deviceSettings.speedCtrlSmooth));
     cJSON_AddItemToObject(rootJson, KEY_WIDGET_COLOR, cJSON_CreateNumber(g_deviceSettings.widgetColor));
     cJSON_AddItemToObject(rootJson, KEY_LANGUAGE, cJSON_CreateNumber(g_deviceSettings.language));
+    cJSON_AddItemToObject(rootJson, KEY_LORA_FREQ, cJSON_CreateNumber(g_deviceSettings.loraFreq));
+    cJSON_AddItemToObject(rootJson, KEY_DEVICE_ID, cJSON_CreateNumber(g_deviceSettings.deviceId));
+    cJSON_AddItemToObject(rootJson, KEY_LORA_NET_ID, cJSON_CreateNumber(g_deviceSettings.loraNetId));
+    cJSON_AddItemToObject(rootJson, KEY_LORA_SECRET_KEY, cJSON_CreateString(g_deviceSettings.loraSecretKey));
+    cJSON_AddItemToObject(rootJson, KEY_LORA_SPREADING_FACTOR, cJSON_CreateNumber(g_deviceSettings.loraSpreadingFactor));
+    cJSON_AddItemToObject(rootJson, KEY_LORA_BANDWIDTH, cJSON_CreateNumber(g_deviceSettings.loraBandwidth));
     retStr = cJSON_Print(rootJson);
     RemoveFormatChar(retStr);
     cJSON_Delete(rootJson);

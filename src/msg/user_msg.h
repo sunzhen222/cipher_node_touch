@@ -14,6 +14,7 @@
 #define USB_MSG_BASE                    0x00020000
 #define UI_MSG_BASE                     0x00030000
 #define BACKGROUND_MSG_BASE             0x00040000
+#define WIRELESS_MSG_BASE               0x00050000
 
 enum {
     CMD_MSG_FRAME = CMD_MSG_BASE,
@@ -32,13 +33,19 @@ enum {
 
 enum {
     BACKGROUND_MSG_SECOND = BACKGROUND_MSG_BASE,
+    BACKGROUND_MSG_LORA_IRQ,
     BACKGROUND_MSG_EXECUTE,
+};
+
+enum {
+    WIRELESS_MSG_LORA_SEND = WIRELESS_MSG_BASE,
 };
 
 extern osMessageQueueId_t g_cmdQueue;
 extern osMessageQueueId_t g_usbQueue;
 extern osMessageQueueId_t g_uiQueue;
 extern osMessageQueueId_t g_backgroundQueue;
+extern osMessageQueueId_t g_wirelessQueue;
 
 void UserMsgInit(void);
 

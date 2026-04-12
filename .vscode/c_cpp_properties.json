@@ -38,6 +38,7 @@
                 "${workspaceFolder}/src/cm_backtrace",
                 "${workspaceFolder}/src/fatfs",
                 "${workspaceFolder}/src/porting",
+                "${workspaceFolder}/src/wireless",
                 "${workspaceFolder}/src/components",
                 "${workspaceFolder}/src/components/checksum",
                 "${workspaceFolder}/src/components/cjson",

@@ -42,7 +42,7 @@ void RemoveFormatChar(char *str);
 bool ReadAble(const char *str);
 bool DifferenceLessThan(uint32_t a, uint32_t b, uint32_t threshold);
 int32_t GetIntValue(const cJSON *obj, const char *key, int32_t defaultValue);
-void GetStringValue(const cJSON *obj, const char *key, char *value);
+void GetStringValue(const cJSON *obj, const char *key, const char *defaultValue, char *value);
 bool GetBoolValue(const cJSON *obj, const char *key, bool defaultValue);
 
 #endif
