@@ -164,7 +164,7 @@ static int32_t Ft6336GetStatus(TouchStatus_t *status)
 #if (FT6336_REVERSE_Y == 1)
     status->y = TOUCH_PAD_RES_Y - status->y - 1;
 #endif
-    printf("x=%hu,y=%hu,touch=%d\n", status->x, status->y, status->touch);
+    //printf("x=%hu,y=%hu,touch=%d\n", status->x, status->y, status->touch);
 
     return 0;
 }

@@ -379,6 +379,12 @@ static void LoraCallback(uint16_t type, uint8_t *buf, uint16_t len)
             //ProtocolReceivedData(buf, len);
             PrintArray("received data", buf, len);
             LORA_RX_LED_OFF();
+            float rssi, snr;
+            if (llcc68_lora_get_status(&rssi, &snr) == 0) {
+                printf("rssi:%.2f, snr:%.2f\n", rssi, snr);
+            } else {
+                printf("lora get status err\n");
+            }
         } else {
             printf("lora rx error:%d\n", enable);
         }
