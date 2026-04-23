@@ -12,9 +12,9 @@
 
 typedef struct {
     lv_obj_t *imageTitle;
-    lv_obj_t *buttonConfig;
-    lv_obj_t *buttonSpeedCtrl;
-    lv_obj_t *buttonFirmware;
+    lv_obj_t *buttonLoraChat;
+    lv_obj_t *buttonLvglDemo;
+    lv_obj_t *buttonInfo;
     lv_obj_t *buttonSystem;
 } HomePageValues_t;
 
@@ -39,32 +39,32 @@ static void HomePageInit(void)
 
     values->imageTitle = lv_image_create(GetPageBackground());
     lv_img_set_src(values->imageTitle, &cipher_node_touch_logo);
-    lv_obj_align(values->imageTitle, LV_ALIGN_TOP_MID, 0, 15);
+    lv_obj_align(values->imageTitle, LV_ALIGN_TOP_MID, 0, 24);
 
-    values->buttonConfig = lv_button_create(GetPageBackground());
-    lv_obj_set_size(values->buttonConfig, 100, 60);
-    lv_obj_align(values->buttonConfig, LV_ALIGN_TOP_LEFT, 50, 80);
-    lv_obj_t *btnLabel = lv_label_create(values->buttonConfig);
-    lv_label_set_text(btnLabel, _("config"));
-    lv_obj_add_event_cb(values->buttonConfig, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
+    values->buttonLoraChat = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->buttonLoraChat, 100, 60);
+    lv_obj_align(values->buttonLoraChat, LV_ALIGN_TOP_LEFT, 45, 140);
+    lv_obj_t *btnLabel = lv_label_create(values->buttonLoraChat);
+    lv_label_set_text(btnLabel, "LoRa Chat");
+    lv_obj_add_event_cb(values->buttonLoraChat, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
-    values->buttonSpeedCtrl = lv_button_create(GetPageBackground());
-    lv_obj_set_size(values->buttonSpeedCtrl, 100, 60);
-    lv_obj_align(values->buttonSpeedCtrl, LV_ALIGN_TOP_RIGHT, -50, 80);
-    lv_obj_t *speedBtnLabel = lv_label_create(values->buttonSpeedCtrl);
-    lv_label_set_text(speedBtnLabel, _("speed_ctrl"));
-    lv_obj_add_event_cb(values->buttonSpeedCtrl, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
+    values->buttonLvglDemo = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->buttonLvglDemo, 100, 60);
+    lv_obj_align(values->buttonLvglDemo, LV_ALIGN_TOP_RIGHT, -45, 140);
+    lv_obj_t *lvglDemoBtnLabel = lv_label_create(values->buttonLvglDemo);
+    lv_label_set_text(lvglDemoBtnLabel, "LVGL demo");
+    lv_obj_add_event_cb(values->buttonLvglDemo, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
-    values->buttonFirmware = lv_button_create(GetPageBackground());
-    lv_obj_set_size(values->buttonFirmware, 100, 60);
-    lv_obj_align(values->buttonFirmware, LV_ALIGN_TOP_LEFT, 50, 160);
-    lv_obj_t *firmwareBtnLabel = lv_label_create(values->buttonFirmware);
-    lv_label_set_text(firmwareBtnLabel, _("firmware"));
-    lv_obj_add_event_cb(values->buttonFirmware, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
+    values->buttonInfo = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->buttonInfo, 100, 60);
+    lv_obj_align(values->buttonInfo, LV_ALIGN_TOP_LEFT, 45, 240);
+    lv_obj_t *infoBtnLabel = lv_label_create(values->buttonInfo);
+    lv_label_set_text(infoBtnLabel, "Info");
+    lv_obj_add_event_cb(values->buttonInfo, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
     values->buttonSystem = lv_button_create(GetPageBackground());
     lv_obj_set_size(values->buttonSystem, 100, 60);
-    lv_obj_align(values->buttonSystem, LV_ALIGN_TOP_RIGHT, -50, 160);
+    lv_obj_align(values->buttonSystem, LV_ALIGN_TOP_RIGHT, -45, 240);
     lv_obj_t *systemBtnLabel = lv_label_create(values->buttonSystem);
     lv_label_set_text(systemBtnLabel, _("system"));
     lv_obj_add_event_cb(values->buttonSystem, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
@@ -95,12 +95,12 @@ static void HomePageButtonEventHandler(lv_event_t *e)
     if (code == LV_EVENT_CLICKED) {
         lv_obj_t *btn = lv_event_get_target(e);
         HomePageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-        if (btn == values->buttonConfig) {
-            printf("Config button pressed\n");
-        } else if (btn == values->buttonSpeedCtrl) {
-            printf("Speed Controller button pressed\n");
-        } else if (btn == values->buttonFirmware) {
-            printf("Firmware button pressed\n");
+        if (btn == values->buttonLoraChat) {
+            printf("LoRa Chat button pressed\n");
+        } else if (btn == values->buttonLvglDemo) {
+            printf("LVGL Demo button pressed\n");
+        } else if (btn == values->buttonInfo) {
+            printf("Info button pressed\n");
         } else if (btn == values->buttonSystem) {
             printf("System button pressed\n");
             EnterNewPage(&g_systemPage);

@@ -29,7 +29,7 @@ extern const lv_img_dsc_t cipher_node_touch_logo;
 
 void DrawBootLogoOnLcd(void)
 {
-    DrawImageOnLcd(62, 96, &cipher_node_touch_logo);
+    DrawImageOnLcd(64, 160, &cipher_node_touch_logo);
     SetLcdBackLight(100);
     UserDelay(2000);
 }
