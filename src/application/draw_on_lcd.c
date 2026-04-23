@@ -31,5 +31,5 @@ void DrawBootLogoOnLcd(void)
 {
     DrawImageOnLcd(64, 160, &cipher_node_touch_logo);
     SetLcdBackLight(100);
-    UserDelay(2000);
+    UserDelay(500);
 }

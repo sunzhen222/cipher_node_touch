@@ -28,7 +28,7 @@ Page_t g_homePage = {
     .init = HomePageInit,
     .deinit = HomePageDeinit,
     .msgHandler = HomePageMsgHandler,
-    .fullScreen = true,
+    .fullScreen = false,
 };
 
 

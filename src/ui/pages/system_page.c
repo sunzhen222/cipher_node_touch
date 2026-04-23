@@ -32,7 +32,7 @@ Page_t g_systemPage = {
     .init = SystemPageInit,
     .deinit = SystemPageDeinit,
     .msgHandler = SystemPageMsgHandler,
-    .fullScreen = true,
+    .fullScreen = false,
 };
 
 static void SystemPageInit(void)
