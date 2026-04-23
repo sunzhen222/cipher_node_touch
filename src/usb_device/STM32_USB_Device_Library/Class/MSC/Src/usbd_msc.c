@@ -287,7 +287,6 @@ uint8_t USBD_MSC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
         /* De-Init the BOT layer */
         MSC_BOT_DeInit(pdev);
 
-        (void)USBD_free(pdev->pClassDataCmsit[pdev->classId]);
         pdev->pClassDataCmsit[pdev->classId]  = NULL;
         pdev->pClassData = NULL;
     }

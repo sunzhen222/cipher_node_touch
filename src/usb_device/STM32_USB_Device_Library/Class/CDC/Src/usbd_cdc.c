@@ -407,7 +407,6 @@ static uint8_t USBD_CDC_DeInit(USBD_HandleTypeDef *pdev, uint8_t cfgidx)
     /* DeInit  physical Interface components */
     if (pdev->pClassDataCmsit[pdev->classId] != NULL) {
         ((USBD_CDC_ItfTypeDef *)pdev->pUserData[pdev->classId])->DeInit();
-        (void)USBD_free(pdev->pClassDataCmsit[pdev->classId]);
         pdev->pClassDataCmsit[pdev->classId] = NULL;
         pdev->pClassData = NULL;
     }
