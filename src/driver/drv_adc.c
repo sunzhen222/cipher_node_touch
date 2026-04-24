@@ -25,6 +25,7 @@ static void Adc1Init(void)
 
     __HAL_RCC_ADC1_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
 
     hadc1.Instance = ADC1;
     hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
@@ -47,11 +48,15 @@ static void Adc1Init(void)
 
     /**ADC1 GPIO Configuration
     PC1     ------> ADC1_IN11
+    PB1     ------> ADC1_IN9
     */
     GPIO_InitStruct.Pin = GPIO_PIN_1;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 }
 
 uint32_t GetHardwareVersionAdcValue(void)
@@ -73,13 +78,36 @@ uint32_t GetHardwareVersionAdcValue(void)
     return (sum + (SAMPLE_COUNT / 2)) / SAMPLE_COUNT;
 }
 
+uint32_t GetBatteryAdcValue(void)
+{
+    ADC_ChannelConfTypeDef sConfig = {0};
+    uint32_t sum = 0;
+
+    sConfig.Channel = ADC_CHANNEL_9;
+    sConfig.Rank = 1;
+    sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+    HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+
+    for (uint32_t i = 0; i < SAMPLE_COUNT; i++) {
+        HAL_ADC_Start(&hadc1);
+        HAL_ADC_PollForConversion(&hadc1, 100);
+        sum += HAL_ADC_GetValue(&hadc1);
+    }
+    HAL_ADC_Stop(&hadc1);
+    return (sum + (SAMPLE_COUNT / 2)) / SAMPLE_COUNT;
+}
+
 static void AdcTestFunc(int argc, char *argv[])
 {
     VALUE_CHECK(argc, 1);
     if (strcmp(argv[0], "get") == 0) {
-        uint32_t value;
-        value = GetHardwareVersionAdcValue();
-        printf("GetHardwareVersionAdcValue=%lu\n", value);
+        uint32_t hw_value;
+        uint32_t battery_value;
+
+        hw_value = GetHardwareVersionAdcValue();
+        battery_value = GetBatteryAdcValue();
+        printf("GetHardwareVersionAdcValue=%lu\n", hw_value);
+        printf("GetBatteryAdcValue=%lu\n", battery_value);
     } else {
         printf("adc test input err\n");
     }

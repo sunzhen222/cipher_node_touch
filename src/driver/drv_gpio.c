@@ -74,6 +74,8 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
         TouchPadIntHandler();
     } else if (GPIO_Pin == GPIO_PIN_9) {
         PubValueMsg(BACKGROUND_MSG_LORA_IRQ, 0);
+    } else if (GPIO_Pin == GPIO_PIN_10) {
+        PubValueMsg(BACKGROUND_MSG_REFRESH_BATTERY, 0);
     } else if (GPIO_Pin == GPIO_PIN_1) {
         ButtonIntHandler();
     }

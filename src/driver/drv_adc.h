@@ -12,5 +12,6 @@ extern ADC_HandleTypeDef hadc1;
 
 void AdcInit(void);
 uint32_t GetHardwareVersionAdcValue(void);
+uint32_t GetBatteryAdcValue(void);
 
 #endif

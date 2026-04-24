@@ -16,6 +16,7 @@
 #include "drv_uart.h"
 #include "drv_timer.h"
 #include "processor_usage.h"
+#include "battery.h"
 
 #define CMD_MAX_ARGC        16
 
@@ -48,6 +49,7 @@ static void SendUart2Func(int argc, char *argv[]);
 static void TimerDmaFunc(int argc, char *argv[]);
 static void FindFilesFunc(int argc, char *argv[]);
 static void ProcessorUsageFunc(int argc, char *argv[]);
+static void BatteryFunc(int argc, char *argv[]);
 
 
 static const TestCmdItem_t g_testCmdTable[] = {
@@ -68,6 +70,7 @@ static const TestCmdItem_t g_testCmdTable[] = {
     {"timer_dma:",              TimerDmaFunc            },
     {"find_files:",             FindFilesFunc           },
     {"processor_usage:",        ProcessorUsageFunc      },
+    {"battery",                 BatteryFunc             },
 };
 
 TestCmdNode_t g_testCmdListHead = {0};
@@ -366,4 +369,11 @@ static void ProcessorUsageFunc(int argc, char *argv[])
     sscanf(argv[0], "%lu", &en);
     printf("processor usage %s\n", en ? "enabled" : "disabled");
     SetProcessorUsage(en != 0);
+}
+
+static void BatteryFunc(int argc, char *argv[])
+{
+    UNUSED(argc);
+    UNUSED(argv);
+    PrintBatteryInfo();
 }

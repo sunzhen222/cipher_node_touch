@@ -33,6 +33,7 @@
 #include "drv_power_switch.h"
 #include "drv_button.h"
 #include "lora.h"
+#include "battery.h"
 
 void Startup(void)
 {
@@ -58,6 +59,7 @@ void Startup(void)
     DeviceSettingsInit();
     ButtonInit();
     LoraInit();
+    BatteryInit();
 
     //hardware start
     Uart1Start();

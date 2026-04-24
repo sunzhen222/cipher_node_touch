@@ -28,6 +28,7 @@ void UserMsgInit(void)
 
 
     SubMessageID(BACKGROUND_MSG_SECOND, g_backgroundQueue);
+    SubMessageID(BACKGROUND_MSG_REFRESH_BATTERY, g_backgroundQueue);
     SubMessageID(BACKGROUND_MSG_LORA_IRQ, g_backgroundQueue);
     SubMessageID(BACKGROUND_MSG_EXECUTE, g_backgroundQueue);
 

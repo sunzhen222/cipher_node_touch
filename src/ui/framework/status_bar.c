@@ -7,8 +7,10 @@
 #include "cmsis_os2.h"
 #include "device_settings.h"
 #include "images_declare.h"
+#include "battery.h"
 
 static void CommLedOffTimerFunc(lv_timer_t *timer);
+static void BatteryPadTimerFunc(lv_timer_t *timer);
 
 static lv_obj_t *g_statusBar;
 static lv_obj_t *g_commLed;
@@ -18,6 +20,7 @@ static lv_obj_t *g_wifiImage;
 static lv_obj_t *g_loraSignalImage;
 
 static lv_timer_t *g_commLedOffTimer;
+static lv_timer_t *g_batteryPadTimer;
 
 
 void CreateStatusBar(void)
@@ -52,8 +55,8 @@ void CreateStatusBar(void)
 
 void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen)
 {
-    uint8_t percent;
-    bool charging;
+    uint32_t percent;
+    BatteryStatus batteryStatus;
 
     switch (code) {
     case UI_MSG_CODE_COMM: {
@@ -73,12 +76,23 @@ void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen)
         break;
     case UI_MSG_CODE_CHARGING:
         ASSERT(data != NULL);
-        ASSERT(dataLen == sizeof(charging));
-        charging = *(bool *)data;
-        if (charging) {
+        ASSERT(dataLen == sizeof(batteryStatus));
+        batteryStatus = *(BatteryStatus *)data;
+        if (batteryStatus == BATTERY_CHARGING) {
             lv_obj_set_style_bg_color(g_batteryPad, lv_color_make(0x11, 0xEE, 0x11), 0);
+            if (g_batteryPadTimer == NULL) {
+                g_batteryPadTimer = lv_timer_create(BatteryPadTimerFunc, 500, NULL);
+            }
         } else {
-            lv_obj_set_style_bg_color(g_batteryPad, lv_color_make(0xFF, 0xFF, 0xFF), 0);
+            if (batteryStatus == BATTERY_CHARGE_COMPLETE) {
+                lv_obj_set_style_bg_color(g_batteryPad, lv_color_make(0x11, 0xEE, 0x11), 0);
+            } else {
+                lv_obj_set_style_bg_color(g_batteryPad, lv_color_make(0xFF, 0xFF, 0xFF), 0);
+            }
+            if (g_batteryPadTimer) {
+                lv_timer_delete(g_batteryPadTimer);
+                g_batteryPadTimer = NULL;
+            }
         }
         break;
     default:
@@ -91,5 +105,17 @@ static void CommLedOffTimerFunc(lv_timer_t *timer)
     UNUSED(timer);
     lv_led_off(g_commLed);
     lv_timer_delete(timer);
+}
+
+static void BatteryPadTimerFunc(lv_timer_t *timer)
+{
+    static uint32_t padSize = 4;
+    UNUSED(timer);
+
+    padSize += 4;
+    if (padSize > 20) {
+        padSize = 4;
+    }
+    lv_obj_set_size(g_batteryPad, padSize, 10);
 }
 

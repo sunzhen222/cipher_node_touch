@@ -7,6 +7,7 @@
 #include "user_utils.h"
 #include "ui_msg.h"
 #include "lora.h"
+#include "battery.h"
 
 typedef struct {
     BackgroundAsyncFunc_t func;
@@ -75,6 +76,10 @@ static void BackgroundTask(void *argument)
         case BACKGROUND_MSG_SECOND: {
         }
         break;
+        case BACKGROUND_MSG_REFRESH_BATTERY: {
+            SendBatteryInfoToUi();
+        }
+        break;
         case BACKGROUND_MSG_LORA_IRQ: {
             LoraIrqHandler();
         }
@@ -105,7 +110,12 @@ static void BackgroundTask(void *argument)
 static void SecondTickTimerFunc(void *argument)
 {
     UNUSED(argument);
+    static uint32_t secondCount = 0;
     PubValueMsg(BACKGROUND_MSG_SECOND, 0);
+    if (secondCount % 60 == 0) {
+        PubValueMsg(BACKGROUND_MSG_REFRESH_BATTERY, 0);
+    }
+    secondCount++;
 }
 
 static void AsyncTimerFunc(void *argument)
