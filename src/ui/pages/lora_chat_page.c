@@ -87,6 +87,25 @@ static void LoraChatLayout(void)
         lv_obj_set_style_border_width(row, 0, 0);
         lv_obj_set_style_pad_all(row, 0, 0);
 
+        lv_obj_t *avatar = lv_obj_create(row);
+        lv_obj_set_size(avatar, 40, 40);
+        lv_obj_set_style_radius(avatar, 5, 0);
+        lv_obj_set_style_bg_color(avatar, lv_color_hex(item->headColor), 0);
+        lv_obj_set_style_border_width(avatar, 0, 0);
+        if (item->self) {
+            lv_obj_align(avatar, LV_ALIGN_TOP_RIGHT, -8, 8);
+        } else {
+            lv_obj_align(avatar, LV_ALIGN_TOP_LEFT, 8, 8);
+        }
+
+        char avatarText[2];
+        avatarText[0] = (item->name[0] != '\0') ? item->name[0] : '?';
+        avatarText[1] = '\0';
+        lv_obj_t *avatarLabel = lv_label_create(avatar);
+        lv_label_set_text(avatarLabel, avatarText);
+        lv_obj_set_style_text_color(avatarLabel, lv_color_hex(0xFFFFFF), 0);
+        lv_obj_center(avatarLabel);
+
         lv_obj_t *nameLabel = lv_label_create(row);
         lv_label_set_text(nameLabel, item->name);
         lv_obj_set_style_text_color(nameLabel, lv_color_hex(0x888888), 0);
@@ -112,6 +131,18 @@ static void LoraChatLayout(void)
             lv_obj_align(bubble, LV_ALIGN_TOP_RIGHT, -57, 24);
         } else {
             lv_obj_align(bubble, LV_ALIGN_TOP_LEFT, 57, 24);
+        }
+
+        lv_obj_t *bubbleArrow = lv_obj_create(row);
+        lv_obj_set_size(bubbleArrow, 6, 6);
+        lv_obj_set_style_radius(bubbleArrow, 0, 0);
+        lv_obj_set_style_border_width(bubbleArrow, 0, 0);
+        lv_obj_set_style_bg_color(bubbleArrow, item->self ? lv_color_hex(0x95EC69) : lv_color_hex(0xFFFFFF), 0);
+        lv_obj_set_style_transform_rotation(bubbleArrow, 450, 0);
+        if (item->self) {
+            lv_obj_align(bubbleArrow, LV_ALIGN_TOP_RIGHT, -51, 36);
+        } else {
+            lv_obj_align(bubbleArrow, LV_ALIGN_TOP_LEFT, 56, 36);
         }
 
         lv_obj_t *textLabel = lv_label_create(bubble);
