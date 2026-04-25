@@ -6,5 +6,6 @@ extern Page_t g_systemPage;
 extern Page_t g_lcdBrightnessPage;
 extern Page_t g_aboutPage;
 extern Page_t g_languagePage;
+extern Page_t g_loraChatPage;
 
 #endif

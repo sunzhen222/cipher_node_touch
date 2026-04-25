@@ -97,6 +97,7 @@ static void HomePageButtonEventHandler(lv_event_t *e)
         HomePageValues_t *values = lv_obj_get_user_data(GetPageBackground());
         if (btn == values->buttonLoraChat) {
             printf("LoRa Chat button pressed\n");
+            EnterNewPage(&g_loraChatPage);
         } else if (btn == values->buttonLvglDemo) {
             printf("LVGL Demo button pressed\n");
         } else if (btn == values->buttonInfo) {
