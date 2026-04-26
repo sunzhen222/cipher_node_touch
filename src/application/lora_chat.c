@@ -82,7 +82,7 @@ void TestLoraChat(void)
     ClearChatItems();
 
     AddChatItem("Alice", "Hi, are you there?\nhaha", 92, true, 0xFF2C2C);
-    AddChatItem("Bob", "Yep, I am here.", 88, false, 0x6155F5);
+    AddChatItem("Bob", "Yep, I am here.1222222223333333333311111111111111111111", 88, false, 0x6155F5);
     AddChatItem("Alice", "Great, test passed.", 91, true, 0xFF2C2C);
     AddChatItem("Bob", "Nice and clean.", 86, false, 0x6155F5);
     AddChatItem("Alice", "See you later.", 90, true, 0xFF2C2C);

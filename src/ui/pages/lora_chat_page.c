@@ -9,8 +9,14 @@
 #include "lora_chat.h"
 #include "status_bar.h"
 
+#define INPUT_BAR_HEIGHT        50
+#define KEYBOARD_HEIGHT         160
+
 typedef struct {
     lv_obj_t *chatList;
+    lv_obj_t *inputBar;
+    lv_obj_t *inputTa;
+    lv_obj_t *keyboard;
 } LoraChatPageValues_t;
 
 
@@ -18,6 +24,9 @@ static void LoraChatPageInit(void);
 static void LoraChatPageDeinit(void);
 static void LoraChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
 static void LoraChatLayout(void);
+static void InputTaEventHandler(lv_event_t *e);
+static void InputKeyboardEventHandler(lv_event_t *e);
+static void ScrollChatListToBottom(lv_obj_t *chatList);
 
 
 Page_t g_loraChatPage = {
@@ -35,6 +44,9 @@ static void LoraChatPageInit(void)
     lv_obj_set_scrollbar_mode(GetPageBackground(), LV_SCROLLBAR_MODE_OFF);
     lv_obj_remove_flag(GetPageBackground(), LV_OBJ_FLAG_SCROLLABLE);
     values->chatList = NULL;
+    values->inputBar = NULL;
+    values->inputTa = NULL;
+    values->keyboard = NULL;
 
     TestLoraChat();
     LoraChatLayout();
@@ -65,9 +77,17 @@ static void LoraChatLayout(void)
         lv_obj_delete(values->chatList);
         values->chatList = NULL;
     }
+    if (values->inputBar != NULL) {
+        lv_obj_delete(values->inputBar);
+        values->inputBar = NULL;
+    }
+    if (values->keyboard != NULL) {
+        lv_obj_delete(values->keyboard);
+        values->keyboard = NULL;
+    }
 
     values->chatList = lv_obj_create(GetPageBackground());
-    lv_obj_set_size(values->chatList, lv_display_get_horizontal_resolution(NULL), lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT);
+    lv_obj_set_size(values->chatList, lv_display_get_horizontal_resolution(NULL), lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - INPUT_BAR_HEIGHT);
     lv_obj_align(values->chatList, LV_ALIGN_TOP_LEFT, 0, NAVIGATION_BAR_HEIGHT);
     lv_obj_set_scrollbar_mode(values->chatList, LV_SCROLLBAR_MODE_OFF);
     lv_obj_add_flag(values->chatList, LV_OBJ_FLAG_SCROLLABLE);
@@ -76,7 +96,7 @@ static void LoraChatLayout(void)
 
     StartGetChatItem();
     ChatItem_t *item;
-    lv_coord_t maxBubbleWidth = (lv_display_get_horizontal_resolution(NULL) * 78) / 100;
+    lv_coord_t maxBubbleWidth = lv_display_get_horizontal_resolution(NULL) - 57 * 2;
     lv_coord_t maxTextWidth = maxBubbleWidth - 20;
     while ((item = GetNextChatItem()) != NULL) {
 
@@ -159,5 +179,85 @@ static void LoraChatLayout(void)
         //lv_obj_set_style_text_color(rssiLabel, lv_color_hex(0x7A7A7A), 0);
         //lv_obj_set_style_text_align(rssiLabel, LV_TEXT_ALIGN_RIGHT, 0);
         //lv_obj_set_width(rssiLabel, lv_pct(100));
+    }
+
+    values->inputBar = lv_obj_create(GetPageBackground());
+    lv_obj_set_size(values->inputBar, lv_display_get_horizontal_resolution(NULL), INPUT_BAR_HEIGHT);
+    lv_obj_align(values->inputBar, LV_ALIGN_BOTTOM_MID, 0, 0);
+    //lv_obj_align_to(values->inputBar, values->chatList, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
+    lv_obj_set_style_pad_left(values->inputBar, 4, 0);
+    lv_obj_set_style_pad_right(values->inputBar, 4, 0);
+    lv_obj_set_style_pad_top(values->inputBar, 4, 0);
+    lv_obj_set_style_pad_bottom(values->inputBar, 4, 0);
+    lv_obj_set_style_border_width(values->inputBar, 0, 0);
+
+    values->inputTa = lv_textarea_create(values->inputBar);
+    lv_obj_set_size(values->inputTa, lv_pct(100), 40);
+    lv_obj_align(values->inputTa, LV_ALIGN_CENTER, 0, 0);
+    lv_textarea_set_one_line(values->inputTa, true);
+    lv_textarea_set_placeholder_text(values->inputTa, "Input message");
+    lv_obj_set_style_text_color(values->inputTa, lv_color_hex(0x222222), LV_PART_MAIN);
+    lv_obj_set_style_text_opa(values->inputTa, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_text_color(values->inputTa, lv_color_hex(0x9A9A9A), LV_PART_TEXTAREA_PLACEHOLDER);
+    lv_obj_set_style_text_opa(values->inputTa, LV_OPA_COVER, LV_PART_TEXTAREA_PLACEHOLDER);
+    lv_obj_set_style_text_color(lv_textarea_get_label(values->inputTa), lv_color_hex(0x222222), 0);
+    lv_obj_set_style_text_opa(lv_textarea_get_label(values->inputTa), LV_OPA_COVER, 0);
+    lv_obj_add_event_cb(values->inputTa, InputTaEventHandler, LV_EVENT_ALL, values);
+
+    values->keyboard = lv_keyboard_create(GetPageBackground());
+    lv_obj_set_size(values->keyboard, lv_display_get_horizontal_resolution(NULL), KEYBOARD_HEIGHT);
+    lv_obj_align(values->keyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_set_style_bg_color(values->keyboard, lv_color_hex(0xF2F2F2), LV_PART_ITEMS);
+    lv_obj_set_style_text_color(values->keyboard, lv_color_hex(0x202020), LV_PART_ITEMS);
+    lv_obj_set_style_border_width(values->keyboard, 0, LV_PART_ITEMS);
+    lv_obj_set_style_bg_color(values->keyboard, lv_color_hex(0xCFCFCF), LV_PART_ITEMS | LV_STATE_PRESSED);
+    lv_obj_set_style_text_color(values->keyboard, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_PRESSED);
+    lv_obj_set_style_border_width(values->keyboard, 1, LV_PART_ITEMS | LV_STATE_PRESSED);
+    lv_obj_set_style_border_color(values->keyboard, lv_color_hex(0x8A8A8A), LV_PART_ITEMS | LV_STATE_PRESSED);
+    lv_obj_add_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_add_event_cb(values->keyboard, InputKeyboardEventHandler, LV_EVENT_ALL, values);
+}
+
+static void InputTaEventHandler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    LoraChatPageValues_t *values = lv_event_get_user_data(e);
+
+    if (code == LV_EVENT_FOCUSED || code == LV_EVENT_CLICKED) {
+        lv_obj_set_size(values->chatList, lv_display_get_horizontal_resolution(NULL), lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - INPUT_BAR_HEIGHT - KEYBOARD_HEIGHT);
+        lv_obj_align(values->inputBar, LV_ALIGN_BOTTOM_MID, 0, -KEYBOARD_HEIGHT);
+        lv_keyboard_set_textarea(values->keyboard, values->inputTa);
+        lv_obj_remove_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
+        ScrollChatListToBottom(values->chatList);
+    }
+}
+
+static void InputKeyboardEventHandler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    LoraChatPageValues_t *values = lv_event_get_user_data(e);
+
+    if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL) {
+        lv_keyboard_set_textarea(values->keyboard, NULL);
+        lv_obj_add_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_clear_state(values->inputTa, LV_STATE_FOCUSED);
+        lv_indev_reset(NULL, values->inputTa);
+        printf("Input text: %s\n", lv_textarea_get_text(values->inputTa));
+        lv_obj_set_size(values->chatList, lv_display_get_horizontal_resolution(NULL), lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - INPUT_BAR_HEIGHT);
+        lv_obj_align(values->inputBar, LV_ALIGN_BOTTOM_MID, 0, 0);
+    }
+}
+
+static void ScrollChatListToBottom(lv_obj_t *chatList)
+{
+    uint32_t childCount = lv_obj_get_child_count(chatList);
+    if (childCount == 0) {
+        return;
+    }
+
+    lv_obj_update_layout(chatList);
+    lv_obj_t *lastItem = lv_obj_get_child(chatList, childCount - 1);
+    if (lastItem != NULL) {
+        lv_obj_scroll_to_view(lastItem, LV_ANIM_ON);
     }
 }

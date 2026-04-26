@@ -5,7 +5,7 @@
 #include "stdbool.h"
 #include "stddef.h"
 
-#define STATUS_BAR_HEIGHT               32
+#define STATUS_BAR_HEIGHT               48
 
 void CreateStatusBar(void);
 void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen);
