@@ -11,12 +11,15 @@
 
 #define INPUT_BAR_HEIGHT        50
 #define KEYBOARD_HEIGHT         160
+#define SEND_BTN_WIDTH          52
+#define INPUT_BAR_GAP           4
 
 typedef struct {
     lv_obj_t *chatList;
     lv_obj_t *inputBar;
     lv_obj_t *inputTa;
     lv_obj_t *keyboard;
+    lv_obj_t *sendBtn;
 } LoraChatPageValues_t;
 
 
@@ -24,9 +27,12 @@ static void LoraChatPageInit(void);
 static void LoraChatPageDeinit(void);
 static void LoraChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
 static void LoraChatLayout(void);
+static void AddNewLoraChatLayout(ChatItem_t *item);
 static void InputTaEventHandler(lv_event_t *e);
 static void InputKeyboardEventHandler(lv_event_t *e);
 static void ScrollChatListToBottom(lv_obj_t *chatList);
+static void InputSendBtnEventHandler(lv_event_t *e);
+static void UpdateSendButtonState(LoraChatPageValues_t *values);
 
 
 Page_t g_loraChatPage = {
@@ -47,6 +53,7 @@ static void LoraChatPageInit(void)
     values->inputBar = NULL;
     values->inputTa = NULL;
     values->keyboard = NULL;
+    values->sendBtn = NULL;
 
     TestLoraChat();
     LoraChatLayout();
@@ -96,94 +103,14 @@ static void LoraChatLayout(void)
 
     StartGetChatItem();
     ChatItem_t *item;
-    lv_coord_t maxBubbleWidth = lv_display_get_horizontal_resolution(NULL) - 57 * 2;
-    lv_coord_t maxTextWidth = maxBubbleWidth - 20;
     while ((item = GetNextChatItem()) != NULL) {
-
-        lv_obj_t *row = lv_obj_create(values->chatList);
-        lv_obj_set_width(row, lv_pct(100));
-        lv_obj_set_height(row, LV_SIZE_CONTENT);
-        lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);
-        lv_obj_set_style_border_width(row, 0, 0);
-        lv_obj_set_style_pad_all(row, 0, 0);
-
-        lv_obj_t *avatar = lv_obj_create(row);
-        lv_obj_set_size(avatar, 40, 40);
-        lv_obj_set_style_radius(avatar, 5, 0);
-        lv_obj_set_style_bg_color(avatar, lv_color_hex(item->headColor), 0);
-        lv_obj_set_style_border_width(avatar, 0, 0);
-        if (item->self) {
-            lv_obj_align(avatar, LV_ALIGN_TOP_RIGHT, -8, 8);
-        } else {
-            lv_obj_align(avatar, LV_ALIGN_TOP_LEFT, 8, 8);
-        }
-
-        char avatarText[2];
-        avatarText[0] = (item->name[0] != '\0') ? item->name[0] : '?';
-        avatarText[1] = '\0';
-        lv_obj_t *avatarLabel = lv_label_create(avatar);
-        lv_label_set_text(avatarLabel, avatarText);
-        lv_obj_set_style_text_color(avatarLabel, lv_color_hex(0xFFFFFF), 0);
-        lv_obj_center(avatarLabel);
-
-        lv_obj_t *nameLabel = lv_label_create(row);
-        lv_label_set_text(nameLabel, item->name);
-        lv_obj_set_style_text_color(nameLabel, lv_color_hex(0x888888), 0);
-        if (item->self) {
-            lv_obj_align(nameLabel, LV_ALIGN_TOP_RIGHT, -64, 8);
-        } else {
-            lv_obj_align(nameLabel, LV_ALIGN_TOP_LEFT, 64, 8);
-        }
-
-        lv_obj_t *bubble = lv_obj_create(row);
-        lv_obj_set_width(bubble, LV_SIZE_CONTENT);
-        lv_obj_set_style_max_width(bubble, maxBubbleWidth, 0);
-        lv_obj_set_height(bubble, LV_SIZE_CONTENT);
-        lv_obj_set_style_radius(bubble, 10, 0);
-        lv_obj_set_style_border_width(bubble, 0, 0);
-        lv_obj_set_style_pad_left(bubble, 10, 0);
-        lv_obj_set_style_pad_right(bubble, 10, 0);
-        lv_obj_set_style_pad_top(bubble, 8, 0);
-        lv_obj_set_style_pad_bottom(bubble, 8, 0);
-        lv_obj_set_style_pad_row(bubble, 4, 0);
-        lv_obj_set_style_bg_color(bubble, item->self ? lv_color_hex(0x95EC69) : lv_color_hex(0xFFFFFF), 0);
-        if (item->self) {
-            lv_obj_align(bubble, LV_ALIGN_TOP_RIGHT, -57, 24);
-        } else {
-            lv_obj_align(bubble, LV_ALIGN_TOP_LEFT, 57, 24);
-        }
-
-        lv_obj_t *bubbleArrow = lv_obj_create(row);
-        lv_obj_set_size(bubbleArrow, 6, 6);
-        lv_obj_set_style_radius(bubbleArrow, 0, 0);
-        lv_obj_set_style_border_width(bubbleArrow, 0, 0);
-        lv_obj_set_style_bg_color(bubbleArrow, item->self ? lv_color_hex(0x95EC69) : lv_color_hex(0xFFFFFF), 0);
-        lv_obj_set_style_transform_rotation(bubbleArrow, 450, 0);
-        if (item->self) {
-            lv_obj_align(bubbleArrow, LV_ALIGN_TOP_RIGHT, -51, 36);
-        } else {
-            lv_obj_align(bubbleArrow, LV_ALIGN_TOP_LEFT, 56, 36);
-        }
-
-        lv_obj_t *textLabel = lv_label_create(bubble);
-        lv_obj_set_width(textLabel, LV_SIZE_CONTENT);
-        lv_obj_set_style_max_width(textLabel, maxTextWidth, 0);
-        lv_label_set_long_mode(textLabel, LV_LABEL_LONG_WRAP);
-        lv_label_set_text(textLabel, item->text);
-        lv_obj_set_style_text_color(textLabel, lv_color_hex(0x222222), 0);
-
-        //char rssiText[20];
-        //lv_snprintf(rssiText, sizeof(rssiText), "RSSI %u", item->rssi);
-        //lv_obj_t *rssiLabel = lv_label_create(bubble);
-        //lv_label_set_text(rssiLabel, rssiText);
-        //lv_obj_set_style_text_color(rssiLabel, lv_color_hex(0x7A7A7A), 0);
-        //lv_obj_set_style_text_align(rssiLabel, LV_TEXT_ALIGN_RIGHT, 0);
-        //lv_obj_set_width(rssiLabel, lv_pct(100));
+        AddNewLoraChatLayout(item);
     }
 
     values->inputBar = lv_obj_create(GetPageBackground());
     lv_obj_set_size(values->inputBar, lv_display_get_horizontal_resolution(NULL), INPUT_BAR_HEIGHT);
     lv_obj_align(values->inputBar, LV_ALIGN_BOTTOM_MID, 0, 0);
+    lv_obj_set_style_bg_color(values->inputBar, lv_color_hex(0x222222), 0);
     //lv_obj_align_to(values->inputBar, values->chatList, LV_ALIGN_OUT_BOTTOM_MID, 0, 0);
     lv_obj_set_style_pad_left(values->inputBar, 4, 0);
     lv_obj_set_style_pad_right(values->inputBar, 4, 0);
@@ -192,9 +119,11 @@ static void LoraChatLayout(void)
     lv_obj_set_style_border_width(values->inputBar, 0, 0);
 
     values->inputTa = lv_textarea_create(values->inputBar);
-    lv_obj_set_size(values->inputTa, lv_pct(100), 40);
-    lv_obj_align(values->inputTa, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_size(values->inputTa, lv_display_get_horizontal_resolution(NULL) - SEND_BTN_WIDTH - INPUT_BAR_GAP * 3, INPUT_BAR_HEIGHT - 8);
+    lv_obj_align(values->inputTa, LV_ALIGN_LEFT_MID, 0, 0);
     lv_textarea_set_one_line(values->inputTa, true);
+    lv_obj_set_style_pad_all(values->inputTa, 8, 0);
+    lv_obj_set_style_radius(values->inputTa, 5, 0);
     lv_textarea_set_placeholder_text(values->inputTa, "Input message");
     lv_obj_set_style_text_color(values->inputTa, lv_color_hex(0x222222), LV_PART_MAIN);
     lv_obj_set_style_text_opa(values->inputTa, LV_OPA_COVER, LV_PART_MAIN);
@@ -203,6 +132,23 @@ static void LoraChatLayout(void)
     lv_obj_set_style_text_color(lv_textarea_get_label(values->inputTa), lv_color_hex(0x222222), 0);
     lv_obj_set_style_text_opa(lv_textarea_get_label(values->inputTa), LV_OPA_COVER, 0);
     lv_obj_add_event_cb(values->inputTa, InputTaEventHandler, LV_EVENT_ALL, values);
+
+    values->sendBtn = lv_btn_create(values->inputBar);
+    lv_obj_set_size(values->sendBtn, SEND_BTN_WIDTH, INPUT_BAR_HEIGHT - 16);
+    lv_obj_align(values->sendBtn, LV_ALIGN_RIGHT_MID, 0, 0);
+    lv_obj_set_style_radius(values->sendBtn, 5, 0);
+    lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x2FB35A), 0);
+    lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x134C26), LV_STATE_PRESSED);
+    lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x4A4A4A), LV_STATE_DISABLED);
+    lv_obj_set_style_text_color(values->sendBtn, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_color(values->sendBtn, lv_color_hex(0x9A9A9A), LV_STATE_DISABLED);
+    lv_obj_add_event_cb(values->sendBtn, InputSendBtnEventHandler, LV_EVENT_CLICKED, values);
+
+    lv_obj_t *sendLabel = lv_label_create(values->sendBtn);
+    lv_label_set_text(sendLabel, "Send");
+    lv_obj_center(sendLabel);
+
+    UpdateSendButtonState(values);
 
     values->keyboard = lv_keyboard_create(GetPageBackground());
     lv_obj_set_size(values->keyboard, lv_display_get_horizontal_resolution(NULL), KEYBOARD_HEIGHT);
@@ -229,6 +175,8 @@ static void InputTaEventHandler(lv_event_t *e)
         lv_keyboard_set_textarea(values->keyboard, values->inputTa);
         lv_obj_remove_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
         ScrollChatListToBottom(values->chatList);
+    } else if (code == LV_EVENT_VALUE_CHANGED) {
+        UpdateSendButtonState(values);
     }
 }
 
@@ -259,5 +207,113 @@ static void ScrollChatListToBottom(lv_obj_t *chatList)
     lv_obj_t *lastItem = lv_obj_get_child(chatList, childCount - 1);
     if (lastItem != NULL) {
         lv_obj_scroll_to_view(lastItem, LV_ANIM_ON);
+    }
+}
+
+static void AddNewLoraChatLayout(ChatItem_t *item)
+{
+    if (item == NULL) {
+        return;
+    }
+
+    LoraChatPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    if (values == NULL || values->chatList == NULL) {
+        return;
+    }
+
+    lv_coord_t maxBubbleWidth = lv_display_get_horizontal_resolution(NULL) - 57 * 2;
+    lv_coord_t maxTextWidth = maxBubbleWidth - 20;
+
+    lv_obj_t *row = lv_obj_create(values->chatList);
+    lv_obj_set_width(row, lv_pct(100));
+    lv_obj_set_height(row, LV_SIZE_CONTENT);
+    lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(row, 0, 0);
+    lv_obj_set_style_pad_all(row, 0, 0);
+
+    lv_obj_t *avatar = lv_obj_create(row);
+    lv_obj_set_size(avatar, 40, 40);
+    lv_obj_set_style_radius(avatar, 5, 0);
+    lv_obj_set_style_bg_color(avatar, lv_color_hex(item->headColor), 0);
+    lv_obj_set_style_border_width(avatar, 0, 0);
+    if (item->self) {
+        lv_obj_align(avatar, LV_ALIGN_TOP_RIGHT, -8, 8);
+    } else {
+        lv_obj_align(avatar, LV_ALIGN_TOP_LEFT, 8, 8);
+    }
+
+    char avatarText[2];
+    avatarText[0] = (item->name[0] != '\0') ? item->name[0] : '?';
+    avatarText[1] = '\0';
+    lv_obj_t *avatarLabel = lv_label_create(avatar);
+    lv_label_set_text(avatarLabel, avatarText);
+    lv_obj_set_style_text_color(avatarLabel, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_center(avatarLabel);
+
+    lv_obj_t *nameLabel = lv_label_create(row);
+    lv_label_set_text(nameLabel, item->name);
+    lv_obj_set_style_text_color(nameLabel, lv_color_hex(0x888888), 0);
+    if (item->self) {
+        lv_obj_align(nameLabel, LV_ALIGN_TOP_RIGHT, -64, 8);
+    } else {
+        lv_obj_align(nameLabel, LV_ALIGN_TOP_LEFT, 64, 8);
+    }
+
+    lv_obj_t *bubble = lv_obj_create(row);
+    lv_obj_set_width(bubble, LV_SIZE_CONTENT);
+    lv_obj_set_style_max_width(bubble, maxBubbleWidth, 0);
+    lv_obj_set_height(bubble, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(bubble, 10, 0);
+    lv_obj_set_style_border_width(bubble, 0, 0);
+    lv_obj_set_style_pad_left(bubble, 10, 0);
+    lv_obj_set_style_pad_right(bubble, 10, 0);
+    lv_obj_set_style_pad_top(bubble, 8, 0);
+    lv_obj_set_style_pad_bottom(bubble, 8, 0);
+    lv_obj_set_style_pad_row(bubble, 4, 0);
+    lv_obj_set_style_bg_color(bubble, item->self ? lv_color_hex(0x95EC69) : lv_color_hex(0xFFFFFF), 0);
+    if (item->self) {
+        lv_obj_align(bubble, LV_ALIGN_TOP_RIGHT, -57, 24);
+    } else {
+        lv_obj_align(bubble, LV_ALIGN_TOP_LEFT, 57, 24);
+    }
+
+    lv_obj_t *bubbleArrow = lv_obj_create(row);
+    lv_obj_set_size(bubbleArrow, 6, 6);
+    lv_obj_set_style_radius(bubbleArrow, 0, 0);
+    lv_obj_set_style_border_width(bubbleArrow, 0, 0);
+    lv_obj_set_style_bg_color(bubbleArrow, item->self ? lv_color_hex(0x95EC69) : lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_transform_rotation(bubbleArrow, 450, 0);
+    if (item->self) {
+        lv_obj_align(bubbleArrow, LV_ALIGN_TOP_RIGHT, -51, 36);
+    } else {
+        lv_obj_align(bubbleArrow, LV_ALIGN_TOP_LEFT, 56, 36);
+    }
+
+    lv_obj_t *textLabel = lv_label_create(bubble);
+    lv_obj_set_width(textLabel, LV_SIZE_CONTENT);
+    lv_obj_set_style_max_width(textLabel, maxTextWidth, 0);
+    lv_label_set_long_mode(textLabel, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(textLabel, item->text);
+    lv_obj_set_style_text_color(textLabel, lv_color_hex(0x222222), 0);
+
+    ScrollChatListToBottom(values->chatList);
+}
+
+static void InputSendBtnEventHandler(lv_event_t *e)
+{
+    LoraChatPageValues_t *values = lv_event_get_user_data(e);
+    printf("Send clicked, text: %s\n", lv_textarea_get_text(values->inputTa));
+    ChatItem_t *newItem = AddChatItem("Me", lv_textarea_get_text(values->inputTa), 0, true, 0x2FB35A);
+    AddNewLoraChatLayout(newItem);
+    lv_textarea_set_text(values->inputTa, "");
+}
+
+static void UpdateSendButtonState(LoraChatPageValues_t *values)
+{
+    const char *txt = lv_textarea_get_text(values->inputTa);
+    if (txt[0] == '\0') {
+        lv_obj_add_state(values->sendBtn, LV_STATE_DISABLED);
+    } else {
+        lv_obj_clear_state(values->sendBtn, LV_STATE_DISABLED);
     }
 }

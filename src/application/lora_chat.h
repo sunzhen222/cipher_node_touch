@@ -16,7 +16,7 @@ typedef struct ChatItem_t {
 
 void LoraChatInit(void);
 void ClearChatItems(void);
-void AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor);
+ChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor);
 void StartGetChatItem(void);
 ChatItem_t *GetNextChatItem(void);
 

@@ -30,7 +30,7 @@ void ClearChatItems(void)
 
 
 
-void AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor)
+ChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor)
 {
     ChatItem_t *item = SRAM_MALLOC(sizeof(ChatItem_t));
     const char *safeName = (name != NULL) ? name : "";
@@ -50,7 +50,7 @@ void AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, ui
 
     if (g_chatListHead == NULL) {
         g_chatListHead = item;
-        return;
+        return item;
     }
 
     ChatItem_t *tail = g_chatListHead;
@@ -58,6 +58,7 @@ void AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, ui
         tail = tail->next;
     }
     tail->next = item;
+    return item;
 }
 
 
