@@ -10,7 +10,7 @@
 void FsMount(void)
 {
     FRESULT res;
-    static FATFS g_spiFlashFs __attribute__((section(".ccmram")));
+    static FATFS g_spiFlashFs;
     uint8_t *mkfsWorkBuf = NULL;
     MKFS_PARM mkfsOpt = {0};
 

@@ -17,6 +17,7 @@
 #include "drv_timer.h"
 #include "processor_usage.h"
 #include "battery.h"
+#include "lvgl.h"
 
 #define CMD_MAX_ARGC        16
 
@@ -36,6 +37,7 @@ static void TestFunc(int argc, char *argv[]);
 static void AllTaskInfoFunc(int argc, char *argv[]);
 static void ClrCpuPercentFunc(int argc, char *argv[]);
 static void HeapInfoFunc(int argc, char *argv[]);
+static void LvglMemInfoFunc(int argc, char *argv[]);
 static void GetTickFunc(int argc, char *argv[]);
 static void RebootFunc(int argc, char *argv[]);
 static void EraseFlashFunc(int argc, char *argv[]);
@@ -57,6 +59,7 @@ static const TestCmdItem_t g_testCmdTable[] = {
     {"all task info",           AllTaskInfoFunc         },
     {"clr cpu per",             ClrCpuPercentFunc       },
     {"heap info",               HeapInfoFunc            },
+    {"lvgl mem",                LvglMemInfoFunc         },
     {"get tick",                GetTickFunc             },
     {"reboot",                  RebootFunc              },
     {"erase flash:",            EraseFlashFunc          },
@@ -207,6 +210,26 @@ static void HeapInfoFunc(int argc, char *argv[])
     printf("TotalHeapSize = %d\n", configTOTAL_HEAP_SIZE);
     printf("FreeHeapSize = %d\n", xPortGetFreeHeapSize());
     printf("MinEverFreeHeapSize = %d\n", xPortGetMinimumEverFreeHeapSize());
+}
+
+static void LvglMemInfoFunc(int argc, char *argv[])
+{
+    UNUSED(argc);
+    UNUSED(argv);
+
+    lv_mem_monitor_t mon;
+    size_t used;
+
+    lv_mem_monitor(&mon);
+    used = mon.total_size - mon.free_size;
+
+    printf("\nLVGL memory info:\n");
+    printf("  total_size         = %lu\n", (unsigned long)mon.total_size);
+    printf("  used_size          = %lu\n", (unsigned long)used);
+    printf("  free_size          = %lu\n", (unsigned long)mon.free_size);
+    printf("  free_biggest_size  = %lu\n", (unsigned long)mon.free_biggest_size);
+    printf("  used_pct           = %u%%\n", mon.used_pct);
+    printf("  frag_pct           = %u%%\n", mon.frag_pct);
 }
 
 static void GetTickFunc(int argc, char *argv[])
