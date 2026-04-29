@@ -30,9 +30,11 @@ static void LoraChatLayout(void);
 static void AddNewLoraChatLayout(ChatItem_t *item);
 static void InputTaEventHandler(lv_event_t *e);
 static void InputKeyboardEventHandler(lv_event_t *e);
+static void ChatListEventHandler(lv_event_t *e);
 static void ScrollChatListToBottom(lv_obj_t *chatList);
 static void InputSendBtnEventHandler(lv_event_t *e);
 static void UpdateSendButtonState(LoraChatPageValues_t *values);
+static void HideInputKeyboardAndRestoreLayout(LoraChatPageValues_t *values);
 
 
 Page_t g_loraChatPage = {
@@ -100,6 +102,8 @@ static void LoraChatLayout(void)
     lv_obj_add_flag(values->chatList, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_flex_flow(values->chatList, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(values->chatList, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
+    lv_obj_add_event_cb(values->chatList, ChatListEventHandler, LV_EVENT_PRESSED, values);
+    lv_obj_add_event_cb(values->chatList, ChatListEventHandler, LV_EVENT_CLICKED, values);
 
     StartGetChatItem();
     ChatItem_t *item;
@@ -186,14 +190,43 @@ static void InputKeyboardEventHandler(lv_event_t *e)
     LoraChatPageValues_t *values = lv_event_get_user_data(e);
 
     if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL) {
-        lv_keyboard_set_textarea(values->keyboard, NULL);
-        lv_obj_add_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_state(values->inputTa, LV_STATE_FOCUSED);
         lv_indev_reset(NULL, values->inputTa);
         printf("Input text: %s\n", lv_textarea_get_text(values->inputTa));
-        lv_obj_set_size(values->chatList, lv_display_get_horizontal_resolution(NULL), lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - INPUT_BAR_HEIGHT);
-        lv_obj_align(values->inputBar, LV_ALIGN_BOTTOM_MID, 0, 0);
+        HideInputKeyboardAndRestoreLayout(values);
     }
+}
+
+static void ChatListEventHandler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    LoraChatPageValues_t *values = lv_event_get_user_data(e);
+
+    if (code != LV_EVENT_PRESSED && code != LV_EVENT_CLICKED) {
+        return;
+    }
+
+    if (values == NULL || values->inputTa == NULL) {
+        return;
+    }
+
+    if (!lv_obj_has_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN)) {
+        lv_obj_clear_state(values->inputTa, LV_STATE_FOCUSED);
+        lv_indev_reset(NULL, values->inputTa);
+        HideInputKeyboardAndRestoreLayout(values);
+    }
+}
+
+static void HideInputKeyboardAndRestoreLayout(LoraChatPageValues_t *values)
+{
+    if (values == NULL || values->keyboard == NULL || values->chatList == NULL || values->inputBar == NULL) {
+        return;
+    }
+
+    lv_keyboard_set_textarea(values->keyboard, NULL);
+    lv_obj_add_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
+    lv_obj_set_size(values->chatList, lv_display_get_horizontal_resolution(NULL), lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - INPUT_BAR_HEIGHT);
+    lv_obj_align(values->inputBar, LV_ALIGN_BOTTOM_MID, 0, 0);
 }
 
 static void ScrollChatListToBottom(lv_obj_t *chatList)
@@ -230,6 +263,8 @@ static void AddNewLoraChatLayout(ChatItem_t *item)
     lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);
     lv_obj_set_style_border_width(row, 0, 0);
     lv_obj_set_style_pad_all(row, 0, 0);
+    lv_obj_add_event_cb(row, ChatListEventHandler, LV_EVENT_PRESSED, values);
+    lv_obj_add_event_cb(row, ChatListEventHandler, LV_EVENT_CLICKED, values);
 
     lv_obj_t *avatar = lv_obj_create(row);
     lv_obj_set_size(avatar, 40, 40);
