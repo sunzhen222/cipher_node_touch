@@ -241,11 +241,9 @@ file(GLOB_RECURSE UI_FILES
     "${UI_DIR}/*.c"
 )
 
-# Suppress unused parameter warning for generated i18n file
-set_source_files_properties(
-    "${UI_I18N_DIR}/lv_i18n.c"
-    PROPERTIES COMPILE_FLAGS "-Wno-unused-parameter"
-)
+
+# Suppress third-party LVGL unused-parameter warnings without patching vendor files
+target_compile_options(lvgl PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-unused-parameter>)
 
 set(objsrc
     ${CORE_FILES}
