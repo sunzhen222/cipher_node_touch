@@ -1,6 +1,6 @@
 ---
 name: embeded
-description: 本工程嵌入式开发专用技能。适用于编译、烧录、调试、代码格式化、国际化、字体生成、驱动开发、RTOS任务、UI开发等嵌入式相关任务。关键词：STM32、FreeRTOS、LVGL、CMake、Ninja、arm-none-eabi、build.bat、OTA、i18n。
+description: 本工程嵌入式开发专用技能。适用于编译、烧录、调试、代码格式化、驱动开发、RTOS任务、UI开发等嵌入式相关任务。关键词：STM32、FreeRTOS、LVGL、CMake、Ninja、arm-none-eabi、build.bat、OTA。
 applyTo: "**"
 ---
 
@@ -29,19 +29,11 @@ applyTo: "**"
 | 清除重编 + 烧录 | `.\build.bat rebuild copy` |
 
 **编译流程说明**：
-1. 执行 `python tools/generate_i18n.py` 生成国际化文件
-2. 执行 `npx lv_i18n compile` 编译 i18n YML → C 文件
-3. 执行 `python tools/extract_chinese_chars.py` 提取中文字符
-4. 执行 `python tools/generate_mixed_font.py` 生成混合字体 `lv_font_mix_14.c`
-5. CMake 配置 + Ninja 构建
-6. 生成 `cipher_node_touch.bin` 后，用 `OTA_File_Maker_Console.exe` 打包为 `update.bin`
-7. 若带 `copy` 参数，将 `update.bin` 复制到 `j:/update.bin`（设备挂载盘符）
+1. CMake 配置 + Ninja 构建
+2. 生成 `cipher_node_touch.bin` 后，用 `OTA_File_Maker_Console.exe` 打包为 `update.bin`
+3. 若带 `copy` 参数，将 `update.bin` 复制到 `j:/update.bin`（设备挂载盘符）
 
-**前置依赖**（首次或依赖变动时执行）：
-```bat
-npm ci
-```
-> 确保本地安装 `lv_i18n`，避免 npx 使用全局版本导致构建失败。
+**前置依赖**：按工程依赖正常安装即可。
 
 ---
 
@@ -53,7 +45,7 @@ src/
   driver/        # 外设驱动（LCD、Touch、SPI、I2C、UART、ADC、DMA 等）
   application/   # 应用层（LCD 绘制、错误保存）
   tasks/         # FreeRTOS 任务（UI、Touch、USB、CMD、Background 等）
-  ui/            # LVGL UI（pages、widgets、themes、images、i18n、fonts）
+  ui/            # LVGL UI（pages、widgets、themes、images、fonts）
   porting/       # LVGL 移植层（显示、输入设备、内存）
   FreeRTOS/      # FreeRTOS 源码及配置
   components/    # 通用组件（CRC校验、cJSON）
@@ -65,7 +57,7 @@ src/
   cm_backtrace/  # 崩溃回溯
 third/
   lvgl/          # LVGL 库源码
-tools/           # 辅助脚本（i18n、字体生成、OTA）
+tools/           # 辅助脚本（OTA）
 build/           # 编译输出目录（CMake/Ninja 产物）
 ```
 
@@ -80,25 +72,7 @@ build/           # 编译输出目录（CMake/Ninja 产物）
 ```
 
 - 格式化样式：`-A3`（Allman/BSD 风格）
-- 排除目录：`i18n/`、`lv_font_mix_14.c`（自动生成文件不格式化）
-
----
-
-## 国际化（i18n）
-
-支持语言：**英文**（`en`）、**中文简体**（`zh-cn`）、**韩文**（`ko`）
-
-- 翻译源文件：`src/ui/i18n/*.yml`
-- 生成的 C 文件：`src/ui/i18n/`（由构建脚本自动生成，无需手动修改）
-- 添加新字符串：编辑 `src/ui/i18n/en.yml` / `zh-cn.yml` / `ko.yml`，下次编译时自动生成对应 C 代码
-
----
-
-## 混合字体
-
-- 字体文件：`src/ui/fonts/lv_font_mix_14.c`（**自动生成，勿手动修改**）
-- 包含英文 + 中文 + 韩文字形，字号 14px
-- 每次编译时根据 i18n 文件中实际使用的字符重新生成
+- 按需排除自动生成文件，避免手工代码与生成代码混排格式化
 
 ---
 
@@ -135,6 +109,5 @@ build/           # 编译输出目录（CMake/Ninja 产物）
 
 ## 常见问题
 
-- **npx lv_i18n 报错 `Cannot find module 'debug'`**：运行 `npm ci` 安装本地依赖后重试
 - **`j:/update.bin` 复制失败**：确认设备已通过 USB 挂载且盘符为 `J:`
 - **CMake 缓存问题**：使用 `.\build.bat rebuild` 清除构建目录后重新编译

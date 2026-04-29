@@ -12,7 +12,6 @@
 #include "lv_theme_pocket.h"
 #include "drv_timer.h"
 #include "device_settings.h"
-#include "lv_i18n.h"
 
 #define LVGL_TICK                       5
 
@@ -46,18 +45,6 @@ static void UiTask(void *argument)
     lv_theme_t *theme;
 
     lv_init();
-    lv_i18n_init(lv_i18n_language_pack);
-    switch (DeviceSettingsGetLanguage()) {
-    case 1:
-        lv_i18n_set_locale("zh-cn");
-        break;
-    case 2:
-        lv_i18n_set_locale("ko");
-        break;
-    default:
-        lv_i18n_set_locale("en");
-        break;
-    }
     lv_port_disp_init();
     lv_port_indev_init();
     disp = lv_display_get_default();

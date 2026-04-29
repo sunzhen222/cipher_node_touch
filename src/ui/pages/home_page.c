@@ -8,7 +8,6 @@
 #include "user_memory.h"
 #include "device_settings.h"
 #include "images_declare.h"
-#include "lv_i18n.h"
 
 typedef struct {
     lv_obj_t *imageTitle;
@@ -66,7 +65,7 @@ static void HomePageInit(void)
     lv_obj_set_size(values->buttonSystem, 100, 60);
     lv_obj_align(values->buttonSystem, LV_ALIGN_TOP_RIGHT, -45, 240);
     lv_obj_t *systemBtnLabel = lv_label_create(values->buttonSystem);
-    lv_label_set_text(systemBtnLabel, _("system"));
+    lv_label_set_text(systemBtnLabel, "System");
     lv_obj_add_event_cb(values->buttonSystem, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 }
 

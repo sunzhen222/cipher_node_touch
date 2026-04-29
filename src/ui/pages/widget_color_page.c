@@ -8,7 +8,6 @@
 #include "user_memory.h"
 #include "device_settings.h"
 #include "user_msg.h"
-#include "lv_i18n.h"
 
 typedef struct {
     //lv_obj_t *checkBoxBlue;
@@ -54,7 +53,7 @@ static void WidgetColorPageInit(void)
     lv_obj_t *temp;
 
     temp = lv_label_create(GetPageBackground());
-    lv_label_set_text(temp, _("widget_color"));
+    lv_label_set_text(temp, "Widget color");
     lv_obj_align(temp, LV_ALIGN_TOP_MID, 0, 60);
 
     for (uint32_t i = 0; i < sizeof(g_colorList) / sizeof(lv_palette_t); i++) {

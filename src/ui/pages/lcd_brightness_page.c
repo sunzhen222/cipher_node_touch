@@ -8,7 +8,6 @@
 #include "user_memory.h"
 #include "device_settings.h"
 #include "drv_lcd.h"
-#include "lv_i18n.h"
 
 typedef struct {
     uint32_t brightness;
@@ -38,7 +37,7 @@ static void LcdBrightnessPageInit(void)
     lv_obj_t *temp;
 
     temp = lv_label_create(GetPageBackground());
-    lv_label_set_text(temp, _("lcd_brightness"));
+    lv_label_set_text(temp, "LCD Brightness");
     lv_obj_align(temp, LV_ALIGN_TOP_MID, 0, 60);
 
     temp = lv_slider_create(GetPageBackground());

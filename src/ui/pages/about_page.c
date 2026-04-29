@@ -10,7 +10,6 @@
 #include "hardware_version.h"
 #include "software_version.h"
 #include "drv_w25qxx.h"
-#include "lv_i18n.h"
 
 #define STM32_UID_BASE  0x1FFF7A10
 
@@ -42,15 +41,15 @@ static void AboutPageInit(void)
     char buildTime[64];
     char uidStr[128];
 
-    snprintf(hardwareVersion, sizeof(hardwareVersion), _("about_hardware_version_format"), GetHardwareVersionString());
-    snprintf(softwareVersion, sizeof(softwareVersion), _("about_software_version_format"), GetSoftwareVersionString());
-    snprintf(buildTime, sizeof(buildTime), _("about_build_time_format"), GetBuildTime());
+    snprintf(hardwareVersion, sizeof(hardwareVersion), "Hardware version: %s", GetHardwareVersionString());
+    snprintf(softwareVersion, sizeof(softwareVersion), "Software version: %s", GetSoftwareVersionString());
+    snprintf(buildTime, sizeof(buildTime), "Build time: %s", GetBuildTime());
 
     uint32_t uid[3];
     uid[0] = *(uint32_t *)(STM32_UID_BASE + 0);
     uid[1] = *(uint32_t *)(STM32_UID_BASE + 4);
     uid[2] = *(uint32_t *)(STM32_UID_BASE + 8);
-    snprintf(uidStr, sizeof(uidStr), _("about_uid_format"), uid[0], uid[1], uid[2]);
+    snprintf(uidStr, sizeof(uidStr), "UID: %08lX %08lX %08lX", uid[0], uid[1], uid[2]);
 
     UserMenuItem_t menuItems[] = {
         {hardwareVersion, NULL},

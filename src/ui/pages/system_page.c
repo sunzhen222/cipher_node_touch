@@ -10,7 +10,6 @@
 #include "confirm_win.h"
 #include "stm32f4xx_hal.h"
 #include "drv_w25qxx.h"
-#include "lv_i18n.h"
 
 static void SystemPageInit(void);
 static void SystemPageDeinit(void);
@@ -24,7 +23,6 @@ typedef struct {
 static void WidgetColorCallback(lv_event_t *e);
 static void LcdBrightnessCallback(lv_event_t *e);
 static void FactoryResetCallback(lv_event_t *e);
-static void LanguageCallback(lv_event_t *e);
 static void AboutCallback(lv_event_t *e);
 static void FactoryResetOkHandler(lv_event_t *e);
 
@@ -42,11 +40,10 @@ static void SystemPageInit(void)
     lv_obj_set_user_data(GetPageBackground(), values);
 
     UserMenuItem_t menuItems[] = {
-        {_("system_widget_color"), WidgetColorCallback},
-        {_("system_lcd_brightness"), LcdBrightnessCallback},
-        {_("system_factory_reset"), FactoryResetCallback},
-        {_("system_language"), LanguageCallback},
-        {_("system_about"), AboutCallback},
+        {"Widget color", WidgetColorCallback},
+        {"LCD brightness", LcdBrightnessCallback},
+        {"Factory Reset", FactoryResetCallback},
+        {"About", AboutCallback},
     };
     values->menuItemCount = sizeof(menuItems) / sizeof(UserMenuItem_t);
     values->menu = CreateUserMenu(menuItems, values->menuItemCount);
@@ -87,15 +84,9 @@ static void FactoryResetCallback(lv_event_t *e)
 {
     UNUSED(e);
     ConfirmWin_t confirmWin = {0};
-    confirmWin.text = _("factory_reset_confirm");
+    confirmWin.text = "Are you sure to reset to factory settings?";
     confirmWin.OkHandler = FactoryResetOkHandler;
     CreateConfirmWin(GetPageBackground(), &confirmWin);
-}
-
-static void LanguageCallback(lv_event_t *e)
-{
-    UNUSED(e);
-    EnterNewPage(&g_languagePage);
 }
 
 static void AboutCallback(lv_event_t *e)
