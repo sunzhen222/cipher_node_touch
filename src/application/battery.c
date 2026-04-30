@@ -83,7 +83,7 @@ void SendBatteryInfoToUi(void)
 {
     uint32_t batteryPercent = GetBatteryPercent();
     BatteryStatus batteryStatus = GetBatteryStatus();
-    printf("battery percent:%lu%%, status:%d\n", batteryPercent, batteryStatus);
+    //printf("battery percent:%lu%%, status:%d\n", batteryPercent, batteryStatus);
     SendUiMsg(UI_MSG_CODE_BATTERY_PERCENT, &batteryPercent, sizeof(batteryPercent));
     SendUiMsg(UI_MSG_CODE_CHARGING, &batteryStatus, sizeof(batteryStatus));
 }
