@@ -46,6 +46,30 @@ applyTo: "**"
 - 每次测试会在 `test_output/` 生成时间戳日志（`.log`）和结果文件（`.json`）
 - 若串口不存在或被占用，脚本会提示可用串口和处理建议
 
+### test_cmd 命令通道说明
+
+- 命令接收入口：`USART1` 中断回调（`HAL_UART_RxCpltCallback`）逐字节喂给 `TestCmdRcvByte()`
+- 帧格式：以 `#` 开始，以换行 `\n`（或下一个 `#`）结束
+- 解析内容：`CmdTask` 在收到 `CMD_MSG_FRAME` 后执行 `CompareAndRunTestCmd((char *)g_testCmdRcvBuffer + 1)`，即去掉首字符 `#` 后做命令匹配
+- 超时机制：同一帧字节间隔超过约 `200ms` 会丢弃当前缓冲并重新同步
+- 快速示例：发送 `#test\n`，设备会打印 `test!!`
+
+### test_cmd 匹配规则
+
+- 无冒号命令（如 `test`、`all task info`）：全字符串精确匹配
+- 带冒号命令（如 `erase flash:`、`lora:`）：前缀匹配，冒号后按空格分割参数，回调参数为 `(argc, argv)`
+- 参数解析上限：`CMD_MAX_ARGC = 16`
+
+### test_cmd 扩展规范
+
+- 公共接口在 `src/test/test_cmd.h`
+- 注册接口：`RegisterTestCmd(const char *cmdString, const TestCmdFunc_t func)`
+- 典型用法：在模块初始化处注册，例如 `RegisterTestCmd("usb:", UsbTestFunc)`、`RegisterTestCmd("lora:", LoraTestFunc)`
+- 新增命令建议：
+  - 无参数命令使用不带冒号的完整字符串（例：`"show assert"`）
+  - 需要参数时使用带冒号前缀（例：`"i2c:"`、`"send_uart2:"`）
+  - 回调函数签名统一为：`static void XxxTestFunc(int argc, char *argv[])`
+
 ---
 
 ## 目录结构
