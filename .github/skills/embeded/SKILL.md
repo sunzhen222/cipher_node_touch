@@ -25,13 +25,14 @@ applyTo: "**"
 | 增量编译 | `.\build.bat` |
 | 清除重新编译 | `.\build.bat rebuild` |
 | 编译并复制到设备（U盘 OTA 烧录） | `.\build.bat copy` |
-| 编译并通过J-LINK 烧录 (暂未实现) | `.\build.bat flash` |
-| 清除重编 + 烧录 | `.\build.bat rebuild copy` |
+| 编译并通过 J-LINK 烧录 | `\.\build.bat flash` |
+| 清除重编 + 烧录 | `\.\build.bat rebuild flash` |
 
 **编译流程说明**：
 1. CMake 配置 + Ninja 构建
 2. 生成 `cipher_node_touch.bin` 后，用 `OTA_File_Maker_Console.exe` 打包为 `update.bin`
 3. 若带 `copy` 参数，将 `update.bin` 复制到 `j:/update.bin`（设备挂载盘符）
+4. 若带 `flash` 参数，且存在 `cipher_node_touch.hex`，调用 `JLink -CommanderScript "../program.jlink"` 进行烧录
 
 **前置依赖**：按工程依赖正常安装即可。
 
