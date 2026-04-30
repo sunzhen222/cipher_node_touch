@@ -1,0 +1,21 @@
+{
+  "commands": [
+    {
+      "command": "test",
+      "expect": "test!!",
+      "timeoutMs": 2500
+    },
+    {
+      "command": "heap info",
+      "expect": "TotalHeapSize\\s*=\\s*\\d+"
+    },
+    {
+      "command": "get tick",
+      "expect": "os tick=\\d+"
+    },
+    {
+      "command": "clr cpu per",
+      "expect": "clear cpu percent to 0"
+    }
+  ]
+}

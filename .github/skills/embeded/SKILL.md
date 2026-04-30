@@ -25,8 +25,9 @@ applyTo: "**"
 | 增量编译 | `.\build.bat` |
 | 清除重新编译 | `.\build.bat rebuild` |
 | 编译并复制到设备（U盘 OTA 烧录） | `.\build.bat copy` |
-| 编译并通过 J-LINK 烧录 | `\.\build.bat flash` |
-| 清除重编 + 烧录 | `\.\build.bat rebuild flash` |
+| 编译并通过 J-LINK 烧录 | `.\build.bat flash` |
+| 清除重编 + 烧录 | `.\build.bat rebuild flash` |
+| 烧录后串口自动测试（默认 COM11） | `.\tools\flash_and_serial_test.bat` |
 
 **编译流程说明**：
 1. CMake 配置 + Ninja 构建
@@ -35,6 +36,15 @@ applyTo: "**"
 4. 若带 `flash` 参数，且存在 `cipher_node_touch.hex`，调用 `JLink -CommanderScript "../program.jlink"` 进行烧录
 
 **前置依赖**：按工程依赖正常安装即可。
+
+**串口自动测试说明**：
+- 默认使用 `COM11`、`921600` 波特率（与 `USART1` 命令口一致）
+- 启动检测默认关键字：`device started`（可通过参数覆盖）
+- 测试指令来自 `tools/serial_test_plan.json`，可随时增删命令
+- 仅串口测试：`powershell -ExecutionPolicy Bypass -File .\tools\serial_test.ps1 -Port COM11 -BaudRate 921600 -CommandsFile .\tools\serial_test_plan.json -StartPattern "device started"`
+- 一键烧录+测试：`.\tools\flash_and_serial_test.bat COM11 .\tools\serial_test_plan.json "device started"`
+- 每次测试会在 `test_output/` 生成时间戳日志（`.log`）和结果文件（`.json`）
+- 若串口不存在或被占用，脚本会提示可用串口和处理建议
 
 ---
 

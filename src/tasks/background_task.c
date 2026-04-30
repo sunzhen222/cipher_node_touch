@@ -67,6 +67,7 @@ static void BackgroundTask(void *argument)
     UNUSED(argument);
     Message_t rcvMsg;
     osStatus_t ret;
+    printf("device started\n");
     while (1) {
         ret = osMessageQueueGet(g_backgroundQueue, &rcvMsg, NULL, 10000);
         if (ret != osOK) {
