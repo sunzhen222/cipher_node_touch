@@ -72,6 +72,15 @@ void SramFree(void *p)
     }
 }
 
+void *SramRealloc(void *p, size_t size)
+{
+    void *dest = pvPortMalloc((size_t) size);
+    ASSERT(dest != NULL);
+    memcpy(dest, p, size);
+    vPortFree(p);
+    return dest;
+}
+
 void PrintHeapInfo(void)
 {
     printf("sram heap info:\n");

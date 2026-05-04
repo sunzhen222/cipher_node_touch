@@ -10,6 +10,7 @@ void SramFreeTrack(void *p, const char *file, int line, const char *func);
 void *SramReallocTrack(void *p, size_t size, const char *file, int line, const char *func);
 void *SramMalloc(size_t size);
 void SramFree(void *p);
+void *SramRealloc(void *p, size_t size);
 
 void PrintHeapInfo(void);
 
