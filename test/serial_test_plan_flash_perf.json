@@ -1,0 +1,9 @@
+{
+  "commands": [
+    {
+      "command": "flash perf: CA000 65536 1",
+      "expect": "FLASH_PERF_SUMMARY\\s+loop=1\\s+size=65536",
+      "timeoutMs": 120000
+    }
+  ]
+}

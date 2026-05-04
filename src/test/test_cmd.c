@@ -11,6 +11,7 @@
 #include "user_utils.h"
 #include "rtos_expand.h"
 #include "drv_w25qxx.h"
+#include "flash_map.h"
 #include "user_fs.h"
 #include "drv_i2c_io.h"
 #include "drv_uart.h"
@@ -43,6 +44,7 @@ static void RebootFunc(int argc, char *argv[]);
 static void EraseFlashFunc(int argc, char *argv[]);
 static void WriteFlashFunc(int argc, char *argv[]);
 static void ReadFlashFunc(int argc, char *argv[]);
+static void FlashPerfFunc(int argc, char *argv[]);
 static void HardfaultFunc(int argc, char *argv[]);
 static void FileMd5Func(int argc, char *argv[]);
 static void I2cFunc(int argc, char *argv[]);
@@ -65,6 +67,7 @@ static const TestCmdItem_t g_testCmdTable[] = {
     {"erase flash:",            EraseFlashFunc          },
     {"write flash:",            WriteFlashFunc          },
     {"read flash:",             ReadFlashFunc           },
+    {"flash perf:",             FlashPerfFunc           },
     {"hardfault:",              HardfaultFunc           },
     {"file md5:",               FileMd5Func             },
     {"i2c:",                    I2cFunc                 },
@@ -298,6 +301,174 @@ static void ReadFlashFunc(int argc, char *argv[])
     W25qxx_ReadBytes(data, (uint32_t)addr, length);
     PrintArray("read", data, length);
     SRAM_FREE(data);
+}
+
+static void PrintSpeed(uint32_t bytes, uint32_t us, const char *label)
+{
+    uint32_t kbpsX100;
+    if (us == 0) {
+        printf("%s=N/A", label);
+        return;
+    }
+    kbpsX100 = (uint32_t)(((uint64_t)bytes * 100000000ULL) / ((uint64_t)1024 * us));
+    printf("%s=%lu.%02luKB/s",
+           label,
+           kbpsX100 / 100U,
+           kbpsX100 % 100U);
+}
+
+static void FlashPerfFunc(int argc, char *argv[])
+{
+    uint32_t startAddr;
+    uint32_t size;
+    uint32_t loopCount;
+    uint32_t flashSize;
+    uint32_t freeStart;
+    uint32_t freeEnd;
+    uint32_t alignedStart;
+    uint32_t alignedEnd;
+    uint32_t eraseUs;
+    uint32_t writeUs;
+    uint32_t readUs;
+    uint32_t eraseUsTotal = 0;
+    uint32_t writeUsTotal = 0;
+    uint32_t readUsTotal = 0;
+    uint8_t *writeBuf = SRAM_MALLOC(FATFS_FLASH_SECTOR_SIZE);
+    uint8_t *readBuf = SRAM_MALLOC(FATFS_FLASH_SECTOR_SIZE);
+
+    startAddr = SPI_FLASH_ADDR_ERR_INFO + SPI_FLASH_SIZE_ERR_INFO;
+    size = FATFS_FLASH_SECTOR_SIZE * 16;
+    loopCount = 1;
+
+    if (argc >= 1) {
+        sscanf(argv[0], "%lX", &startAddr);
+    }
+    if (argc >= 2) {
+        sscanf(argv[1], "%lu", &size);
+    }
+    if (argc >= 3) {
+        sscanf(argv[2], "%lu", &loopCount);
+    }
+
+    if (loopCount == 0) {
+        printf("FLASH_PERF_ERROR invalid loopCount=0\n");
+        SRAM_FREE(writeBuf);
+        SRAM_FREE(readBuf);
+        return;
+    }
+    if (size == 0) {
+        printf("FLASH_PERF_ERROR invalid size=0\n");
+        SRAM_FREE(writeBuf);
+        SRAM_FREE(readBuf);
+        return;
+    }
+
+    flashSize = w25qxx.SectorCount * w25qxx.SectorSize;
+    freeStart = SPI_FLASH_ADDR_ERR_INFO + SPI_FLASH_SIZE_ERR_INFO;
+    freeEnd = flashSize;
+    if (freeStart >= freeEnd) {
+        printf("FLASH_PERF_ERROR no_free_flash_region\n");
+        SRAM_FREE(writeBuf);
+        SRAM_FREE(readBuf);
+        return;
+    }
+
+    alignedStart = startAddr & ~(FATFS_FLASH_SECTOR_SIZE - 1);
+    alignedEnd = (startAddr + size + FATFS_FLASH_SECTOR_SIZE - 1) & ~(FATFS_FLASH_SECTOR_SIZE - 1);
+
+    if (alignedStart < freeStart || alignedEnd > freeEnd || alignedStart >= alignedEnd) {
+        printf("FLASH_PERF_ERROR out_of_range req=[0x%lX,0x%lX) free=[0x%lX,0x%lX)\n",
+               alignedStart,
+               alignedEnd,
+               freeStart,
+               freeEnd);
+        SRAM_FREE(writeBuf);
+        SRAM_FREE(readBuf);
+        return;
+    }
+
+    size = alignedEnd - alignedStart;
+
+    printf("FLASH_PERF_CONFIG addr=0x%lX size=%lu loop=%lu free_start=0x%lX free_end=0x%lX\n",
+           alignedStart,
+           size,
+           loopCount,
+           freeStart,
+           freeEnd);
+
+    for (uint32_t loop = 0; loop < loopCount; loop++) {
+        uint32_t firstMismatchAddr = 0;
+        uint32_t mismatchCount = 0;
+        uint32_t t0;
+        uint32_t t1;
+
+        t0 = GetMicroSecCount();
+        for (uint32_t addr = alignedStart; addr < alignedEnd; addr += FATFS_FLASH_SECTOR_SIZE) {
+            W25qxx_EraseAddr(addr);
+        }
+        t1 = GetMicroSecCount();
+        eraseUs = t1 - t0;
+
+        t0 = GetMicroSecCount();
+        for (uint32_t off = 0; off < size; off += FATFS_FLASH_SECTOR_SIZE) {
+            uint32_t chunkSize = FATFS_FLASH_SECTOR_SIZE;
+            if (off + chunkSize > size) {
+                chunkSize = size - off;
+            }
+            for (uint32_t i = 0; i < chunkSize; i++) {
+                writeBuf[i] = (uint8_t)((alignedStart + off + i) & 0xFF);
+            }
+            W25qxx_WriteBytes(writeBuf, alignedStart + off, chunkSize);
+        }
+        t1 = GetMicroSecCount();
+        writeUs = t1 - t0;
+
+        t0 = GetMicroSecCount();
+        for (uint32_t off = 0; off < size; off += FATFS_FLASH_SECTOR_SIZE) {
+            uint32_t chunkSize = FATFS_FLASH_SECTOR_SIZE;
+            if (off + chunkSize > size) {
+                chunkSize = size - off;
+            }
+            memset(readBuf, 0, chunkSize);
+            W25qxx_ReadBytes(readBuf, alignedStart + off, chunkSize);
+            for (uint32_t i = 0; i < chunkSize; i++) {
+                uint8_t expected = (uint8_t)((alignedStart + off + i) & 0xFF);
+                if (readBuf[i] != expected) {
+                    if (mismatchCount == 0) {
+                        firstMismatchAddr = alignedStart + off + i;
+                    }
+                    mismatchCount++;
+                }
+            }
+        }
+        t1 = GetMicroSecCount();
+        readUs = t1 - t0;
+
+        eraseUsTotal += eraseUs;
+        writeUsTotal += writeUs;
+        readUsTotal += readUs;
+
+        printf("FLASH_PERF_LOOP idx=%lu erase_us=%lu ", loop + 1, eraseUs);
+        PrintSpeed(size, eraseUs, "erase_speed");
+        printf(" write_us=%lu ", writeUs);
+        PrintSpeed(size, writeUs, "write_speed");
+        printf(" read_us=%lu ", readUs);
+        PrintSpeed(size, readUs, "read_speed");
+        if (mismatchCount == 0) {
+            printf(" verify=OK\n");
+        } else {
+            printf(" verify=FAIL mismatch=%lu first_addr=0x%lX\n", mismatchCount, firstMismatchAddr);
+        }
+    }
+
+    printf("FLASH_PERF_SUMMARY loop=%lu size=%lu erase_avg_us=%lu write_avg_us=%lu read_avg_us=%lu\n",
+           loopCount,
+           size,
+           eraseUsTotal / loopCount,
+           writeUsTotal / loopCount,
+           readUsTotal / loopCount);
+    SRAM_FREE(writeBuf);
+    SRAM_FREE(readBuf);
 }
 
 static void HardfaultFunc(int argc, char *argv[])
