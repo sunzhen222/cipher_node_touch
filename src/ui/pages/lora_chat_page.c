@@ -7,6 +7,7 @@
 #include "user_utils.h"
 #include "user_memory.h"
 #include "lora_chat.h"
+#include "command_lora_chat.h"
 #include "status_bar.h"
 
 #define INPUT_BAR_HEIGHT        50
@@ -69,13 +70,18 @@ static void LoraChatPageDeinit(void)
 
 static void LoraChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
 {
-    UNUSED(data);
-    UNUSED(dataLen);
-    UNUSED(code);
-    //switch (code) {
-    //default:
-    //    break;
-    //}
+    switch (code) {
+    case UI_MSG_CODE_LORA_CHAT_ITEM:
+        if (dataLen != sizeof(ChatItem_t *)) {
+            printf("LoraChatPageMsgHandler: invalid dataLen\n");
+            break;
+        }
+        ChatItem_t *item = *(ChatItem_t **)data;
+        AddNewLoraChatLayout(item);
+        break;
+    default:
+        break;
+    }
 }
 
 static void LoraChatLayout(void)
@@ -339,7 +345,8 @@ static void InputSendBtnEventHandler(lv_event_t *e)
     LoraChatPageValues_t *values = lv_event_get_user_data(e);
     printf("Send clicked, text: %s\n", lv_textarea_get_text(values->inputTa));
     ChatItem_t *newItem = AddChatItem("Me", lv_textarea_get_text(values->inputTa), 0, true, 0x2FB35A);
-    AddNewLoraChatLayout(newItem);
+    SendLoraChat("Me", lv_textarea_get_text(values->inputTa), 0x2FB35A);
+    SendUiMsg(UI_MSG_CODE_LORA_CHAT_ITEM, &newItem, sizeof(newItem));
     lv_textarea_set_text(values->inputTa, "");
 }
 

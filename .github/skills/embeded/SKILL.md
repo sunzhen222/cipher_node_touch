@@ -142,6 +142,19 @@ build/           # 编译输出目录（CMake/Ninja 产物）
 
 ---
 
+## LoRa 协议宏观注意事项
+
+- 协议头固定顺序为：`Head(1) + Flag(2) + Length(2) + ContentCrc(4)`，其中 `ContentCrc` 使用 `crc32_ieee`。
+- `Length` 语义：不包含前 9 字节头（`Head + Flag + Length + ContentCrc`）以及末尾 `CRC16(2)`。
+- 整帧长度关系：`total_frame_length = head.length + 11`。
+- 内容 CRC32 计算范围：从 `TimeStamp` 开始到 TLV/填充区结束（不含末尾 `CRC16`）。
+- 接收校验建议顺序：帧头 -> 长度 -> `CRC16` -> 网络 ID -> 解密（如启用）-> `ContentCrc`。
+- `ContentCrc` 失败应直接丢帧，禁止继续 TLV 解析，避免错误密钥解密后产生伪数据导致异常逻辑。
+- 加密模式下，明文前缀长度为 9 字节，加密区从字节偏移 9 开始，长度必须 16 字节对齐。
+- 命令 `Command ID 0x01` 统一为 `lora_chat`，TLV 必填 `Username(0x01)`、`Text(0x02)`、`AvatarColor(0x03, 3字节RGB)`。
+
+---
+
 ## 常见问题
 
 - **`j:/update.bin` 复制失败**：确认设备已通过 USB 挂载且盘符为 `J:`

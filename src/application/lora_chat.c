@@ -29,7 +29,6 @@ void ClearChatItems(void)
 }
 
 
-
 ChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor)
 {
     ChatItem_t *item = SRAM_MALLOC(sizeof(ChatItem_t));

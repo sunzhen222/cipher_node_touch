@@ -45,6 +45,7 @@ set(UI_WIDGETS_DIR "${UI_DIR}/widgets")
 set(UI_THEMES_DIR "${UI_DIR}/themes")
 set(UI_I18N_DIR "${UI_DIR}/i18n")
 set(LVGL_DIR "${PROJECT_DIR}/third/lvgl")
+set(CTAES_DIR "${PROJECT_DIR}/third/ctaes")
 
 # MCU specific flags
 set(TARGET_FLAGS "-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard ")
@@ -241,6 +242,10 @@ file(GLOB_RECURSE UI_FILES
     "${UI_DIR}/*.c"
 )
 
+file(GLOB CTAES_FILES
+    "${CTAES_DIR}/ctaes.c"
+)
+
 
 # Suppress third-party LVGL unused-parameter warnings without patching vendor files
 target_compile_options(lvgl PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-unused-parameter>)
@@ -264,6 +269,7 @@ set(objsrc
     ${FREERTOS_DIR_FILES}
     ${USBD_FILES}
     ${UI_FILES}
+    ${CTAES_FILES}
     ${CORE_DIR}/startup_stm32f405xx.s
     ${SOURCE_DIR}/cm_backtrace/fault_handler/gcc/cmb_fault.S)
 add_executable(${PROJECT_NAME}.elf ${objsrc})

@@ -48,7 +48,7 @@
                 "${workspaceFolder}/src/ui/widgets",
                 "${workspaceFolder}/src/ui/images",
                 "${workspaceFolder}/src/ui/themes",
-                "${workspaceFolder}/src/ui/i18n",
+                "${workspaceFolder}/third/ctaes",
                 "${workspaceFolder}/third/lvgl"
             ]
         }

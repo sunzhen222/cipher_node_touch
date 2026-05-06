@@ -82,6 +82,7 @@ static void BackgroundTask(void *argument)
         }
         break;
         case BACKGROUND_MSG_LORA_IRQ: {
+            printf("lora irq\n");
             LoraIrqHandler();
         }
         break;

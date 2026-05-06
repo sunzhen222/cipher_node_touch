@@ -8,6 +8,7 @@
 #include "drv_gpio.h"
 #include "device_settings.h"
 #include "test_cmd.h"
+#include "protocol_parse.h"
 #include <stdlib.h>
 
 #define LORA_SEND_TICK_ENABLE    0
@@ -16,7 +17,7 @@ static void LoraCallback(uint16_t type, uint8_t *buf, uint16_t len);
 static void LoraTestFunc(int argc, char *argv[]);
 
 llcc68_handle_t g_llcc64Handle, g_llcc64Handle2;
-static volatile bool g_loraTxBusy = false, g_loraTxBusy2 = false;
+static volatile bool g_loraTxBusy = false;
 typedef enum {
     LORA_WIRELESS_STATUS_UNKNOWN = 0,
     LORA_WIRELESS_STATUS_INIT_OK,
@@ -376,7 +377,7 @@ static void LoraCallback(uint16_t type, uint8_t *buf, uint16_t len)
         }
         if ((enable == LLCC68_BOOL_FALSE) && len) {
             LORA_RX_LED_ON();
-            //ProtocolReceivedData(buf, len);
+            ProtocolReceivedData(buf, len);
             PrintArray("received data", buf, len);
             LORA_RX_LED_OFF();
             float rssi, snr;

@@ -59,7 +59,7 @@ static void SaveDeviceSettingsSync(void);
 static bool GetDeviceSettingsFromJsonString(const char *string);
 static char *GetJsonStringFromDeviceSettings(void);
 
-static const char g_deviceSettingsVersion[] = "0.0.1";
+static const char g_deviceSettingsVersion[] = "0.0.2";
 static DeviceSettings_t g_deviceSettings;
 
 void DeviceSettingsInit(void)
