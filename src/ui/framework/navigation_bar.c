@@ -11,7 +11,7 @@ void CreateNavigationBar(const NavigationBar_t *navigationBar)
     lv_obj_set_size(bg, lv_display_get_horizontal_resolution(NULL), NAVIGATION_BAR_HEIGHT);
     if (navigationBar->leftImgSrc != NULL) {
         btn = lv_btn_create(bg);
-        lv_obj_set_size(btn, 50, 24);
+        lv_obj_set_size(btn, 50, NAVIGATION_BAR_HEIGHT);
         lv_obj_align(btn, LV_ALIGN_TOP_LEFT, 0, 0);
         lv_obj_add_event_cb(btn, navigationBar->leftBtnCb, LV_EVENT_CLICKED, NULL);
         lv_obj_set_style_bg_color(btn, lv_color_black(), 0);
@@ -22,7 +22,7 @@ void CreateNavigationBar(const NavigationBar_t *navigationBar)
     }
     if (navigationBar->rightImgSrc != NULL) {
         btn = lv_btn_create(bg);
-        lv_obj_set_size(btn, 50, 24);
+        lv_obj_set_size(btn, 50, NAVIGATION_BAR_HEIGHT);
         lv_obj_align(btn, LV_ALIGN_TOP_RIGHT, 0, 0);
         lv_obj_add_event_cb(btn, navigationBar->rightBtnCb, LV_EVENT_CLICKED, NULL);
         lv_obj_set_style_bg_color(btn, lv_color_black(), 0);

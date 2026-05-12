@@ -9,6 +9,7 @@
 #include "lora_chat.h"
 #include "command_lora_chat.h"
 #include "status_bar.h"
+#include "images_declare.h"
 
 #define INPUT_BAR_HEIGHT        50
 #define KEYBOARD_HEIGHT         160
@@ -36,6 +37,8 @@ static void ScrollChatListToBottom(lv_obj_t *chatList);
 static void InputSendBtnEventHandler(lv_event_t *e);
 static void UpdateSendButtonState(LoraChatPageValues_t *values);
 static void HideInputKeyboardAndRestoreLayout(LoraChatPageValues_t *values);
+static void ChatSettingsButtonHandler(lv_event_t *e);
+static void BackButtonHandler(lv_event_t *e);
 
 
 Page_t g_loraChatPage = {
@@ -47,7 +50,14 @@ Page_t g_loraChatPage = {
 
 static void LoraChatPageInit(void)
 {
-    CreateGeneralNavigationBar();
+    NavigationBar_t navigationBar = {
+        .leftImgSrc = &img_back,
+        .leftBtnCb = BackButtonHandler,
+        .rightImgSrc = &img_settings,
+        .rightBtnCb = ChatSettingsButtonHandler,
+        .middleText = "Lora Chat",
+    };
+    CreateNavigationBar(&navigationBar);
     LoraChatPageValues_t *values = SRAM_MALLOC(sizeof(LoraChatPageValues_t));
     lv_obj_set_user_data(GetPageBackground(), values);
     lv_obj_set_scrollbar_mode(GetPageBackground(), LV_SCROLLBAR_MODE_OFF);
@@ -58,7 +68,6 @@ static void LoraChatPageInit(void)
     values->keyboard = NULL;
     values->sendBtn = NULL;
 
-    TestLoraChat();
     LoraChatLayout();
 }
 
@@ -357,5 +366,21 @@ static void UpdateSendButtonState(LoraChatPageValues_t *values)
         lv_obj_add_state(values->sendBtn, LV_STATE_DISABLED);
     } else {
         lv_obj_clear_state(values->sendBtn, LV_STATE_DISABLED);
+    }
+}
+
+static void ChatSettingsButtonHandler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        EnterNewPage(&g_chatSettingsPage);
+    }
+}
+
+static void BackButtonHandler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    if (code == LV_EVENT_CLICKED) {
+        EnterPreviousPage();
     }
 }
