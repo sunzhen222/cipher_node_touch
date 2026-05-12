@@ -98,6 +98,32 @@ build/           # 编译输出目录（CMake/Ninja 产物）
 
 ---
 
+## 硬件资料来源（重要）
+
+- `hardware/` 目录包含当前工程**最新**硬件资料，默认作为硬件相关开发的唯一权威来源。
+- 重点包括：
+  - 最新原理图网表（用于引脚、网络、电源、总线连接关系确认）
+  - 当前项目实际使用的 datasheet（用于时序、寄存器、命令、电气规格确认）
+- 涉及驱动、引脚映射、时序参数、上电流程、复位逻辑等问题时，优先查 `hardware/` 下文件，不以历史聊天结论替代原文。
+
+## Datasheet 读取建议流程
+
+- 目标：快速得到“可落地到代码”的结论，而不是只摘参数。
+- 推荐步骤：
+  1. 先全文提取 PDF 文本，转为可检索文件（便于快速定位 Command/Timing/Reset/CRC/Conversion）。
+  2. 按实现链路阅读：硬件连接 -> 上电与复位 -> 触发测量 -> 读数格式 -> 校验 -> 物理量换算 -> 异常恢复。
+  3. 对照命令表与时序表交叉验证，避免“命令正确但等待时间错误”或 ACK/NACK 处理错误。
+  4. 最后回看时序图和引脚图，核对边沿约束与引脚行为。
+- 在本仓库可使用 Python + pypdf 批量提取，例如：
+
+```powershell
+C:/Users/64676/AppData/Local/Programs/Python/Python312/python.exe -c "from pypdf import PdfReader; from pathlib import Path; p=Path('hardware/SHT3X-DIS.pdf'); r=PdfReader(str(p)); texts=[]; [texts.append(f'\n===== PAGE {i+1} =====\n'+(pg.extract_text() or '')) for i,pg in enumerate(r.pages)]; Path('test_output/SHT3X-DIS_extracted.txt').write_text(''.join(texts), encoding='utf-8')"
+```
+
+- 提取后优先检索关键词：`I2C address`、`command`、`single shot`、`periodic`、`reset`、`CRC`、`timing`。
+
+---
+
 ## 代码格式化
 
 使用 AStyle 统一格式化 `src/` 下所有 C/H 文件：
