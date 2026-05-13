@@ -104,6 +104,10 @@ build/           # 编译输出目录（CMake/Ninja 产物）
 - 重点包括：
   - 最新原理图网表（用于引脚、网络、电源、总线连接关系确认）
   - 当前项目实际使用的 datasheet（用于时序、寄存器、命令、电气规格确认）
+- 当前仓库已确认的关键硬件资料：
+  - `hardware/*.tel`：原理图网表文件（文件名可能变化，扩展名固定为 `.tel`，使用时优先选择最新版本）
+  - `hardware/stm32f40Xrg.pdf`：STM32F40X 数据手册；嵌入式软件开发最常用的管脚定义集中在 **第 47-59 页**
+  - `hardware/SHT3X-DIS.pdf`：SHT30 温湿度传感器数据手册
 - 涉及驱动、引脚映射、时序参数、上电流程、复位逻辑等问题时，优先查 `hardware/` 下文件，不以历史聊天结论替代原文。
 
 ## Datasheet 读取建议流程
@@ -121,6 +125,7 @@ C:/Users/64676/AppData/Local/Programs/Python/Python312/python.exe -c "from pypdf
 ```
 
 - 提取后优先检索关键词：`I2C address`、`command`、`single shot`、`periodic`、`reset`、`CRC`、`timing`。
+- 对 MCU 管脚相关任务，先定位 `hardware/stm32f40Xrg.pdf` 的第 47-59 页，再结合 `hardware/` 下最新 `.tel` 网表做引脚与网络的双向核对。
 
 ---
 
