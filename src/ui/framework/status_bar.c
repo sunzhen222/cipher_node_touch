@@ -9,17 +9,14 @@
 #include "images_declare.h"
 #include "battery.h"
 
-static void CommLedOffTimerFunc(lv_timer_t *timer);
 static void BatteryPadTimerFunc(lv_timer_t *timer);
 
 static lv_obj_t *g_statusBar;
-static lv_obj_t *g_commLed;
 static lv_obj_t *g_batteryImage;
 static lv_obj_t *g_batteryPad;
 static lv_obj_t *g_wifiImage;
 static lv_obj_t *g_loraSignalImage;
 
-static lv_timer_t *g_commLedOffTimer;
 static lv_timer_t *g_batteryPadTimer;
 
 
@@ -27,12 +24,6 @@ void CreateStatusBar(void)
 {
     g_statusBar = lv_obj_create(lv_scr_act());
     lv_obj_set_size(g_statusBar, lv_display_get_horizontal_resolution(NULL), STATUS_BAR_HEIGHT);
-
-    g_commLed = lv_led_create(g_statusBar);
-    lv_obj_align(g_commLed, LV_ALIGN_LEFT_MID, 10, 0);
-    lv_obj_set_size(g_commLed, 5, 5);
-    lv_led_set_color(g_commLed, lv_color_make(0, 0, 255));
-    lv_led_off(g_commLed);
 
     g_batteryImage = lv_image_create(g_statusBar);
     lv_image_set_src(g_batteryImage, &img_battery);
@@ -59,12 +50,6 @@ void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen)
     BatteryStatus batteryStatus;
 
     switch (code) {
-    case UI_MSG_CODE_COMM: {
-        lv_led_set_color(g_commLed, lv_color_make(0xFF, 0x8C, 0x00));
-        lv_led_on(g_commLed);
-        g_commLedOffTimer = lv_timer_create(CommLedOffTimerFunc, 100, NULL);
-    }
-    break;
     case UI_MSG_CODE_BATTERY_PERCENT:
         ASSERT(data != NULL);
         ASSERT(dataLen == sizeof(percent));
@@ -98,13 +83,6 @@ void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen)
     default:
         break;
     }
-}
-
-static void CommLedOffTimerFunc(lv_timer_t *timer)
-{
-    UNUSED(timer);
-    lv_led_off(g_commLed);
-    lv_timer_delete(timer);
 }
 
 static void BatteryPadTimerFunc(lv_timer_t *timer)
