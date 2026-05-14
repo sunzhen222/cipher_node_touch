@@ -142,7 +142,6 @@ static void LoraChatLayout(void)
     lv_obj_align(values->inputTa, LV_ALIGN_LEFT_MID, 0, 0);
     lv_textarea_set_one_line(values->inputTa, true);
     lv_obj_set_style_pad_all(values->inputTa, 8, 0);
-    lv_obj_set_style_radius(values->inputTa, 5, 0);
     lv_textarea_set_placeholder_text(values->inputTa, "Input message");
     lv_obj_set_style_text_color(values->inputTa, lv_color_hex(0x222222), LV_PART_MAIN);
     lv_obj_set_style_text_opa(values->inputTa, LV_OPA_COVER, LV_PART_MAIN);

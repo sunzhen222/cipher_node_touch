@@ -34,7 +34,7 @@ void CreateNavigationBar(const NavigationBar_t *navigationBar)
     if (navigationBar->middleText != NULL) {
         label = lv_label_create(bg);
         lv_label_set_text(label, navigationBar->middleText);
-        lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 0);
+        lv_obj_align(label, LV_ALIGN_CENTER, 0, 0);
     }
 }
 

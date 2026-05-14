@@ -57,6 +57,7 @@ typedef struct {
     lv_style_t arc_knob;
 #endif
 #if LV_USE_TEXTAREA
+    lv_style_t textarea;
     lv_style_t ta_cursor;
 #endif
     lv_style_t label;
@@ -206,6 +207,10 @@ static void style_init(my_theme_t * theme)
 #endif
 
 #if LV_USE_TEXTAREA
+    style_init_reset(&theme->styles.textarea);
+    lv_style_set_radius(&theme->styles.textarea, 5);
+    lv_style_set_text_color(&theme->styles.textarea, lv_color_black());
+
     style_init_reset(&theme->styles.ta_cursor);
     lv_style_set_border_side(&theme->styles.ta_cursor, LV_BORDER_SIDE_LEFT);
     lv_style_set_border_color(&theme->styles.ta_cursor, COLOR_DIM);
@@ -482,6 +487,7 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj)
 #if LV_USE_TEXTAREA
     else if (lv_obj_check_type(obj, &lv_textarea_class)) {
         lv_obj_add_style(obj, &theme->styles.white, 0);
+        lv_obj_add_style(obj, &theme->styles.textarea, 0);
         lv_obj_add_style(obj, &theme->styles.scrollbar, LV_PART_SCROLLBAR);
         lv_obj_add_style(obj, &theme->styles.ta_cursor, LV_PART_CURSOR | LV_STATE_FOCUSED);
     }
