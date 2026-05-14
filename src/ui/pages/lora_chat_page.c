@@ -8,6 +8,7 @@
 #include "user_memory.h"
 #include "lora_chat.h"
 #include "command_lora_chat.h"
+#include "device_settings.h"
 #include "status_bar.h"
 #include "images_declare.h"
 
@@ -155,7 +156,7 @@ static void LoraChatLayout(void)
     lv_obj_set_size(values->sendBtn, SEND_BTN_WIDTH, INPUT_BAR_HEIGHT - 16);
     lv_obj_align(values->sendBtn, LV_ALIGN_RIGHT_MID, 0, 0);
     lv_obj_set_style_radius(values->sendBtn, 5, 0);
-    lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x2FB35A), 0);
+    lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(DeviceSettingsGetLoraChatAvatarColor()), 0);
     lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x134C26), LV_STATE_PRESSED);
     lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x4A4A4A), LV_STATE_DISABLED);
     lv_obj_set_style_text_color(values->sendBtn, lv_color_hex(0xFFFFFF), 0);
@@ -351,9 +352,12 @@ static void AddNewLoraChatLayout(ChatItem_t *item)
 static void InputSendBtnEventHandler(lv_event_t *e)
 {
     LoraChatPageValues_t *values = lv_event_get_user_data(e);
+    const char *username = DeviceSettingsGetLoraChatUsername();
+    uint32_t avatarColor = DeviceSettingsGetLoraChatAvatarColor();
+
     printf("Send clicked, text: %s\n", lv_textarea_get_text(values->inputTa));
-    ChatItem_t *newItem = AddChatItem("Me", lv_textarea_get_text(values->inputTa), 0, true, 0x2FB35A);
-    SendLoraChat("Me", lv_textarea_get_text(values->inputTa), 0x2FB35A);
+    ChatItem_t *newItem = AddChatItem(username, lv_textarea_get_text(values->inputTa), 0, true, avatarColor);
+    SendLoraChat(username, lv_textarea_get_text(values->inputTa), avatarColor);
     SendUiMsg(UI_MSG_CODE_LORA_CHAT_ITEM, &newItem, sizeof(newItem));
     lv_textarea_set_text(values->inputTa, "");
 }

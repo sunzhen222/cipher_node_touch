@@ -18,10 +18,9 @@
 #define KEY_VERSION                         "version"
 
 #define KEY_BRIGHTNESS                      "brightness"
-#define KEY_SPEED_CTRL_MODE                 "speed_ctrl_mode"
-#define KEY_SPEED_CTRL_SMOOTH               "speed_ctrl_smooth"
 #define KEY_WIDGET_COLOR                    "widget_color"
-#define KEY_LANGUAGE                        "language"
+#define KEY_LORA_CHAT_AVATAR_COLOR          "lora_chat_avatar_color"
+#define KEY_LORA_CHAT_USERNAME              "lora_chat_username"
 #define KEY_LORA_FREQ                       "lora_freq"
 #define KEY_DEVICE_ID                       "device_id"
 #define KEY_LORA_NET_ID                     "lora_net_id"
@@ -30,10 +29,9 @@
 #define KEY_LORA_BANDWIDTH                  "lora_bw"
 
 #define DEFAULT_BRIGHTNESS                  100
-#define DEFAULT_SPEED_CTRL_MODE             0
-#define DEFAULT_SPEED_CTRL_SMOOTH           1
 #define DEFAULT_WIDGET_COLOR                LV_PALETTE_BLUE
-#define DEFAULT_LANGUAGE                    0
+#define DEFAULT_LORA_CHAT_AVATAR_COLOR      0x2FB35A
+#define DEFAULT_LORA_CHAT_USERNAME          "Me"
 #define DEFAULT_LORA_FREQ                   434000000
 #define DEFAULT_DEVICE_ID                   1
 #define DEFAULT_LORA_NET_ID                 0
@@ -43,10 +41,9 @@
 
 typedef struct {
     uint32_t brightness;
-    uint32_t speedCtrlMode;
-    uint32_t speedCtrlSmooth;
     uint32_t widgetColor;
-    uint32_t language;
+    uint32_t loraChatAvatarColor;
+    char loraChatUsername[32];
     uint32_t loraFreq;
     uint32_t deviceId;
     uint32_t loraNetId;
@@ -90,10 +87,10 @@ void DeviceSettingsInit(void)
     if (needRegenerate) {
         printf("regenerate settings\n");
         g_deviceSettings.brightness = DEFAULT_BRIGHTNESS;
-        g_deviceSettings.speedCtrlMode = DEFAULT_SPEED_CTRL_MODE;
-        g_deviceSettings.speedCtrlSmooth = DEFAULT_SPEED_CTRL_SMOOTH;
         g_deviceSettings.widgetColor = DEFAULT_WIDGET_COLOR;
-        g_deviceSettings.language = DEFAULT_LANGUAGE;
+        g_deviceSettings.loraChatAvatarColor = DEFAULT_LORA_CHAT_AVATAR_COLOR;
+        strncpy(g_deviceSettings.loraChatUsername, DEFAULT_LORA_CHAT_USERNAME, sizeof(g_deviceSettings.loraChatUsername) - 1);
+        g_deviceSettings.loraChatUsername[sizeof(g_deviceSettings.loraChatUsername) - 1] = '\0';
         g_deviceSettings.loraFreq = DEFAULT_LORA_FREQ;
         g_deviceSettings.deviceId = DEFAULT_DEVICE_ID;
         g_deviceSettings.loraNetId = DEFAULT_LORA_NET_ID;
@@ -117,26 +114,6 @@ void DeviceSettingsSetBrightness(uint32_t brightness)
     g_deviceSettings.brightness = brightness;
 }
 
-uint32_t DeviceSettingsGetSpeedCtrlMode(void)
-{
-    return g_deviceSettings.speedCtrlMode;
-}
-
-void DeviceSettingsSetSpeedCtrlMode(uint32_t mode)
-{
-    g_deviceSettings.speedCtrlMode = mode;
-}
-
-uint32_t DeviceSettingsGetSpeedCtrlSmooth(void)
-{
-    return g_deviceSettings.speedCtrlSmooth;
-}
-
-void DeviceSettingsSetSpeedCtrlSmooth(uint32_t smooth)
-{
-    g_deviceSettings.speedCtrlSmooth = smooth;
-}
-
 uint32_t DeviceSettingsGetWidgetColor(void)
 {
     return g_deviceSettings.widgetColor;
@@ -147,14 +124,29 @@ void DeviceSettingsSetWidgetColor(uint32_t color)
     g_deviceSettings.widgetColor = color;
 }
 
-uint32_t DeviceSettingsGetLanguage(void)
+uint32_t DeviceSettingsGetLoraChatAvatarColor(void)
 {
-    return g_deviceSettings.language;
+    return g_deviceSettings.loraChatAvatarColor;
 }
 
-void DeviceSettingsSetLanguage(uint32_t language)
+void DeviceSettingsSetLoraChatAvatarColor(uint32_t color)
 {
-    g_deviceSettings.language = language;
+    g_deviceSettings.loraChatAvatarColor = color;
+}
+
+const char *DeviceSettingsGetLoraChatUsername(void)
+{
+    return g_deviceSettings.loraChatUsername;
+}
+
+void DeviceSettingsSetLoraChatUsername(const char *username)
+{
+    if (username == NULL) {
+        return;
+    }
+
+    strncpy(g_deviceSettings.loraChatUsername, username, sizeof(g_deviceSettings.loraChatUsername) - 1);
+    g_deviceSettings.loraChatUsername[sizeof(g_deviceSettings.loraChatUsername) - 1] = '\0';
 }
 
 uint32_t DeviceSettingsGetLoraFreq(void)
@@ -292,10 +284,9 @@ static bool GetDeviceSettingsFromJsonString(const char *string)
             break;
         }
         g_deviceSettings.brightness = GetIntValue(rootJson, KEY_BRIGHTNESS, DEFAULT_BRIGHTNESS);
-        g_deviceSettings.speedCtrlMode = GetIntValue(rootJson, KEY_SPEED_CTRL_MODE, DEFAULT_SPEED_CTRL_MODE);
-        g_deviceSettings.speedCtrlSmooth = GetIntValue(rootJson, KEY_SPEED_CTRL_SMOOTH, DEFAULT_SPEED_CTRL_SMOOTH);
         g_deviceSettings.widgetColor = GetIntValue(rootJson, KEY_WIDGET_COLOR, DEFAULT_WIDGET_COLOR);
-        g_deviceSettings.language = GetIntValue(rootJson, KEY_LANGUAGE, DEFAULT_LANGUAGE);
+        g_deviceSettings.loraChatAvatarColor = GetIntValue(rootJson, KEY_LORA_CHAT_AVATAR_COLOR, DEFAULT_LORA_CHAT_AVATAR_COLOR);
+        GetStringValue(rootJson, KEY_LORA_CHAT_USERNAME, DEFAULT_LORA_CHAT_USERNAME, g_deviceSettings.loraChatUsername);
         g_deviceSettings.loraFreq = GetIntValue(rootJson, KEY_LORA_FREQ, DEFAULT_LORA_FREQ);
         g_deviceSettings.deviceId = GetIntValue(rootJson, KEY_DEVICE_ID, DEFAULT_DEVICE_ID);
         g_deviceSettings.loraNetId = GetIntValue(rootJson, KEY_LORA_NET_ID, DEFAULT_LORA_NET_ID);
@@ -317,10 +308,9 @@ static char *GetJsonStringFromDeviceSettings(void)
     rootJson = cJSON_CreateObject();
     cJSON_AddItemToObject(rootJson, KEY_VERSION, cJSON_CreateString(g_deviceSettingsVersion));
     cJSON_AddItemToObject(rootJson, KEY_BRIGHTNESS, cJSON_CreateNumber(g_deviceSettings.brightness));
-    cJSON_AddItemToObject(rootJson, KEY_SPEED_CTRL_MODE, cJSON_CreateNumber(g_deviceSettings.speedCtrlMode));
-    cJSON_AddItemToObject(rootJson, KEY_SPEED_CTRL_SMOOTH, cJSON_CreateNumber(g_deviceSettings.speedCtrlSmooth));
     cJSON_AddItemToObject(rootJson, KEY_WIDGET_COLOR, cJSON_CreateNumber(g_deviceSettings.widgetColor));
-    cJSON_AddItemToObject(rootJson, KEY_LANGUAGE, cJSON_CreateNumber(g_deviceSettings.language));
+    cJSON_AddItemToObject(rootJson, KEY_LORA_CHAT_AVATAR_COLOR, cJSON_CreateNumber(g_deviceSettings.loraChatAvatarColor));
+    cJSON_AddItemToObject(rootJson, KEY_LORA_CHAT_USERNAME, cJSON_CreateString(g_deviceSettings.loraChatUsername));
     cJSON_AddItemToObject(rootJson, KEY_LORA_FREQ, cJSON_CreateNumber(g_deviceSettings.loraFreq));
     cJSON_AddItemToObject(rootJson, KEY_DEVICE_ID, cJSON_CreateNumber(g_deviceSettings.deviceId));
     cJSON_AddItemToObject(rootJson, KEY_LORA_NET_ID, cJSON_CreateNumber(g_deviceSettings.loraNetId));
