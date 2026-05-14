@@ -25,7 +25,7 @@ Page_t g_aboutPage = {
     .init = AboutPageInit,
     .deinit = AboutPageDeinit,
     .msgHandler = AboutPageMsgHandler,
-    .fullScreen = true,
+    .fullScreen = false,
 };
 
 static void AboutPageInit(void)

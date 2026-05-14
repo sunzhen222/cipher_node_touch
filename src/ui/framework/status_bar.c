@@ -8,6 +8,7 @@
 #include "device_settings.h"
 #include "images_declare.h"
 #include "battery.h"
+#include "sht30_app.h"
 
 static void BatteryPadTimerFunc(lv_timer_t *timer);
 
@@ -16,6 +17,7 @@ static lv_obj_t *g_batteryImage;
 static lv_obj_t *g_batteryPad;
 static lv_obj_t *g_wifiImage;
 static lv_obj_t *g_loraSignalImage;
+static lv_obj_t *g_tempHumLabel;
 
 static lv_timer_t *g_batteryPadTimer;
 
@@ -42,12 +44,18 @@ void CreateStatusBar(void)
     g_loraSignalImage = lv_image_create(g_statusBar);
     lv_image_set_src(g_loraSignalImage, &img_lora_signal);
     lv_obj_align(g_loraSignalImage, LV_ALIGN_RIGHT_MID, -79, 0);
+
+    g_tempHumLabel = lv_label_create(g_statusBar);
+    lv_label_set_text(g_tempHumLabel, "--.-C --.-%");
+    lv_obj_set_style_text_color(g_tempHumLabel, lv_color_make(0xFF, 0xFF, 0xFF), 0);
+    lv_obj_align(g_tempHumLabel, LV_ALIGN_LEFT_MID, 10, 0);
 }
 
 void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen)
 {
     uint32_t percent;
     BatteryStatus batteryStatus;
+    Sht30Data_t sht30Data;
 
     switch (code) {
     case UI_MSG_CODE_BATTERY_PERCENT:
@@ -79,6 +87,18 @@ void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen)
                 g_batteryPadTimer = NULL;
             }
         }
+        break;
+    case UI_MSG_CODE_SHT30:
+        ASSERT(data != NULL);
+        ASSERT(dataLen == sizeof(sht30Data));
+        sht30Data = *(Sht30Data_t *)data;
+        lv_label_set_text_fmt(g_tempHumLabel, "%d.%dC %u.%u%%",
+                              sht30Data.temperatureCx10 / 10,
+                              sht30Data.temperatureCx10 >= 0
+                              ? sht30Data.temperatureCx10 % 10
+                              : -(sht30Data.temperatureCx10 % 10),
+                              sht30Data.humidityRhx10 / 10,
+                              sht30Data.humidityRhx10 % 10);
         break;
     default:
         break;

@@ -8,6 +8,7 @@
 #include "ui_msg.h"
 #include "lora.h"
 #include "battery.h"
+#include "sht30_app.h"
 
 typedef struct {
     BackgroundAsyncFunc_t func;
@@ -75,6 +76,11 @@ static void BackgroundTask(void *argument)
         }
         switch (rcvMsg.id) {
         case BACKGROUND_MSG_SECOND: {
+            static uint32_t tempHumTick = 0;
+            tempHumTick++;
+            if (tempHumTick % 2 == 0) {
+                Sht30AppRefresh((tempHumTick % 10) == 0);
+            }
         }
         break;
         case BACKGROUND_MSG_REFRESH_BATTERY: {

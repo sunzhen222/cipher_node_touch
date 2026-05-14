@@ -34,6 +34,7 @@
 #include "drv_button.h"
 #include "lora.h"
 #include "battery.h"
+#include "sht30_app.h"
 
 void Startup(void)
 {
@@ -60,6 +61,7 @@ void Startup(void)
     ButtonInit();
     LoraInit();
     BatteryInit();
+    Sht30AppInit();
 
     //hardware start
     Uart1Start();
