@@ -17,6 +17,7 @@
 typedef struct {
     lv_obj_t *avatarColorDropdown;
     lv_obj_t *usernameInput;
+    lv_obj_t *secretKeyInput;
     lv_obj_t *frequencyInput;
     lv_obj_t *netIdInput;
     lv_obj_t *sfDropdown;
@@ -39,6 +40,7 @@ static void NetIdInputEventHandler(lv_event_t *e);
 static void NetIdInputNumberHandler(uint32_t input);
 static void AvatarColorDropdownEventHandler(lv_event_t *e);
 static void UsernameInputEventHandler(lv_event_t *e);
+static void SecretKeyInputEventHandler(lv_event_t *e);
 static void UsernameKeyboardEventHandler(lv_event_t *e);
 static void SfDropdownEventHandler(lv_event_t *e);
 static void BwDropdownEventHandler(lv_event_t *e);
@@ -126,47 +128,62 @@ static void ChatSettingsPageInit(void)
     lv_obj_add_event_cb(values->usernameInput, UsernameInputEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
     label = lv_label_create(GetPageBackground());
-    lv_label_set_text(label, "Frequency");
+    lv_label_set_text(label, "LoRa Secret Key");
     lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 144);
+    values->secretKeyInput = lv_textarea_create(GetPageBackground());
+    lv_textarea_set_one_line(values->secretKeyInput, true);
+    lv_textarea_set_max_length(values->secretKeyInput, 95);
+    lv_obj_set_style_pad_all(values->secretKeyInput, 8, 0);
+    lv_obj_set_style_text_color(lv_textarea_get_label(values->secretKeyInput), lv_color_black(), 0);
+    lv_obj_set_size(values->secretKeyInput, 120, 32);
+    lv_obj_align(values->secretKeyInput, LV_ALIGN_TOP_RIGHT, -32, 138);
+    lv_textarea_set_text(values->secretKeyInput, DeviceSettingsGetLoraSecretKey());
+    lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_FOCUSED, NULL);
+    lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
+
+    label = lv_label_create(GetPageBackground());
+    lv_label_set_text(label, "Frequency");
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 188);
     values->frequencyInput = lv_textarea_create(GetPageBackground());
     lv_textarea_set_one_line(values->frequencyInput, true);
     lv_obj_set_style_pad_all(values->frequencyInput, 8, 0);
     lv_obj_set_style_text_color(lv_textarea_get_label(values->frequencyInput), lv_color_black(), 0);
     lv_obj_set_size(values->frequencyInput, 120, 32);
-    lv_obj_align(values->frequencyInput, LV_ALIGN_TOP_RIGHT, -32, 138);
+    lv_obj_align(values->frequencyInput, LV_ALIGN_TOP_RIGHT, -32, 182);
     snprintf(string, sizeof(string), "%lu", DeviceSettingsGetLoraFreq());
     lv_textarea_set_text(values->frequencyInput, string);
     lv_obj_add_event_cb(values->frequencyInput, FrequencyInputEventHandler, LV_EVENT_CLICKED, NULL);
 
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "LoRa Net ID");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 188);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 232);
     values->netIdInput = lv_textarea_create(GetPageBackground());
     lv_textarea_set_one_line(values->netIdInput, true);
     lv_obj_set_style_pad_all(values->netIdInput, 8, 0);
     lv_obj_set_style_text_color(lv_textarea_get_label(values->netIdInput), lv_color_black(), 0);
     lv_obj_set_size(values->netIdInput, 120, 32);
-    lv_obj_align(values->netIdInput, LV_ALIGN_TOP_RIGHT, -32, 182);
+    lv_obj_align(values->netIdInput, LV_ALIGN_TOP_RIGHT, -32, 226);
     snprintf(string, sizeof(string), "%lu", DeviceSettingsGetLoraNetId());
     lv_textarea_set_text(values->netIdInput, string);
     lv_obj_add_event_cb(values->netIdInput, NetIdInputEventHandler, LV_EVENT_CLICKED, NULL);
 
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "Spreading Factor");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 232);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 276);
     values->sfDropdown = lv_dropdown_create(GetPageBackground());
     lv_obj_set_size(values->sfDropdown, 120, 32);
-    lv_obj_align(values->sfDropdown, LV_ALIGN_TOP_RIGHT, -32, 226);
+    lv_obj_align(values->sfDropdown, LV_ALIGN_TOP_RIGHT, -32, 270);
     lv_dropdown_set_options(values->sfDropdown, g_sfDropdownOptions);
     lv_dropdown_set_selected(values->sfDropdown, GetSfSelectedIndex(DeviceSettingsGetLoraSpreadingFactor()));
     lv_obj_add_event_cb(values->sfDropdown, SfDropdownEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "Bandwidth");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 276);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 320);
     values->bwDropdown = lv_dropdown_create(GetPageBackground());
     lv_obj_set_size(values->bwDropdown, 120, 32);
-    lv_obj_align(values->bwDropdown, LV_ALIGN_TOP_RIGHT, -32, 270);
+    lv_obj_align(values->bwDropdown, LV_ALIGN_TOP_RIGHT, -32, 314);
     lv_dropdown_set_options(values->bwDropdown, g_bwDropdownOptions);
     lv_dropdown_set_selected(values->bwDropdown, GetBwSelectedIndex(DeviceSettingsGetLoraBandwidth()));
     lv_obj_add_event_cb(values->bwDropdown, BwDropdownEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
@@ -231,6 +248,7 @@ static void SaveBtnEventHandler(lv_event_t *e)
 {
     ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     const char *username = lv_textarea_get_text(values->usernameInput);
+    const char *secretKey = lv_textarea_get_text(values->secretKeyInput);
     uint32_t avatarColor = GetSelectedAvatarColorValue(values->avatarColorDropdown);
     uint32_t frequency = strtoul(lv_textarea_get_text(values->frequencyInput), NULL, 10);
     uint32_t netId = strtoul(lv_textarea_get_text(values->netIdInput), NULL, 10);
@@ -245,6 +263,7 @@ static void SaveBtnEventHandler(lv_event_t *e)
     }
     printf("avatarColor: 0x%06lX\n", avatarColor);
     printf("username: %s\n", username);
+    printf("secretKey: %s\n", secretKey);
     printf("frequency: %lu\n", frequency);
     printf("loraNetId: %lu\n", netId);
     printf("loraSf: %lu\n", sf);
@@ -257,6 +276,7 @@ static void SaveBtnEventHandler(lv_event_t *e)
 
     DeviceSettingsSetLoraChatAvatarColor(avatarColor);
     DeviceSettingsSetLoraChatUsername(username);
+    DeviceSettingsSetLoraSecretKey(secretKey);
     DeviceSettingsSetLoraFreq(frequency);
     DeviceSettingsSetLoraNetId(netId);
     DeviceSettingsSetLoraSpreadingFactor(sf);
@@ -327,14 +347,31 @@ static void UsernameInputEventHandler(lv_event_t *e)
     }
 }
 
+static void SecretKeyInputEventHandler(lv_event_t *e)
+{
+    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) {
+        lv_keyboard_set_textarea(values->usernameKeyboard, values->secretKeyInput);
+        lv_obj_remove_flag(values->usernameKeyboard, LV_OBJ_FLAG_HIDDEN);
+    } else if (code == LV_EVENT_VALUE_CHANGED) {
+        UpdateUnsavedState();
+    }
+}
+
 static void UsernameKeyboardEventHandler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     ChatSettingsPageValues_t *values = lv_event_get_user_data(e);
+    lv_obj_t *ta;
 
     if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL) {
-        lv_obj_clear_state(values->usernameInput, LV_STATE_FOCUSED);
-        lv_indev_reset(NULL, values->usernameInput);
+        ta = lv_keyboard_get_textarea(values->usernameKeyboard);
+        if (ta != NULL) {
+            lv_obj_clear_state(ta, LV_STATE_FOCUSED);
+            lv_indev_reset(NULL, ta);
+        }
         lv_keyboard_set_textarea(values->usernameKeyboard, NULL);
         lv_obj_add_flag(values->usernameKeyboard, LV_OBJ_FLAG_HIDDEN);
         UpdateUnsavedState();
@@ -415,6 +452,7 @@ static void UpdateUnsavedState(void)
 {
     ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     const char *username = lv_textarea_get_text(values->usernameInput);
+    const char *secretKey = lv_textarea_get_text(values->secretKeyInput);
     uint32_t avatarColor = GetSelectedAvatarColorValue(values->avatarColorDropdown);
     uint32_t frequency = strtoul(lv_textarea_get_text(values->frequencyInput), NULL, 10);
     uint32_t netId = strtoul(lv_textarea_get_text(values->netIdInput), NULL, 10);
@@ -426,6 +464,9 @@ static void UpdateUnsavedState(void)
         unsaved = true;
     }
     if (strcmp(username, DeviceSettingsGetLoraChatUsername()) != 0) {
+        unsaved = true;
+    }
+    if (strcmp(secretKey, DeviceSettingsGetLoraSecretKey()) != 0) {
         unsaved = true;
     }
     if (frequency != DeviceSettingsGetLoraFreq()) {
