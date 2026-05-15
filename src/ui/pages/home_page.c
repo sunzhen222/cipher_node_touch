@@ -8,6 +8,8 @@
 #include "user_memory.h"
 #include "device_settings.h"
 #include "images_declare.h"
+#include "demos/lv_demos.h"
+#include "src/themes/default/lv_theme_default.h"
 
 typedef struct {
     lv_obj_t *imageTitle;
@@ -22,6 +24,9 @@ static void HomePageInit(void);
 static void HomePageDeinit(void);
 static void HomePageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
 static void HomePageButtonEventHandler(lv_event_t *e);
+#if LV_USE_DEMO_WIDGETS
+static void SwitchToDefaultThemeForDemo(void);
+#endif
 
 Page_t g_homePage = {
     .init = HomePageInit,
@@ -99,6 +104,12 @@ static void HomePageButtonEventHandler(lv_event_t *e)
             EnterNewPage(&g_loraChatPage);
         } else if (btn == values->buttonLvglDemo) {
             printf("LVGL Demo button pressed\n");
+#if LV_USE_DEMO_WIDGETS
+            SwitchToDefaultThemeForDemo();
+            lv_demo_widgets();
+#else
+            printf("lv_demo_widgets not enabled\n");
+#endif
         } else if (btn == values->buttonInfo) {
             printf("Info button pressed\n");
         } else if (btn == values->buttonSystem) {
@@ -107,3 +118,23 @@ static void HomePageButtonEventHandler(lv_event_t *e)
         }
     }
 }
+
+#if LV_USE_DEMO_WIDGETS
+static void SwitchToDefaultThemeForDemo(void)
+{
+#if LV_USE_THEME_DEFAULT
+    lv_display_t *disp = lv_display_get_default();
+
+    if (disp == NULL) {
+        return;
+    }
+
+    lv_theme_t *theme = lv_theme_default_init(disp,
+                        lv_palette_main(LV_PALETTE_BLUE),
+                        lv_palette_main(LV_PALETTE_RED),
+                        LV_THEME_DEFAULT_DARK,
+                        LV_FONT_DEFAULT);
+    lv_display_set_theme(disp, theme);
+#endif
+}
+#endif

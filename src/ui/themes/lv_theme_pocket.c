@@ -62,6 +62,9 @@ typedef struct {
 #endif
     lv_style_t label;
     lv_style_t btn;
+#if LV_THEME_DEFAULT_GROW
+    lv_style_t grow;
+#endif
     lv_style_t slider;
     lv_style_t dropdown;
     lv_style_t dropdown_list;
@@ -234,6 +237,12 @@ static void style_init(my_theme_t * theme)
     lv_style_set_pad_ver(&theme->styles.btn, 4);
     lv_style_set_pad_column(&theme->styles.btn, 4);
     lv_style_set_pad_row(&theme->styles.btn, 4);
+
+#if LV_THEME_DEFAULT_GROW
+    style_init_reset(&theme->styles.grow);
+    lv_style_set_transform_width(&theme->styles.grow, 2);
+    lv_style_set_transform_height(&theme->styles.grow, 2);
+#endif
 
     style_init_reset(&theme->styles.slider);
 
