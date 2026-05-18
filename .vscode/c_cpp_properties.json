@@ -39,6 +39,7 @@
                 "${workspaceFolder}/src/fatfs",
                 "${workspaceFolder}/src/porting",
                 "${workspaceFolder}/src/wireless",
+                "${workspaceFolder}/src/wifi",
                 "${workspaceFolder}/src/components",
                 "${workspaceFolder}/src/components/checksum",
                 "${workspaceFolder}/src/components/cjson",

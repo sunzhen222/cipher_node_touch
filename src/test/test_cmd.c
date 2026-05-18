@@ -18,6 +18,7 @@
 #include "drv_timer.h"
 #include "processor_usage.h"
 #include "battery.h"
+#include "at_command.h"
 #include "lvgl.h"
 
 #define CMD_MAX_ARGC        16
@@ -49,11 +50,11 @@ static void HardfaultFunc(int argc, char *argv[]);
 static void FileMd5Func(int argc, char *argv[]);
 static void I2cFunc(int argc, char *argv[]);
 static void ShowAssertFunc(int argc, char *argv[]);
-static void SendUart2Func(int argc, char *argv[]);
 static void TimerDmaFunc(int argc, char *argv[]);
 static void FindFilesFunc(int argc, char *argv[]);
 static void ProcessorUsageFunc(int argc, char *argv[]);
 static void BatteryFunc(int argc, char *argv[]);
+static void AtSendFunc(int argc, char *argv[]);
 
 
 static const TestCmdItem_t g_testCmdTable[] = {
@@ -72,11 +73,11 @@ static const TestCmdItem_t g_testCmdTable[] = {
     {"file md5:",               FileMd5Func             },
     {"i2c:",                    I2cFunc                 },
     {"show assert",             ShowAssertFunc          },
-    {"send_uart2:",             SendUart2Func           },
     {"timer_dma:",              TimerDmaFunc            },
     {"find_files:",             FindFilesFunc           },
     {"processor_usage:",        ProcessorUsageFunc      },
     {"battery",                 BatteryFunc             },
+    {"at:",                     AtSendFunc              },
 };
 
 TestCmdNode_t g_testCmdListHead = {0};
@@ -515,20 +516,6 @@ static void ShowAssertFunc(int argc, char *argv[])
     ASSERT(0);
 }
 
-static void SendUart2Func(int argc, char *argv[])
-{
-    uint32_t length;
-    VALUE_CHECK(argc, 1);
-    uint8_t *hex = StrToHex(argv[0]);
-    if (hex == NULL) {
-        printf("invalid hex string\n");
-        return;
-    }
-    length = strlen(argv[0]) / 2;
-    SendUart2Data(hex, length);
-    SRAM_FREE(hex);
-}
-
 static void TimerDmaFunc(int argc, char *argv[])
 {
     uint32_t length;
@@ -570,4 +557,11 @@ static void BatteryFunc(int argc, char *argv[])
     UNUSED(argc);
     UNUSED(argv);
     PrintBatteryInfo();
+}
+
+static void AtSendFunc(int argc, char *argv[])
+{
+    if (argc > 0) {
+        SendAtCommand(argv[0]);
+    }
 }

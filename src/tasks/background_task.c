@@ -9,6 +9,8 @@
 #include "lora.h"
 #include "battery.h"
 #include "sht30_app.h"
+#include "at_command.h"
+#include "drv_power_switch.h"
 
 typedef struct {
     BackgroundAsyncFunc_t func;
@@ -69,6 +71,7 @@ static void BackgroundTask(void *argument)
     Message_t rcvMsg;
     osStatus_t ret;
     printf("device started\n");
+    PowerSwitchSetSource(POWER_SOURCE_WIFI, true);
     while (1) {
         ret = osMessageQueueGet(g_backgroundQueue, &rcvMsg, NULL, 10000);
         if (ret != osOK) {
@@ -79,7 +82,7 @@ static void BackgroundTask(void *argument)
             static uint32_t tempHumTick = 0;
             tempHumTick++;
             if (tempHumTick % 2 == 0) {
-                Sht30AppRefresh((tempHumTick % 10) == 0);
+                Sht30AppRefresh(false);
             }
         }
         break;
@@ -104,6 +107,10 @@ static void BackgroundTask(void *argument)
             if (async->inData) {
                 SRAM_FREE(async->inData);
             }
+        }
+        break;
+        case BACKGROUND_MSG_AT_COMMAND: {
+            ProcessAtCommand();
         }
         break;
         default:

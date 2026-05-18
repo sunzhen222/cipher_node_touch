@@ -14,6 +14,5 @@ void Uart1Init(void);
 void Uart1Start(void);
 void Uart2Init(void);
 void Uart2Start(void);
-void SendUart2Data(uint8_t *data, uint16_t size);
 
 #endif
