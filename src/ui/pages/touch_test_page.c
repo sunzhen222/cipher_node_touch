@@ -4,20 +4,31 @@
 #include "ui_msg.h"
 #include "user_utils.h"
 #include "user_memory.h"
+#include <stdint.h>
 
 #define TOUCH_POINT_DIAMETER 5
+#define TOUCH_POINT_MAX_CNT  1024
+
+typedef struct {
+    uint16_t x;
+    uint16_t y;
+} TouchPoint_t;
 
 typedef struct {
     lv_obj_t *drawLayer;
     lv_obj_t *buttonClear;
+    uint32_t pointCount;
 } TouchTestPageValues_t;
+
+static TouchPoint_t g_touchPoints[TOUCH_POINT_MAX_CNT];
 
 static void TouchTestPageInit(void);
 static void TouchTestPageDeinit(void);
 static void TouchTestPageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
 static void TouchTestPageTouchEventHandler(lv_event_t *e);
 static void TouchTestPageClearButtonEventHandler(lv_event_t *e);
-static void DrawTouchPoint(lv_obj_t *parent, lv_point_t point);
+static void TouchTestPageDrawLayerEventHandler(lv_event_t *e);
+static void AddTouchPoint(TouchTestPageValues_t *values, lv_point_t point);
 
 Page_t g_touchTestPage = {
     .init = TouchTestPageInit,
@@ -46,6 +57,9 @@ static void TouchTestPageInit(void)
     lv_obj_clear_flag(values->drawLayer, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_event_cb(values->drawLayer, TouchTestPageTouchEventHandler, LV_EVENT_PRESSED, NULL);
     lv_obj_add_event_cb(values->drawLayer, TouchTestPageTouchEventHandler, LV_EVENT_PRESSING, NULL);
+    lv_obj_add_event_cb(values->drawLayer, TouchTestPageDrawLayerEventHandler, LV_EVENT_DRAW_MAIN, NULL);
+
+    values->pointCount = 0;
 
     values->buttonClear = lv_button_create(background);
     lv_obj_set_size(values->buttonClear, 64, 36);
@@ -90,25 +104,58 @@ static void TouchTestPageTouchEventHandler(lv_event_t *e)
     lv_indev_get_point(indev, &point);
 
     TouchTestPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-    DrawTouchPoint(values->drawLayer, point);
+    AddTouchPoint(values, point);
 }
 
 static void TouchTestPageClearButtonEventHandler(lv_event_t *e)
 {
     UNUSED(e);
     TouchTestPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-    lv_obj_clean(values->drawLayer);
+    values->pointCount = 0;
+    lv_obj_invalidate(values->drawLayer);
 }
 
-static void DrawTouchPoint(lv_obj_t *parent, lv_point_t point)
+static void TouchTestPageDrawLayerEventHandler(lv_event_t *e)
 {
-    // Draw each sampled touch coordinate as a solid white dot.
-    lv_obj_t *dot = lv_obj_create(parent);
-    lv_obj_remove_style_all(dot);
-    lv_obj_set_size(dot, TOUCH_POINT_DIAMETER, TOUCH_POINT_DIAMETER);
-    lv_obj_set_style_radius(dot, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_bg_color(dot, lv_color_white(), 0);
-    lv_obj_set_style_bg_opa(dot, LV_OPA_COVER, 0);
-    lv_obj_set_style_border_width(dot, 0, 0);
-    lv_obj_set_pos(dot, point.x - TOUCH_POINT_DIAMETER / 2, point.y - TOUCH_POINT_DIAMETER / 2);
+    lv_obj_t *layerObj = lv_event_get_target(e);
+    lv_layer_t *layer = lv_event_get_layer(e);
+    TouchTestPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    lv_area_t layerCoords;
+
+    lv_obj_get_coords(layerObj, &layerCoords);
+
+    lv_draw_rect_dsc_t dotDsc;
+    lv_draw_rect_dsc_init(&dotDsc);
+    dotDsc.bg_opa = LV_OPA_COVER;
+    dotDsc.bg_color = lv_color_white();
+    dotDsc.radius = LV_RADIUS_CIRCLE;
+    dotDsc.border_width = 0;
+
+    for (uint32_t i = 0; i < values->pointCount; i++) {
+        lv_area_t dotArea;
+        dotArea.x1 = g_touchPoints[i].x - TOUCH_POINT_DIAMETER / 2;
+        dotArea.y1 = g_touchPoints[i].y - TOUCH_POINT_DIAMETER / 2;
+        dotArea.x2 = dotArea.x1 + TOUCH_POINT_DIAMETER - 1;
+        dotArea.y2 = dotArea.y1 + TOUCH_POINT_DIAMETER - 1;
+        lv_area_move(&dotArea, layerCoords.x1, layerCoords.y1);
+        lv_draw_rect(layer, &dotDsc, &dotArea);
+    }
+}
+
+static void AddTouchPoint(TouchTestPageValues_t *values, lv_point_t point)
+{
+    if (values->pointCount >= TOUCH_POINT_MAX_CNT) {
+        return;
+    }
+
+    g_touchPoints[values->pointCount].x = (uint16_t)point.x;
+    g_touchPoints[values->pointCount].y = (uint16_t)point.y;
+    values->pointCount++;
+
+    lv_area_t area;
+    area.x1 = point.x - TOUCH_POINT_DIAMETER / 2;
+    area.y1 = point.y - TOUCH_POINT_DIAMETER / 2;
+    area.x2 = area.x1 + TOUCH_POINT_DIAMETER - 1;
+    area.y2 = area.y1 + TOUCH_POINT_DIAMETER - 1;
+    lv_obj_invalidate_area(values->drawLayer, &area);
 }
