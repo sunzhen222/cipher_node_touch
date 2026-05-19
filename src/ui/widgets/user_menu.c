@@ -38,6 +38,7 @@ lv_obj_t *CreateUserMenu(const UserMenuItem_t *items, uint32_t itemCount)
         lv_obj_align(btn, LV_ALIGN_TOP_MID, 0, i * 40 + 2);
         lv_obj_set_style_bg_color(btn, lv_color_hex(0x000000), 0);
         lv_obj_set_style_bg_color(btn, lv_color_hex(0x202020), LV_STATE_PRESSED);
+        lv_obj_set_style_transform_height(btn, 0, LV_STATE_PRESSED);
         lv_obj_set_layout(btn, LV_LAYOUT_NONE);
         lv_obj_t *label = lv_label_create(btn);
         lv_label_set_text(label, items[i].text);
