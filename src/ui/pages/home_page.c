@@ -15,7 +15,7 @@ typedef struct {
     lv_obj_t *imageTitle;
     lv_obj_t *buttonLoraChat;
     lv_obj_t *buttonLvglDemo;
-    lv_obj_t *buttonInfo;
+    lv_obj_t *buttonTouchTest;
     lv_obj_t *buttonSystem;
 } HomePageValues_t;
 
@@ -59,12 +59,12 @@ static void HomePageInit(void)
     lv_label_set_text(lvglDemoBtnLabel, "LVGL demo");
     lv_obj_add_event_cb(values->buttonLvglDemo, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
-    values->buttonInfo = lv_button_create(GetPageBackground());
-    lv_obj_set_size(values->buttonInfo, 100, 60);
-    lv_obj_align(values->buttonInfo, LV_ALIGN_TOP_LEFT, 45, 240);
-    lv_obj_t *infoBtnLabel = lv_label_create(values->buttonInfo);
-    lv_label_set_text(infoBtnLabel, "Info");
-    lv_obj_add_event_cb(values->buttonInfo, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
+    values->buttonTouchTest = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->buttonTouchTest, 100, 60);
+    lv_obj_align(values->buttonTouchTest, LV_ALIGN_TOP_LEFT, 45, 240);
+    lv_obj_t *touchTestBtnLabel = lv_label_create(values->buttonTouchTest);
+    lv_label_set_text(touchTestBtnLabel, "Touch Test");
+    lv_obj_add_event_cb(values->buttonTouchTest, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
     values->buttonSystem = lv_button_create(GetPageBackground());
     lv_obj_set_size(values->buttonSystem, 100, 60);
@@ -110,8 +110,9 @@ static void HomePageButtonEventHandler(lv_event_t *e)
 #else
             printf("lv_demo_widgets not enabled\n");
 #endif
-        } else if (btn == values->buttonInfo) {
-            printf("Info button pressed\n");
+        } else if (btn == values->buttonTouchTest) {
+            printf("Touch Test button pressed\n");
+            EnterNewPage(&g_touchTestPage);
         } else if (btn == values->buttonSystem) {
             printf("System button pressed\n");
             EnterNewPage(&g_systemPage);

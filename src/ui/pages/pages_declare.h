@@ -7,5 +7,6 @@ extern Page_t g_lcdBrightnessPage;
 extern Page_t g_aboutPage;
 extern Page_t g_loraChatPage;
 extern Page_t g_chatSettingsPage;
+extern Page_t g_touchTestPage;
 
 #endif
