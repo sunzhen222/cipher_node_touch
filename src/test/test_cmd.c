@@ -210,10 +210,25 @@ static void HeapInfoFunc(int argc, char *argv[])
 {
     UNUSED(argc);
     UNUSED(argv);
+
+#if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN
+    lv_mem_monitor_t mon;
+    size_t lv_used;
+#endif
+
     printf("\n\n");
     printf("TotalHeapSize = %d\n", configTOTAL_HEAP_SIZE);
     printf("FreeHeapSize = %d\n", xPortGetFreeHeapSize());
     printf("MinEverFreeHeapSize = %d\n", xPortGetMinimumEverFreeHeapSize());
+
+#if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN
+    lv_mem_monitor(&mon);
+    lv_used = mon.total_size - mon.free_size;
+    printf("LvglTotalMemSize = %lu\n", (unsigned long)mon.total_size);
+    printf("LvglFreeMemSize = %lu\n", (unsigned long)mon.free_size);
+    printf("LvglUsedMemSize = %lu\n", (unsigned long)lv_used);
+    printf("LvglMemFragPct = %u%%\n", mon.frag_pct);
+#endif
 }
 
 static void LvglMemInfoFunc(int argc, char *argv[])
