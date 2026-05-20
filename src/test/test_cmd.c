@@ -19,6 +19,7 @@
 #include "processor_usage.h"
 #include "battery.h"
 #include "at_command.h"
+#include "search_wifi.h"
 #include "lvgl.h"
 
 #define CMD_MAX_ARGC        16
@@ -55,6 +56,7 @@ static void FindFilesFunc(int argc, char *argv[]);
 static void ProcessorUsageFunc(int argc, char *argv[]);
 static void BatteryFunc(int argc, char *argv[]);
 static void AtSendFunc(int argc, char *argv[]);
+static void SearchWiFiFunc(int argc, char *argv[]);
 
 
 static const TestCmdItem_t g_testCmdTable[] = {
@@ -78,6 +80,7 @@ static const TestCmdItem_t g_testCmdTable[] = {
     {"processor_usage:",        ProcessorUsageFunc      },
     {"battery",                 BatteryFunc             },
     {"at:",                     AtSendFunc              },
+    {"search wifi",             SearchWiFiFunc          },
 };
 
 TestCmdNode_t g_testCmdListHead = {0};
@@ -584,4 +587,53 @@ static void AtSendFunc(int argc, char *argv[])
             printf("received:%s", received);
         }
     }
+}
+
+static const char *WiFiSecurityToString(WiFiSecurityType security)
+{
+    switch (security) {
+    case WIFI_SECURITY_OPEN:
+        return "OPEN";
+    case WIFI_SECURITY_WEP:
+        return "WEP";
+    case WIFI_SECURITY_WPA:
+        return "WPA";
+    case WIFI_SECURITY_WPA2:
+        return "WPA2";
+    default:
+        return "UNKNOWN";
+    }
+}
+
+static void SearchWiFiFunc(int argc, char *argv[])
+{
+    UNUSED(argc);
+    UNUSED(argv);
+
+    WiFiItem_t wifiHead = {0};
+    printf("searching wifi...\n");
+    uint32_t count = SearchWiFi(&wifiHead);
+
+    printf("wifi scan count=%lu\n", count);
+
+    WiFiItem_t *node = wifiHead.next;
+    uint32_t index = 1;
+    while (node != NULL) {
+        printf("%lu: ssid=%s ch=%u sec=%s rssi=%d bssid=%02x:%02x:%02x:%02x:%02x:%02x\n",
+               index,
+               node->ssid,
+               node->ch,
+               WiFiSecurityToString(node->security),
+               node->rssi,
+               node->bssid[0],
+               node->bssid[1],
+               node->bssid[2],
+               node->bssid[3],
+               node->bssid[4],
+               node->bssid[5]);
+        node = node->next;
+        index++;
+    }
+
+    FreeWiFiList(&wifiHead);
 }
