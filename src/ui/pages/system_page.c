@@ -22,6 +22,7 @@ typedef struct {
 
 static void WidgetColorCallback(lv_event_t *e);
 static void LcdBrightnessCallback(lv_event_t *e);
+static void WifiPageCallback(lv_event_t *e);
 static void FactoryResetCallback(lv_event_t *e);
 static void AboutCallback(lv_event_t *e);
 static void FactoryResetOkHandler(lv_event_t *e);
@@ -42,6 +43,7 @@ static void SystemPageInit(void)
     UserMenuItem_t menuItems[] = {
         {"Widget color", WidgetColorCallback},
         {"LCD brightness", LcdBrightnessCallback},
+        {"WiFi", WifiPageCallback},
         {"Factory Reset", FactoryResetCallback},
         {"About", AboutCallback},
     };
@@ -78,6 +80,12 @@ static void LcdBrightnessCallback(lv_event_t *e)
 {
     UNUSED(e);
     EnterNewPage(&g_lcdBrightnessPage);
+}
+
+static void WifiPageCallback(lv_event_t *e)
+{
+    UNUSED(e);
+    EnterNewPage(&g_wifiPage);
 }
 
 static void FactoryResetCallback(lv_event_t *e)

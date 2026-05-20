@@ -43,7 +43,6 @@ lv_obj_t *CreateUserMenu(const UserMenuItem_t *items, uint32_t itemCount)
         lv_obj_t *label = lv_label_create(btn);
         lv_label_set_text(label, items[i].text);
         lv_obj_align(label, LV_ALIGN_LEFT_MID, 0, 0);
-        lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, 0);
         lv_obj_add_event_cb(btn, items[i].handler, LV_EVENT_CLICKED, NULL);
         line = CreateLine(bg, 260);
         lv_obj_align(line, LV_ALIGN_TOP_MID, 0, i * 40 + 41);

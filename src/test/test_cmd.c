@@ -589,22 +589,6 @@ static void AtSendFunc(int argc, char *argv[])
     }
 }
 
-static const char *WiFiSecurityToString(WiFiSecurityType security)
-{
-    switch (security) {
-    case WIFI_SECURITY_OPEN:
-        return "OPEN";
-    case WIFI_SECURITY_WEP:
-        return "WEP";
-    case WIFI_SECURITY_WPA:
-        return "WPA";
-    case WIFI_SECURITY_WPA2:
-        return "WPA2";
-    default:
-        return "UNKNOWN";
-    }
-}
-
 static void SearchWiFiFunc(int argc, char *argv[])
 {
     UNUSED(argc);
@@ -616,7 +600,7 @@ static void SearchWiFiFunc(int argc, char *argv[])
 
     printf("wifi scan count=%lu\n", count);
 
-    WiFiItem_t *node = wifiHead.next;
+    WiFiItem_t *node = &wifiHead;
     uint32_t index = 1;
     while (node != NULL) {
         printf("%lu: ssid=%s ch=%u sec=%s rssi=%d bssid=%02x:%02x:%02x:%02x:%02x:%02x\n",

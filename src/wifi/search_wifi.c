@@ -83,7 +83,7 @@ static bool ParseBssid(const char *str, uint8_t out[6])
 }
 
 
-static bool TryAppendScanLine(WiFiItem_t *tail, const char *line)
+static bool ParseScanLine(const char *line, WiFiItem_t *item)
 {
     char parseBuffer[AT_COMMAND_MAX_LENGTH];
     char *token = NULL;
@@ -122,7 +122,6 @@ static bool TryAppendScanLine(WiFiItem_t *tail, const char *line)
         return false;
     }
 
-    WiFiItem_t *item = SRAM_MALLOC(sizeof(WiFiItem_t));
     memset(item, 0, sizeof(WiFiItem_t));
 
     CopySsidWithFallback(item->ssid, sizeof(item->ssid), ssidStr);
@@ -134,23 +133,22 @@ static bool TryAppendScanLine(WiFiItem_t *tail, const char *line)
     }
 
     item->next = NULL;
-    tail->next = item;
     return true;
 }
-
-
 
 uint32_t SearchWiFi(WiFiItem_t *wifiListHead)
 {
     ASSERT(wifiListHead != NULL);
 
     FreeWiFiList(wifiListHead);
+    memset(wifiListHead, 0, sizeof(WiFiItem_t));
 
     ClearReceivedAtCommand();
     SendAtCommand("AT+WSCAN");
 
     uint32_t count = 0;
     char received[AT_COMMAND_MAX_LENGTH];
+    bool headFilled = false;
     WiFiItem_t *tail = wifiListHead;
 
     while (GetReceivedAtCommand(received, 5000)) {
@@ -164,15 +162,27 @@ uint32_t SearchWiFi(WiFiItem_t *wifiListHead)
             break;
         }
 
-        if (TryAppendScanLine(tail, received)) {
-            tail = tail->next;
-            count++;
+        WiFiItem_t parsed = {0};
+        if (ParseScanLine(received, &parsed)) {
+            if (!headFilled) {
+                memcpy(wifiListHead, &parsed, sizeof(WiFiItem_t));
+                wifiListHead->next = NULL;
+                tail = wifiListHead;
+                headFilled = true;
+                count++;
+            } else {
+                WiFiItem_t *item = SRAM_MALLOC(sizeof(WiFiItem_t));
+                memcpy(item, &parsed, sizeof(WiFiItem_t));
+                item->next = NULL;
+                tail->next = item;
+                tail = item;
+                count++;
+            }
         }
     }
 
     return count;
 }
-
 
 void FreeWiFiList(WiFiItem_t *wifiListHead)
 {
@@ -184,7 +194,22 @@ void FreeWiFiList(WiFiItem_t *wifiListHead)
         SRAM_FREE(node);
         node = next;
     }
-    wifiListHead->next = NULL;
+    memset(wifiListHead, 0, sizeof(WiFiItem_t));
 }
 
+const char *WiFiSecurityToString(WiFiSecurityType security)
+{
+    switch (security) {
+    case WIFI_SECURITY_OPEN:
+        return "OPEN";
+    case WIFI_SECURITY_WEP:
+        return "WEP";
+    case WIFI_SECURITY_WPA:
+        return "WPA";
+    case WIFI_SECURITY_WPA2:
+        return "WPA2";
+    default:
+        return "UNKNOWN";
+    }
+}
 

@@ -24,6 +24,6 @@ typedef struct WiFiItem_t {
 
 uint32_t SearchWiFi(WiFiItem_t *wifiListHead);
 void FreeWiFiList(WiFiItem_t *wifiListHead);
-
+const char *WiFiSecurityToString(WiFiSecurityType security);
 
 #endif
