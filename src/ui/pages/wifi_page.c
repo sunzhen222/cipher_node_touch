@@ -13,13 +13,19 @@
 
 typedef struct {
     lv_obj_t *listObj;
+    lv_obj_t *refreshBtn;
+    lv_obj_t *refreshImage;
 } WifiPageValues_t;
 
 static void WifiPageInit(void);
 static void WifiPageDeinit(void);
 static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
+static void RefreshBtnClickHandler(lv_event_t *e);
 
 static const lv_image_dsc_t *GetWifiSignalImageByRssi(int8_t rssi);
+static void RefreshRotateAnimExecCb(void *var, int32_t value);
+static void StartRefreshRotationAnim(lv_obj_t *refreshImage);
+static void StopRefreshRotationAnim(lv_obj_t *refreshImage);
 static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen);
 static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead);
 
@@ -46,16 +52,19 @@ static void WifiPageInit(void)
     lv_obj_set_style_text_color(label, lv_color_hex(0x888888), 0);
     lv_obj_align(label, LV_ALIGN_TOP_LEFT, 10, 102);
 
-    lv_obj_t *btn = lv_button_create(GetPageBackground());
-    lv_obj_set_size(btn, 50, 20);
-    lv_obj_t *img = lv_image_create(btn);
-    lv_image_set_src(img, LV_SYMBOL_REFRESH);
-    lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_align(btn, LV_ALIGN_TOP_RIGHT, -10, 100);
-    lv_obj_set_style_radius(btn, 3, 0);
-    lv_obj_set_style_bg_color(btn, lv_color_black(), 0);
-    lv_obj_set_style_bg_color(btn, lv_color_hex(0x606060), LV_STATE_PRESSED);
-    lv_obj_set_style_transform_height(btn, 0, LV_STATE_PRESSED);
+    values->refreshBtn = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->refreshBtn, 50, 20);
+    values->refreshImage = lv_image_create(values->refreshBtn);
+    lv_image_set_src(values->refreshImage, LV_SYMBOL_REFRESH);
+    lv_obj_align(values->refreshImage, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(values->refreshBtn, LV_ALIGN_TOP_RIGHT, -10, 100);
+    lv_obj_set_style_radius(values->refreshBtn, 3, 0);
+    lv_obj_set_style_bg_color(values->refreshBtn, lv_color_black(), 0);
+    lv_obj_set_style_bg_color(values->refreshBtn, lv_color_hex(0x606060), LV_STATE_PRESSED);
+    lv_obj_set_style_bg_color(values->refreshBtn, lv_color_black(), LV_STATE_DISABLED);
+    lv_obj_add_event_cb(values->refreshBtn, RefreshBtnClickHandler, LV_EVENT_CLICKED, NULL);
+
+    lv_obj_set_style_transform_height(values->refreshBtn, 0, LV_STATE_PRESSED);
 
     values->listObj = lv_obj_create(GetPageBackground());
     lv_obj_set_size(values->listObj, 300, 320);
@@ -63,23 +72,26 @@ static void WifiPageInit(void)
     lv_obj_align(values->listObj, LV_ALIGN_TOP_MID, 0, 122);
     lv_obj_set_style_radius(values->listObj, 12, 0);
 
+    lv_obj_add_state(values->refreshBtn, LV_STATE_DISABLED);
+    StartRefreshRotationAnim(values->refreshImage);
     AsyncExecute(AsyncWifiSearch, NULL, 0, 0);
 }
 
 static void WifiPageDeinit(void)
 {
     WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    StopRefreshRotationAnim(values->refreshImage);
     SRAM_FREE(values);
 }
 
 static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
 {
-    UNUSED(data);
-    UNUSED(dataLen);
-    UNUSED(code);
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     switch (code) {
     case UI_MSG_CODE_WIFI_SEARCH_RESULT:
         printf("received wifi search result msg:len=%lu\n", dataLen);
+        StopRefreshRotationAnim(values->refreshImage);
+        lv_obj_remove_state(values->refreshBtn, LV_STATE_DISABLED);
         if (dataLen == sizeof(WiFiItem_t)) {
             WiFiItem_t *wifiListHead = (WiFiItem_t *)(data);
             WifiSearchResultDisplay(wifiListHead);
@@ -89,6 +101,53 @@ static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
     default:
         break;
     }
+}
+
+static void RefreshBtnClickHandler(lv_event_t *e)
+{
+    UNUSED(e);
+
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    ASSERT(values != NULL);
+
+    lv_obj_clean(values->listObj);
+    lv_obj_add_state(values->refreshBtn, LV_STATE_DISABLED);
+    StartRefreshRotationAnim(values->refreshImage);
+    AsyncExecute(AsyncWifiSearch, NULL, 0, 0);
+}
+
+static void StartRefreshRotationAnim(lv_obj_t *refreshImage)
+{
+    ASSERT(refreshImage != NULL);
+
+    lv_obj_update_layout(refreshImage);
+    lv_obj_set_style_transform_pivot_x(refreshImage, lv_obj_get_width(refreshImage) / 2, 0);
+    lv_obj_set_style_transform_pivot_y(refreshImage, lv_obj_get_height(refreshImage) / 2, 0);
+    lv_obj_set_style_transform_rotation(refreshImage, 0, 0);
+
+    lv_anim_t a;
+    lv_anim_init(&a);
+    lv_anim_set_var(&a, refreshImage);
+    lv_anim_set_exec_cb(&a, RefreshRotateAnimExecCb);
+    lv_anim_set_values(&a, 0, 3600);
+    lv_anim_set_duration(&a, 1000);
+    lv_anim_set_repeat_count(&a, LV_ANIM_REPEAT_INFINITE);
+    lv_anim_set_path_cb(&a, lv_anim_path_linear);
+    lv_anim_start(&a);
+}
+
+static void StopRefreshRotationAnim(lv_obj_t *refreshImage)
+{
+    ASSERT(refreshImage != NULL);
+
+    lv_anim_delete(refreshImage, RefreshRotateAnimExecCb);
+    lv_obj_set_style_transform_rotation(refreshImage, 0, 0);
+}
+
+static void RefreshRotateAnimExecCb(void *var, int32_t value)
+{
+    lv_obj_t *obj = (lv_obj_t *)var;
+    lv_obj_set_style_transform_rotation(obj, value, 0);
 }
 
 static const lv_image_dsc_t *GetWifiSignalImageByRssi(int8_t rssi)
@@ -113,9 +172,6 @@ static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen)
     uint32_t count = SearchWiFi(&wifiHead);
     printf("wifi scan count=%lu\n", count);
     SendUiMsg(UI_MSG_CODE_WIFI_SEARCH_RESULT, &wifiHead, sizeof(WiFiItem_t));
-    //WifiSearchResultDisplay(&wifiHead);
-
-    //FreeWiFiList(&wifiHead);
     return 0;
 }
 
