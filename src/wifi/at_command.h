@@ -5,7 +5,11 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+#define AT_COMMAND_MAX_LENGTH       256
+
 void AtCommandByteReceived(uint8_t byte);
+void ClearReceivedAtCommand(void);
+bool GetReceivedAtCommand(char *buffer, uint32_t timeout);
 void ProcessAtCommand(void);
 void SendAtCommand(const char *cmd);
 

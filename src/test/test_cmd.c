@@ -577,6 +577,11 @@ static void BatteryFunc(int argc, char *argv[])
 static void AtSendFunc(int argc, char *argv[])
 {
     if (argc > 0) {
+        ClearReceivedAtCommand();
         SendAtCommand(argv[0]);
+        char received[AT_COMMAND_MAX_LENGTH];
+        while (GetReceivedAtCommand(received, 5000)) {
+            printf("received:%s", received);
+        }
     }
 }

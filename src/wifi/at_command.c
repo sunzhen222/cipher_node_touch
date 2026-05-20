@@ -9,9 +9,10 @@
 
 #define AT_COMMAND_TIMEOUT_MS    100
 
-static uint8_t g_atCommandBuffer[256];
-static uint8_t g_atCommandPacket[256];
+static uint8_t g_atCommandBuffer[AT_COMMAND_MAX_LENGTH];
+static uint8_t g_atCommandPacket[AT_COMMAND_MAX_LENGTH];
 static uint32_t g_atCommandIndex = 0;
+static volatile bool g_atCommandReceived = false;
 
 void AtCommandByteReceived(uint8_t byte)
 {
@@ -22,8 +23,8 @@ void AtCommandByteReceived(uint8_t byte)
         g_atCommandIndex = 0;
     }
     lastTick = tick;
-    if (g_atCommandIndex > sizeof(g_atCommandBuffer) - 2) {
-        g_atCommandIndex = sizeof(g_atCommandBuffer) - 2;
+    if (g_atCommandIndex > AT_COMMAND_MAX_LENGTH - 2) {
+        g_atCommandIndex = AT_COMMAND_MAX_LENGTH - 2;
     }
     g_atCommandBuffer[g_atCommandIndex] = byte;
     g_atCommandIndex++;
@@ -33,8 +34,32 @@ void AtCommandByteReceived(uint8_t byte)
         strncpy((char *)g_atCommandPacket, (char *)g_atCommandBuffer, sizeof(g_atCommandPacket) - 1);
         g_atCommandPacket[g_atCommandIndex] = '\0';
         g_atCommandIndex = 0;
-        PubValueMsg(BACKGROUND_MSG_AT_COMMAND, 0);
+        g_atCommandReceived = true;
+        //PubValueMsg(BACKGROUND_MSG_AT_COMMAND, 0);
     }
+}
+
+void ClearReceivedAtCommand(void)
+{
+    g_atCommandReceived = false;
+}
+
+bool GetReceivedAtCommand(char *buffer, uint32_t timeout)
+{
+    ASSERT(buffer != NULL);
+    uint32_t tick = 0;
+    while (tick < timeout) {
+        if (g_atCommandReceived) {
+            __disable_irq();
+            strcpy(buffer, (char *)g_atCommandPacket);
+            g_atCommandReceived = false;
+            __enable_irq();
+            return true;
+        }
+        osDelay(1);
+        tick++;
+    }
+    return false;
 }
 
 void ProcessAtCommand(void)
