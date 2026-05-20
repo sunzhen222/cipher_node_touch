@@ -9,6 +9,7 @@
 #include "search_wifi.h"
 #include "images_declare.h"
 #include "user_assert.h"
+#include "background_task.h"
 
 typedef struct {
     lv_obj_t *listObj;
@@ -18,8 +19,9 @@ static void WifiPageInit(void);
 static void WifiPageDeinit(void);
 static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
 
-static void WifiSearchAndDisplay(void);
 static const lv_image_dsc_t *GetWifiSignalImageByRssi(int8_t rssi);
+static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen);
+static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead);
 
 Page_t g_wifiPage = {
     .init = WifiPageInit,
@@ -44,12 +46,24 @@ static void WifiPageInit(void)
     lv_obj_set_style_text_color(label, lv_color_hex(0x888888), 0);
     lv_obj_align(label, LV_ALIGN_TOP_LEFT, 10, 102);
 
+    lv_obj_t *btn = lv_button_create(GetPageBackground());
+    lv_obj_set_size(btn, 50, 20);
+    lv_obj_t *img = lv_image_create(btn);
+    lv_image_set_src(img, LV_SYMBOL_REFRESH);
+    lv_obj_align(img, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_align(btn, LV_ALIGN_TOP_RIGHT, -10, 100);
+    lv_obj_set_style_radius(btn, 3, 0);
+    lv_obj_set_style_bg_color(btn, lv_color_black(), 0);
+    lv_obj_set_style_bg_color(btn, lv_color_hex(0x606060), LV_STATE_PRESSED);
+    lv_obj_set_style_transform_height(btn, 0, LV_STATE_PRESSED);
+
     values->listObj = lv_obj_create(GetPageBackground());
     lv_obj_set_size(values->listObj, 300, 320);
     lv_obj_set_style_bg_color(values->listObj, lv_color_hex(0x202020), 0);
     lv_obj_align(values->listObj, LV_ALIGN_TOP_MID, 0, 122);
     lv_obj_set_style_radius(values->listObj, 12, 0);
-    WifiSearchAndDisplay();
+
+    AsyncExecute(AsyncWifiSearch, NULL, 0, 0);
 }
 
 static void WifiPageDeinit(void)
@@ -63,10 +77,18 @@ static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
     UNUSED(data);
     UNUSED(dataLen);
     UNUSED(code);
-    //switch (code) {
-    //default:
-    //    break;
-    //}
+    switch (code) {
+    case UI_MSG_CODE_WIFI_SEARCH_RESULT:
+        printf("received wifi search result msg:len=%lu\n", dataLen);
+        if (dataLen == sizeof(WiFiItem_t)) {
+            WiFiItem_t *wifiListHead = (WiFiItem_t *)(data);
+            WifiSearchResultDisplay(wifiListHead);
+            FreeWiFiList(wifiListHead);
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 static const lv_image_dsc_t *GetWifiSignalImageByRssi(int8_t rssi)
@@ -83,18 +105,28 @@ static const lv_image_dsc_t *GetWifiSignalImageByRssi(int8_t rssi)
     return &img_wifi_signal_weak1;
 }
 
-static void WifiSearchAndDisplay(void)
+static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen)
 {
-    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    UNUSED(inData);
+    UNUSED(inDataLen);
     WiFiItem_t wifiHead = {0};
     uint32_t count = SearchWiFi(&wifiHead);
-
     printf("wifi scan count=%lu\n", count);
-    lv_obj_t *label, *btn, *signalImg;
+    SendUiMsg(UI_MSG_CODE_WIFI_SEARCH_RESULT, &wifiHead, sizeof(WiFiItem_t));
+    //WifiSearchResultDisplay(&wifiHead);
 
-    WiFiItem_t *node = &wifiHead;
-    for (uint32_t i = 0; i < count; i++) {
-        ASSERT(node != NULL);
+    //FreeWiFiList(&wifiHead);
+    return 0;
+}
+
+static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead)
+{
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    WiFiItem_t *node = wifiListHead;
+    lv_obj_t *label, *btn, *signalImg;
+    uint32_t index = 0;
+
+    while (node != NULL) {
         printf("SSID: %s, CH: %u, Security: %s, RSSI: %d\n",
                node->ssid,
                node->ch,
@@ -102,7 +134,7 @@ static void WifiSearchAndDisplay(void)
                node->rssi);
         btn = lv_button_create(values->listObj);
         lv_obj_set_size(btn, 300, 40);
-        lv_obj_align(btn, LV_ALIGN_TOP_MID, 0, i * 40);
+        lv_obj_align(btn, LV_ALIGN_TOP_MID, 0, index * 40);
         lv_obj_set_layout(btn, LV_LAYOUT_NONE);
         lv_obj_set_style_radius(btn, 12, 0);
         lv_obj_set_style_bg_color(btn, lv_color_hex(0x202020), 0);
@@ -117,8 +149,8 @@ static void WifiSearchAndDisplay(void)
         lv_label_set_text(label, node->ssid);
         lv_obj_add_flag(label, LV_OBJ_FLAG_IGNORE_LAYOUT);
         lv_obj_align(label, LV_ALIGN_LEFT_MID, 52, 0);
-        node = node->next;
-    }
 
-    FreeWiFiList(&wifiHead);
+        node = node->next;
+        index++;
+    }
 }
