@@ -179,7 +179,7 @@ static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead)
 {
     WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     WiFiItem_t *node = wifiListHead;
-    lv_obj_t *label, *btn, *signalImg;
+    lv_obj_t *label, *btn, *signalImg, *lockImg;
     uint32_t index = 0;
 
     while (node != NULL) {
@@ -199,12 +199,17 @@ static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead)
 
         signalImg = lv_image_create(btn);
         lv_image_set_src(signalImg, GetWifiSignalImageByRssi(node->rssi));
-        lv_obj_add_flag(signalImg, LV_OBJ_FLAG_IGNORE_LAYOUT);
         lv_obj_align(signalImg, LV_ALIGN_LEFT_MID, 12, 0);
         label = lv_label_create(btn);
+        lv_label_set_long_mode(label, LV_LABEL_LONG_MODE_DOTS);
         lv_label_set_text(label, node->ssid);
-        lv_obj_add_flag(label, LV_OBJ_FLAG_IGNORE_LAYOUT);
         lv_obj_align(label, LV_ALIGN_LEFT_MID, 52, 0);
+        lv_obj_set_width(label, 200);
+        if (node->security != WIFI_SECURITY_OPEN) {
+            lockImg = lv_image_create(btn);
+            lv_image_set_src(lockImg, &img_lock);
+            lv_obj_align(lockImg, LV_ALIGN_RIGHT_MID, -12, 0);
+        }
 
         node = node->next;
         index++;

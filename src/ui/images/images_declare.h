@@ -17,5 +17,6 @@ extern const lv_img_dsc_t img_wifi_signal_weak1;
 extern const lv_img_dsc_t img_wifi_signal_weak2;
 extern const lv_img_dsc_t img_wifi_signal_weak3;
 extern const lv_img_dsc_t img_lora_signal;
+extern const lv_img_dsc_t img_lock;
 
 #endif
