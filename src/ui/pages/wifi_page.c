@@ -12,9 +12,12 @@
 #include "background_task.h"
 
 typedef struct {
-    lv_obj_t *listObj;
+    lv_obj_t *connectedLabel;
+    lv_obj_t *connectedButton;
+    lv_obj_t *nearbyLabel;
     lv_obj_t *refreshBtn;
     lv_obj_t *refreshImage;
+    lv_obj_t *listObj;
 } WifiPageValues_t;
 
 static void WifiPageInit(void);
@@ -28,6 +31,7 @@ static void StartRefreshRotationAnim(lv_obj_t *refreshImage);
 static void StopRefreshRotationAnim(lv_obj_t *refreshImage);
 static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen);
 static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead);
+static void ConnectedLayout(bool connected);
 
 Page_t g_wifiPage = {
     .init = WifiPageInit,
@@ -42,15 +46,19 @@ static void WifiPageInit(void)
     WifiPageValues_t *values = SRAM_MALLOC(sizeof(WifiPageValues_t));
     lv_obj_set_user_data(GetPageBackground(), values);
 
-    lv_obj_t *label = lv_label_create(GetPageBackground());
-    lv_label_set_text(label, "Connected Wi-Fi");
-    lv_obj_set_style_text_color(label, lv_color_hex(0x888888), 0);
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 10, 37);
+    values->connectedLabel = lv_label_create(GetPageBackground());
+    lv_label_set_text(values->connectedLabel, "Connected Wi-Fi");
+    lv_obj_set_style_text_color(values->connectedLabel, lv_color_hex(0x888888), 0);
+    lv_obj_align(values->connectedLabel, LV_ALIGN_TOP_LEFT, 10, 37);
 
-    label = lv_label_create(GetPageBackground());
-    lv_label_set_text(label, "Nearby Wi-Fi");
-    lv_obj_set_style_text_color(label, lv_color_hex(0x888888), 0);
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 10, 102);
+    values->connectedButton = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->connectedButton, 300, 40);
+    lv_obj_align(values->connectedButton, LV_ALIGN_TOP_MID, 0, 57);
+
+    values->nearbyLabel = lv_label_create(GetPageBackground());
+    lv_label_set_text(values->nearbyLabel, "Nearby Wi-Fi");
+    lv_obj_set_style_text_color(values->nearbyLabel, lv_color_hex(0x888888), 0);
+    lv_obj_align(values->nearbyLabel, LV_ALIGN_TOP_LEFT, 10, 102);
 
     values->refreshBtn = lv_button_create(GetPageBackground());
     lv_obj_set_size(values->refreshBtn, 50, 20);
@@ -71,6 +79,8 @@ static void WifiPageInit(void)
     lv_obj_set_style_bg_color(values->listObj, lv_color_hex(0x202020), 0);
     lv_obj_align(values->listObj, LV_ALIGN_TOP_MID, 0, 122);
     lv_obj_set_style_radius(values->listObj, 12, 0);
+
+    ConnectedLayout(false);
 
     lv_obj_add_state(values->refreshBtn, LV_STATE_DISABLED);
     StartRefreshRotationAnim(values->refreshImage);
@@ -213,5 +223,26 @@ static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead)
 
         node = node->next;
         index++;
+    }
+}
+
+static void ConnectedLayout(bool connected)
+{
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+
+    if (connected) {
+        lv_obj_remove_flag(values->connectedLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_remove_flag(values->connectedButton, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_align(values->nearbyLabel, LV_ALIGN_TOP_LEFT, 10, 102);
+        lv_obj_align(values->refreshBtn, LV_ALIGN_TOP_RIGHT, -10, 100);
+        lv_obj_set_size(values->listObj, 300, 320);
+        lv_obj_align(values->listObj, LV_ALIGN_TOP_MID, 0, 122);
+    } else {
+        lv_obj_add_flag(values->connectedLabel, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_add_flag(values->connectedButton, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_align(values->nearbyLabel, LV_ALIGN_TOP_LEFT, 10, 37);
+        lv_obj_align(values->refreshBtn, LV_ALIGN_TOP_RIGHT, -10, 35);
+        lv_obj_set_size(values->listObj, 300, 385);
+        lv_obj_align(values->listObj, LV_ALIGN_TOP_MID, 0, 57);
     }
 }
