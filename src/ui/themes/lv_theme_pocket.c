@@ -7,7 +7,6 @@
 
 #include "lv_theme_pocket.h"
 #include "src/core/lv_global.h"
-#include "ui_color.h"
 #include "device_settings.h"
 
 /*********************
@@ -59,6 +58,17 @@ typedef struct {
 #if LV_USE_TEXTAREA
     lv_style_t textarea;
     lv_style_t ta_cursor;
+#endif
+#if LV_USE_KEYBOARD
+    lv_style_t keyboard_pad_tiny;
+    lv_style_t keyboard_outline_primary;
+    lv_style_t keyboard_outline_secondary;
+    lv_style_t keyboard_button_bg;
+    lv_style_t keyboard_pressed;
+    lv_style_t keyboard_disabled;
+    lv_style_t keyboard_checked;
+    lv_style_t keyboard_focus_key;
+    lv_style_t keyboard_edited;
 #endif
     lv_style_t label;
     lv_style_t btn;
@@ -138,11 +148,11 @@ static void style_init(my_theme_t * theme)
 
     style_init_reset(&theme->styles.black);
     lv_style_set_bg_opa(&theme->styles.black, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.black, UI_COLOR_BLACK);
+    lv_style_set_bg_color(&theme->styles.black, lv_color_black());
     lv_style_set_line_width(&theme->styles.black, 1);
-    lv_style_set_line_color(&theme->styles.black, UI_COLOR_BLACK);
+    lv_style_set_line_color(&theme->styles.black, lv_color_black());
     lv_style_set_arc_width(&theme->styles.black, 2);
-    lv_style_set_arc_color(&theme->styles.black, UI_COLOR_BLACK);
+    lv_style_set_arc_color(&theme->styles.black, lv_color_black());
 
     style_init_reset(&theme->styles.bg_color_white);
     lv_style_set_bg_color(&theme->styles.bg_color_white, lv_color_white());
@@ -222,13 +232,60 @@ static void style_init(my_theme_t * theme)
     lv_style_set_anim_duration(&theme->styles.ta_cursor, 500);
 #endif
 
+#if LV_USE_KEYBOARD
+    style_init_reset(&theme->styles.keyboard_pad_tiny);
+    lv_style_set_pad_all(&theme->styles.keyboard_pad_tiny, 2);
+    lv_style_set_pad_row(&theme->styles.keyboard_pad_tiny, 2);
+    lv_style_set_pad_column(&theme->styles.keyboard_pad_tiny, 2);
+    lv_style_set_bg_color(&theme->styles.keyboard_pad_tiny, lv_color_make(220, 220, 220));
+
+    style_init_reset(&theme->styles.keyboard_outline_primary);
+    lv_style_set_outline_color(&theme->styles.keyboard_outline_primary, lv_palette_main(DeviceSettingsGetWidgetColor()));
+    lv_style_set_outline_width(&theme->styles.keyboard_outline_primary, 2);
+    lv_style_set_outline_pad(&theme->styles.keyboard_outline_primary, 2);
+    lv_style_set_outline_opa(&theme->styles.keyboard_outline_primary, LV_OPA_50);
+
+    style_init_reset(&theme->styles.keyboard_outline_secondary);
+    lv_style_set_outline_color(&theme->styles.keyboard_outline_secondary, lv_palette_main(LV_PALETTE_GREY));
+    lv_style_set_outline_width(&theme->styles.keyboard_outline_secondary, 2);
+    lv_style_set_outline_opa(&theme->styles.keyboard_outline_secondary, LV_OPA_50);
+
+    style_init_reset(&theme->styles.keyboard_button_bg);
+    lv_style_set_shadow_width(&theme->styles.keyboard_button_bg, 0);
+    lv_style_set_radius(&theme->styles.keyboard_button_bg, 4);
+    lv_style_set_bg_color(&theme->styles.keyboard_button_bg, lv_color_white());
+
+    style_init_reset(&theme->styles.keyboard_pressed);
+    lv_style_set_recolor(&theme->styles.keyboard_pressed, lv_color_black());
+    lv_style_set_recolor_opa(&theme->styles.keyboard_pressed, 35);
+
+    style_init_reset(&theme->styles.keyboard_disabled);
+    lv_style_set_recolor(&theme->styles.keyboard_disabled, lv_palette_darken(LV_PALETTE_GREY, 2));
+    lv_style_set_recolor_opa(&theme->styles.keyboard_disabled, LV_OPA_50);
+
+    style_init_reset(&theme->styles.keyboard_checked);
+    lv_style_set_bg_opa(&theme->styles.keyboard_checked, LV_OPA_COVER);
+    lv_style_set_bg_color(&theme->styles.keyboard_checked, lv_palette_main(LV_PALETTE_GREY));
+    lv_style_set_text_color(&theme->styles.keyboard_checked, lv_color_white());
+
+    style_init_reset(&theme->styles.keyboard_focus_key);
+    lv_style_set_bg_opa(&theme->styles.keyboard_focus_key, LV_OPA_20);
+    lv_style_set_bg_color(&theme->styles.keyboard_focus_key, lv_palette_main(DeviceSettingsGetWidgetColor()));
+    lv_style_set_text_color(&theme->styles.keyboard_focus_key, lv_palette_main(DeviceSettingsGetWidgetColor()));
+
+    style_init_reset(&theme->styles.keyboard_edited);
+    lv_style_set_bg_opa(&theme->styles.keyboard_edited, LV_OPA_20);
+    lv_style_set_bg_color(&theme->styles.keyboard_edited, lv_palette_main(LV_PALETTE_BLUE));
+    lv_style_set_text_color(&theme->styles.keyboard_edited, lv_palette_main(LV_PALETTE_BLUE));
+#endif
+
     style_init_reset(&theme->styles.label);
-    lv_style_set_text_color(&theme->styles.label, UI_COLOR_WHITE);
+    lv_style_set_text_color(&theme->styles.label, lv_color_white());
 
     style_init_reset(&theme->styles.btn);
     lv_style_set_radius(&theme->styles.btn, 8);
     lv_style_set_bg_opa(&theme->styles.btn, LV_OPA_COVER);
-    lv_style_set_text_color(&theme->styles.btn, UI_COLOR_WHITE);
+    lv_style_set_text_color(&theme->styles.btn, lv_color_white());
     lv_style_set_layout(&theme->styles.btn, LV_LAYOUT_FLEX);
     lv_style_set_flex_cross_place(&theme->styles.btn, LV_FLEX_ALIGN_CENTER);
     lv_style_set_flex_main_place(&theme->styles.btn, LV_FLEX_ALIGN_CENTER);
@@ -511,8 +568,17 @@ static void theme_apply(lv_theme_t * th, lv_obj_t * obj)
 #if LV_USE_KEYBOARD
     else if (lv_obj_check_type(obj, &lv_keyboard_class)) {
         lv_obj_add_style(obj, &theme->styles.scr, 0);
-        lv_obj_add_style(obj, &theme->styles.white, LV_PART_ITEMS);
-        lv_obj_add_style(obj, &theme->styles.light, LV_PART_ITEMS | LV_STATE_CHECKED);
+        lv_obj_add_style(obj, &theme->styles.keyboard_pad_tiny, 0);
+        lv_obj_add_style(obj, &theme->styles.keyboard_outline_primary, LV_STATE_FOCUS_KEY);
+        lv_obj_add_style(obj, &theme->styles.keyboard_outline_secondary, LV_STATE_EDITED);
+        lv_obj_add_style(obj, &theme->styles.btn, LV_PART_ITEMS);
+        lv_obj_add_style(obj, &theme->styles.keyboard_disabled, LV_PART_ITEMS | LV_STATE_DISABLED);
+        lv_obj_add_style(obj, &theme->styles.bg_color_white, LV_PART_ITEMS);
+        lv_obj_add_style(obj, &theme->styles.keyboard_button_bg, LV_PART_ITEMS);
+        lv_obj_add_style(obj, &theme->styles.keyboard_pressed, LV_PART_ITEMS | LV_STATE_PRESSED);
+        lv_obj_add_style(obj, &theme->styles.keyboard_checked, LV_PART_ITEMS | LV_STATE_CHECKED);
+        lv_obj_add_style(obj, &theme->styles.keyboard_focus_key, LV_PART_ITEMS | LV_STATE_FOCUS_KEY);
+        lv_obj_add_style(obj, &theme->styles.keyboard_edited, LV_PART_ITEMS | LV_STATE_EDITED);
     }
 #endif
 

@@ -2,7 +2,6 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "user_memory.h"
-#include "ui_color.h"
 
 typedef struct {
     uint32_t min;
@@ -19,7 +18,7 @@ lv_obj_t *CreateSelectNumber(lv_obj_t *parent, uint32_t value, uint32_t min, uin
 {
     lv_obj_t *bg = lv_obj_create(parent);
     lv_obj_set_size(bg, 85, 30);
-    lv_obj_set_style_bg_color(bg, UI_COLOR_BLACK, 0);
+    lv_obj_set_style_bg_color(bg, lv_color_black(), 0);
     lv_obj_set_style_bg_opa(bg, LV_OPA_TRANSP, 0);
 
     lv_obj_t *ta = lv_textarea_create(bg);
@@ -46,7 +45,7 @@ lv_obj_t *CreateSelectNumber(lv_obj_t *parent, uint32_t value, uint32_t min, uin
     lv_obj_set_style_bg_opa(button, LV_OPA_TRANSP, 0);
     lv_obj_t *backImg = lv_image_create(button);
     lv_image_set_src(backImg, LV_SYMBOL_LEFT);
-    lv_obj_set_style_text_color(backImg, UI_COLOR_WHITE, 0);
+    lv_obj_set_style_text_color(backImg, lv_color_white(), 0);
     lv_obj_align(backImg, LV_ALIGN_CENTER, 0, 0);
     lv_obj_add_event_cb(button, LeftHandler, LV_EVENT_CLICKED, selectNumberValue);
 
@@ -56,7 +55,7 @@ lv_obj_t *CreateSelectNumber(lv_obj_t *parent, uint32_t value, uint32_t min, uin
     lv_obj_set_style_bg_opa(button, LV_OPA_TRANSP, 0);
     lv_obj_t *rightImg = lv_image_create(button);
     lv_image_set_src(rightImg, LV_SYMBOL_RIGHT);
-    lv_obj_set_style_text_color(rightImg, UI_COLOR_WHITE, 0);
+    lv_obj_set_style_text_color(rightImg, lv_color_white(), 0);
     lv_obj_align(rightImg, LV_ALIGN_CENTER, 0, 0);
     lv_obj_add_event_cb(button, RightHandler, LV_EVENT_CLICKED, selectNumberValue);
 

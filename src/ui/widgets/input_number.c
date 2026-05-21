@@ -2,7 +2,6 @@
 #include "user_memory.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "ui_color.h"
 #include "user_utils.h"
 
 typedef struct {
@@ -32,7 +31,7 @@ lv_obj_t *CreateInputNumber(lv_obj_t *parent, const char *title, uint32_t value,
 
     lv_obj_t *bg = lv_obj_create(parent);
     lv_obj_set_size(bg, lv_obj_get_width(parent), lv_obj_get_height(parent));
-    lv_obj_set_style_bg_color(bg, UI_COLOR_BLACK, 0);
+    lv_obj_set_style_bg_color(bg, lv_color_black(), 0);
     lv_obj_set_style_bg_opa(bg, LV_OPA_COVER, 0);
     lv_obj_add_flag(bg, LV_OBJ_FLAG_CLICKABLE);
 
@@ -56,7 +55,7 @@ lv_obj_t *CreateInputNumber(lv_obj_t *parent, const char *title, uint32_t value,
     lv_obj_set_style_bg_color(backButton, lv_color_make(0x33, 0x33, 0x33), LV_STATE_PRESSED);
     lv_obj_t *backImg = lv_image_create(backButton);
     lv_image_set_src(backImg, LV_SYMBOL_LEFT);
-    lv_obj_set_style_text_color(backImg, UI_COLOR_WHITE, 0);
+    lv_obj_set_style_text_color(backImg, lv_color_white(), 0);
     lv_obj_align(backImg, LV_ALIGN_CENTER, 0, 0);
     lv_obj_add_event_cb(backButton, BackHandler, LV_EVENT_CLICKED, inputNumberValue);
 
@@ -83,9 +82,9 @@ lv_obj_t *CreateInputNumber(lv_obj_t *parent, const char *title, uint32_t value,
     lv_obj_add_event_cb(btnm, InputNumberEventHandler, LV_EVENT_VALUE_CHANGED, inputNumberValue);
     lv_obj_set_style_pad_all(btnm, 5, 0);
     lv_obj_set_style_pad_gap(btnm, 5, 0);
-    lv_obj_set_style_text_color(btnm, UI_COLOR_BLACK, LV_PART_ITEMS);
+    lv_obj_set_style_text_color(btnm, lv_color_black(), LV_PART_ITEMS);
     lv_obj_set_style_radius(btnm, 10, LV_PART_ITEMS);
-    lv_obj_set_style_bg_color(btnm, UI_COLOR_LIGHT_GRAY, LV_PART_ITEMS | LV_STATE_PRESSED);
+    lv_obj_set_style_bg_color(btnm, lv_color_make(0xEE, 0xEE, 0xEE), LV_PART_ITEMS | LV_STATE_PRESSED);
 
     lv_obj_add_event_cb(bg, KeepTaFocusEventHandler, LV_EVENT_CLICKED, inputNumberValue);
     lv_obj_add_event_cb(pad, KeepTaFocusEventHandler, LV_EVENT_CLICKED, inputNumberValue);

@@ -1,5 +1,4 @@
 #include "confirm_win.h"
-#include "ui_color.h"
 #include "user_assert.h"
 
 #define CONFIRM_WIN_WIDTH      220
@@ -13,13 +12,13 @@ lv_obj_t *CreateConfirmWin(lv_obj_t *parent, const ConfirmWin_t *desc)
 
     bg = lv_obj_create(parent);
     lv_obj_set_size(bg, lv_obj_get_width(parent), lv_obj_get_height(parent));
-    lv_obj_set_style_bg_color(bg, UI_COLOR_BLACK, 0);
+    lv_obj_set_style_bg_color(bg, lv_color_black(), 0);
     lv_obj_set_style_bg_opa(bg, LV_OPA_50, 0);
 
     win = lv_obj_create(bg);
     lv_obj_set_size(win, CONFIRM_WIN_WIDTH, CONFIRM_WIN_HEIGHT);
     lv_obj_align(win, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_set_style_bg_color(win, UI_COLOR_LIGHT, 0);
+    lv_obj_set_style_bg_color(win, lv_color_make(0xEE, 0xEE, 0xEE), 0);
     lv_obj_set_style_radius(win, 10, 0);
 
     label = lv_label_create(win);
@@ -28,7 +27,7 @@ lv_obj_t *CreateConfirmWin(lv_obj_t *parent, const ConfirmWin_t *desc)
     lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
     lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 20);
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
-    lv_obj_set_style_text_color(label, UI_COLOR_BLACK, 0);
+    lv_obj_set_style_text_color(label, lv_color_black(), 0);
     lv_obj_update_layout(label);
     int32_t labelHeight = lv_obj_get_height(label);
     ASSERT(CONFIRM_WIN_HEIGHT - labelHeight - 50 > 0);
