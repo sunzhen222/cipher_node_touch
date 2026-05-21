@@ -97,3 +97,14 @@ void SendAtCommand(const char *cmd)
     HAL_UART_Transmit(&huart2, (uint8_t *)newline, 2, 1000);
 }
 
+void TrimLineEnd(char *str)
+{
+    ASSERT(str != NULL);
+
+    size_t len = strlen(str);
+    while (len > 0 && (str[len - 1] == '\r' || str[len - 1] == '\n')) {
+        str[len - 1] = '\0';
+        len--;
+    }
+}
+

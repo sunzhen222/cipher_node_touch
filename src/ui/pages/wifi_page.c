@@ -7,6 +7,7 @@
 #include "user_utils.h"
 #include "user_memory.h"
 #include "wifi_search.h"
+#include "wifi_connect.h"
 #include "images_declare.h"
 #include "user_assert.h"
 #include "background_task.h"
@@ -14,10 +15,14 @@
 typedef struct {
     lv_obj_t *connectedLabel;
     lv_obj_t *connectedButton;
+    lv_obj_t *connectedSignalImg;
+    lv_obj_t *connectedSsidLabel;
+    lv_obj_t *connectedSecurityImg;
     lv_obj_t *nearbyLabel;
     lv_obj_t *refreshBtn;
     lv_obj_t *refreshImage;
     lv_obj_t *listObj;
+    WifiConnectInfo_t connectInfo;
 } WifiPageValues_t;
 
 static void WifiPageInit(void);
@@ -31,6 +36,7 @@ static void StartRefreshRotationAnim(lv_obj_t *refreshImage);
 static void StopRefreshRotationAnim(lv_obj_t *refreshImage);
 static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen);
 static void WifiSearchResultDisplay(WifiItem_t *wifiListHead);
+static void WifiConnectStatusDisplay(void);
 static void ConnectedLayout(bool connected);
 
 Page_t g_wifiPage = {
@@ -54,6 +60,17 @@ static void WifiPageInit(void)
     values->connectedButton = lv_button_create(GetPageBackground());
     lv_obj_set_size(values->connectedButton, 300, 40);
     lv_obj_align(values->connectedButton, LV_ALIGN_TOP_MID, 0, 57);
+    lv_obj_set_layout(values->connectedButton, LV_LAYOUT_NONE);
+    lv_obj_set_style_radius(values->connectedButton, 12, 0);
+    values->connectedSignalImg = lv_image_create(values->connectedButton);
+    lv_obj_align(values->connectedSignalImg, LV_ALIGN_LEFT_MID, 12, 0);
+    values->connectedSsidLabel = lv_label_create(values->connectedButton);
+    lv_label_set_long_mode(values->connectedSsidLabel, LV_LABEL_LONG_MODE_DOTS);
+    lv_obj_align(values->connectedSsidLabel, LV_ALIGN_LEFT_MID, 52, 0);
+    lv_obj_set_width(values->connectedSsidLabel, 200);
+    values->connectedSecurityImg = lv_image_create(values->connectedButton);
+    lv_obj_align(values->connectedSecurityImg, LV_ALIGN_RIGHT_MID, -12, 0);
+    lv_image_set_src(values->connectedSecurityImg, &img_lock);
 
     values->nearbyLabel = lv_label_create(GetPageBackground());
     lv_label_set_text(values->nearbyLabel, "Nearby Wi-Fi");
@@ -80,7 +97,10 @@ static void WifiPageInit(void)
     lv_obj_align(values->listObj, LV_ALIGN_TOP_MID, 0, 122);
     lv_obj_set_style_radius(values->listObj, 12, 0);
 
-    ConnectedLayout(false);
+    GetWifiConnectInfo(&values->connectInfo);
+    ConnectedLayout(values->connectInfo.connected);
+    WifiConnectStatusDisplay();
+    printf("wifi connected: %s, ssid: %s\n", values->connectInfo.connected ? "yes" : "no", values->connectInfo.ssid);
 
     lv_obj_add_state(values->refreshBtn, LV_STATE_DISABLED);
     StartRefreshRotationAnim(values->refreshImage);
@@ -223,6 +243,30 @@ static void WifiSearchResultDisplay(WifiItem_t *wifiListHead)
 
         node = node->next;
         index++;
+    }
+}
+
+static void WifiConnectStatusDisplay(void)
+{
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+
+    if (!values->connectInfo.connected) {
+        return;
+    }
+
+    lv_label_set_text(values->connectedSsidLabel, values->connectInfo.ssid);
+
+    if (values->connectInfo.security == WIFI_SECURITY_OPEN) {
+        lv_obj_add_flag(values->connectedSecurityImg, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_remove_flag(values->connectedSecurityImg, LV_OBJ_FLAG_HIDDEN);
+    }
+
+    int8_t rssi = -127;
+    if (GetWifiRssi(&rssi)) {
+        lv_image_set_src(values->connectedSignalImg, GetWifiSignalImageByRssi(rssi));
+    } else {
+        lv_image_set_src(values->connectedSignalImg, &img_wifi_signal_weak1);
     }
 }
 

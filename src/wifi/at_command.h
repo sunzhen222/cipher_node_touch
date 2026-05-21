@@ -13,5 +13,6 @@ void ClearReceivedAtCommand(void);
 bool GetReceivedAtCommand(char *buffer, uint32_t timeout);
 void ProcessAtCommand(void);
 void SendAtCommand(const char *cmd);
+void TrimLineEnd(char *str);
 
 #endif

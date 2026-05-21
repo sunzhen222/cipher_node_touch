@@ -9,16 +9,6 @@
 #include "string.h"
 
 
-static void TrimLineEnd(char *str)
-{
-    size_t len = strlen(str);
-    while (len > 0 && (str[len - 1] == '\r' || str[len - 1] == '\n')) {
-        str[len - 1] = '\0';
-        len--;
-    }
-}
-
-
 static WifiSecurityType ParseSecurityType(const char *securityStr)
 {
     if (strstr(securityStr, "WPA2") != NULL) {
