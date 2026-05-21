@@ -19,7 +19,7 @@
 #include "processor_usage.h"
 #include "battery.h"
 #include "at_command.h"
-#include "search_wifi.h"
+#include "wifi_search.h"
 #include "lvgl.h"
 
 #define CMD_MAX_ARGC        16
@@ -56,7 +56,7 @@ static void FindFilesFunc(int argc, char *argv[]);
 static void ProcessorUsageFunc(int argc, char *argv[]);
 static void BatteryFunc(int argc, char *argv[]);
 static void AtSendFunc(int argc, char *argv[]);
-static void SearchWiFiFunc(int argc, char *argv[]);
+static void SearchWifiFunc(int argc, char *argv[]);
 
 
 static const TestCmdItem_t g_testCmdTable[] = {
@@ -80,7 +80,7 @@ static const TestCmdItem_t g_testCmdTable[] = {
     {"processor_usage:",        ProcessorUsageFunc      },
     {"battery",                 BatteryFunc             },
     {"at:",                     AtSendFunc              },
-    {"search wifi",             SearchWiFiFunc          },
+    {"search wifi",             SearchWifiFunc          },
 };
 
 TestCmdNode_t g_testCmdListHead = {0};
@@ -589,25 +589,25 @@ static void AtSendFunc(int argc, char *argv[])
     }
 }
 
-static void SearchWiFiFunc(int argc, char *argv[])
+static void SearchWifiFunc(int argc, char *argv[])
 {
     UNUSED(argc);
     UNUSED(argv);
 
-    WiFiItem_t wifiHead = {0};
+    WifiItem_t wifiHead = {0};
     printf("searching wifi...\n");
-    uint32_t count = SearchWiFi(&wifiHead);
+    uint32_t count = SearchWifi(&wifiHead);
 
     printf("wifi scan count=%lu\n", count);
 
-    WiFiItem_t *node = &wifiHead;
+    WifiItem_t *node = &wifiHead;
     uint32_t index = 1;
     while (node != NULL) {
         printf("%lu: ssid=%s ch=%u sec=%s rssi=%d bssid=%02x:%02x:%02x:%02x:%02x:%02x\n",
                index,
                node->ssid,
                node->ch,
-               WiFiSecurityToString(node->security),
+               WifiSecurityToString(node->security),
                node->rssi,
                node->bssid[0],
                node->bssid[1],
@@ -619,5 +619,5 @@ static void SearchWiFiFunc(int argc, char *argv[])
         index++;
     }
 
-    FreeWiFiList(&wifiHead);
+    FreeWifiList(&wifiHead);
 }

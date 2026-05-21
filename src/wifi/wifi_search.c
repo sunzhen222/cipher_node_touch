@@ -1,5 +1,5 @@
 
-#include "search_wifi.h"
+#include "wifi_search.h"
 #include "at_command.h"
 #include "drv_uart.h"
 #include "user_memory.h"
@@ -19,7 +19,7 @@ static void TrimLineEnd(char *str)
 }
 
 
-static WiFiSecurityType ParseSecurityType(const char *securityStr)
+static WifiSecurityType ParseSecurityType(const char *securityStr)
 {
     if (strstr(securityStr, "WPA2") != NULL) {
         return WIFI_SECURITY_WPA2;
@@ -83,7 +83,7 @@ static bool ParseBssid(const char *str, uint8_t out[6])
 }
 
 
-static bool ParseScanLine(const char *line, WiFiItem_t *item)
+static bool ParseScanLine(const char *line, WifiItem_t *item)
 {
     char parseBuffer[AT_COMMAND_MAX_LENGTH];
     char *token = NULL;
@@ -122,7 +122,7 @@ static bool ParseScanLine(const char *line, WiFiItem_t *item)
         return false;
     }
 
-    memset(item, 0, sizeof(WiFiItem_t));
+    memset(item, 0, sizeof(WifiItem_t));
 
     CopySsidWithFallback(item->ssid, sizeof(item->ssid), ssidStr);
     item->ch = (uint8_t)atoi(chStr);
@@ -136,12 +136,12 @@ static bool ParseScanLine(const char *line, WiFiItem_t *item)
     return true;
 }
 
-uint32_t SearchWiFi(WiFiItem_t *wifiListHead)
+uint32_t SearchWifi(WifiItem_t *wifiListHead)
 {
     ASSERT(wifiListHead != NULL);
 
-    FreeWiFiList(wifiListHead);
-    memset(wifiListHead, 0, sizeof(WiFiItem_t));
+    FreeWifiList(wifiListHead);
+    memset(wifiListHead, 0, sizeof(WifiItem_t));
 
     ClearReceivedAtCommand();
     SendAtCommand("AT+WSCAN");
@@ -149,7 +149,7 @@ uint32_t SearchWiFi(WiFiItem_t *wifiListHead)
     uint32_t count = 0;
     char received[AT_COMMAND_MAX_LENGTH];
     bool headFilled = false;
-    WiFiItem_t *tail = wifiListHead;
+    WifiItem_t *tail = wifiListHead;
 
     while (GetReceivedAtCommand(received, 5000)) {
         //printf("%s", received);
@@ -162,17 +162,17 @@ uint32_t SearchWiFi(WiFiItem_t *wifiListHead)
             break;
         }
 
-        WiFiItem_t parsed = {0};
+        WifiItem_t parsed = {0};
         if (ParseScanLine(received, &parsed)) {
             if (!headFilled) {
-                memcpy(wifiListHead, &parsed, sizeof(WiFiItem_t));
+                memcpy(wifiListHead, &parsed, sizeof(WifiItem_t));
                 wifiListHead->next = NULL;
                 tail = wifiListHead;
                 headFilled = true;
                 count++;
             } else {
-                WiFiItem_t *item = SRAM_MALLOC(sizeof(WiFiItem_t));
-                memcpy(item, &parsed, sizeof(WiFiItem_t));
+                WifiItem_t *item = SRAM_MALLOC(sizeof(WifiItem_t));
+                memcpy(item, &parsed, sizeof(WifiItem_t));
                 item->next = NULL;
                 tail->next = item;
                 tail = item;
@@ -184,20 +184,20 @@ uint32_t SearchWiFi(WiFiItem_t *wifiListHead)
     return count;
 }
 
-void FreeWiFiList(WiFiItem_t *wifiListHead)
+void FreeWifiList(WifiItem_t *wifiListHead)
 {
     ASSERT(wifiListHead != NULL);
 
-    WiFiItem_t *node = wifiListHead->next;
+    WifiItem_t *node = wifiListHead->next;
     while (node != NULL) {
-        WiFiItem_t *next = node->next;
+        WifiItem_t *next = node->next;
         SRAM_FREE(node);
         node = next;
     }
-    memset(wifiListHead, 0, sizeof(WiFiItem_t));
+    memset(wifiListHead, 0, sizeof(WifiItem_t));
 }
 
-const char *WiFiSecurityToString(WiFiSecurityType security)
+const char *WifiSecurityToString(WifiSecurityType security)
 {
     switch (security) {
     case WIFI_SECURITY_OPEN:

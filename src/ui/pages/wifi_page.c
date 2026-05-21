@@ -6,7 +6,7 @@
 #include "navigation_bar.h"
 #include "user_utils.h"
 #include "user_memory.h"
-#include "search_wifi.h"
+#include "wifi_search.h"
 #include "images_declare.h"
 #include "user_assert.h"
 #include "background_task.h"
@@ -30,7 +30,7 @@ static void RefreshRotateAnimExecCb(void *var, int32_t value);
 static void StartRefreshRotationAnim(lv_obj_t *refreshImage);
 static void StopRefreshRotationAnim(lv_obj_t *refreshImage);
 static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen);
-static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead);
+static void WifiSearchResultDisplay(WifiItem_t *wifiListHead);
 static void ConnectedLayout(bool connected);
 
 Page_t g_wifiPage = {
@@ -102,10 +102,10 @@ static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
         printf("received wifi search result msg:len=%lu\n", dataLen);
         StopRefreshRotationAnim(values->refreshImage);
         lv_obj_remove_state(values->refreshBtn, LV_STATE_DISABLED);
-        if (dataLen == sizeof(WiFiItem_t)) {
-            WiFiItem_t *wifiListHead = (WiFiItem_t *)(data);
+        if (dataLen == sizeof(WifiItem_t)) {
+            WifiItem_t *wifiListHead = (WifiItem_t *)(data);
             WifiSearchResultDisplay(wifiListHead);
-            FreeWiFiList(wifiListHead);
+            FreeWifiList(wifiListHead);
         }
         break;
     default:
@@ -178,17 +178,17 @@ static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen)
 {
     UNUSED(inData);
     UNUSED(inDataLen);
-    WiFiItem_t wifiHead = {0};
-    uint32_t count = SearchWiFi(&wifiHead);
+    WifiItem_t wifiHead = {0};
+    uint32_t count = SearchWifi(&wifiHead);
     printf("wifi scan count=%lu\n", count);
-    SendUiMsg(UI_MSG_CODE_WIFI_SEARCH_RESULT, &wifiHead, sizeof(WiFiItem_t));
+    SendUiMsg(UI_MSG_CODE_WIFI_SEARCH_RESULT, &wifiHead, sizeof(WifiItem_t));
     return 0;
 }
 
-static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead)
+static void WifiSearchResultDisplay(WifiItem_t *wifiListHead)
 {
     WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-    WiFiItem_t *node = wifiListHead;
+    WifiItem_t *node = wifiListHead;
     lv_obj_t *label, *btn, *signalImg, *lockImg;
     uint32_t index = 0;
 
@@ -196,7 +196,7 @@ static void WifiSearchResultDisplay(WiFiItem_t *wifiListHead)
         printf("SSID: %s, CH: %u, Security: %s, RSSI: %d\n",
                node->ssid,
                node->ch,
-               WiFiSecurityToString(node->security),
+               WifiSecurityToString(node->security),
                node->rssi);
         btn = lv_button_create(values->listObj);
         lv_obj_set_size(btn, 300, 40);

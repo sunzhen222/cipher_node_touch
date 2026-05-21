@@ -11,19 +11,19 @@ typedef enum {
     WIFI_SECURITY_WPA,
     WIFI_SECURITY_WPA2,
     WIFI_SECURITY_UNKNOWN,
-} WiFiSecurityType;
+} WifiSecurityType;
 
-typedef struct WiFiItem_t {
+typedef struct WifiItem_t {
     char ssid[32];
     uint8_t ch;
-    WiFiSecurityType security;
+    WifiSecurityType security;
     int8_t rssi;
     uint8_t bssid[6];
-    struct WiFiItem_t *next;
-} WiFiItem_t;
+    struct WifiItem_t *next;
+} WifiItem_t;
 
-uint32_t SearchWiFi(WiFiItem_t *wifiListHead);
-void FreeWiFiList(WiFiItem_t *wifiListHead);
-const char *WiFiSecurityToString(WiFiSecurityType security);
+uint32_t SearchWifi(WifiItem_t *wifiListHead);
+void FreeWifiList(WifiItem_t *wifiListHead);
+const char *WifiSecurityToString(WifiSecurityType security);
 
 #endif
