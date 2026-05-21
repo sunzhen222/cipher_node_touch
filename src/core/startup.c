@@ -35,12 +35,14 @@
 #include "lora.h"
 #include "battery.h"
 #include "sht30_app.h"
+#include "at_command.h"
 
 void Startup(void)
 {
     GpioInit();
     Uart1Init();
     Uart2Init();
+    AtCommandInit();
     AdcInit();
     cm_backtrace_init("cipher_node_touch", GetHardwareVersionString(), GetSoftwareVersionString());
     PrintSystemInfo();

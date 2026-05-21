@@ -2,69 +2,90 @@
 #include "cmsis_os2.h"
 #include "stdio.h"
 #include "string.h"
-#include "user_msg.h"
 #include "user_assert.h"
-#include "user_utils.h"
+#include "ring_buffer.h"
 #include "drv_uart.h"
 
-#define AT_COMMAND_TIMEOUT_MS    100
+#define AT_COMMAND_RING_SIZE     (AT_COMMAND_MAX_LENGTH * 4)
 
-static uint8_t g_atCommandBuffer[AT_COMMAND_MAX_LENGTH];
-static uint8_t g_atCommandPacket[AT_COMMAND_MAX_LENGTH];
-static uint32_t g_atCommandIndex = 0;
-static volatile bool g_atCommandReceived = false;
+static uint8_t g_atCommandRingRawBuffer[AT_COMMAND_RING_SIZE];
+static RingBuffer_t g_atCommandRingBuffer;
+
+void AtCommandInit(void)
+{
+    RingBufferInit(&g_atCommandRingBuffer, g_atCommandRingRawBuffer, sizeof(g_atCommandRingRawBuffer));
+}
 
 void AtCommandByteReceived(uint8_t byte)
 {
-    static uint32_t lastTick = 0;
-    uint32_t tick = osKernelGetTickCount();
-
-    if ((tick - lastTick) > AT_COMMAND_TIMEOUT_MS) {
-        g_atCommandIndex = 0;
-    }
-    lastTick = tick;
-    if (g_atCommandIndex > AT_COMMAND_MAX_LENGTH - 2) {
-        g_atCommandIndex = AT_COMMAND_MAX_LENGTH - 2;
-    }
-    g_atCommandBuffer[g_atCommandIndex] = byte;
-    g_atCommandIndex++;
-
-    if (byte == '\n') {
-        g_atCommandBuffer[g_atCommandIndex] = '\0';
-        strncpy((char *)g_atCommandPacket, (char *)g_atCommandBuffer, sizeof(g_atCommandPacket) - 1);
-        g_atCommandPacket[g_atCommandIndex] = '\0';
-        g_atCommandIndex = 0;
-        g_atCommandReceived = true;
-        //PubValueMsg(BACKGROUND_MSG_AT_COMMAND, 0);
-    }
+    __disable_irq();
+    RingBufferWrite(&g_atCommandRingBuffer, &byte, 1);
+    __enable_irq();
 }
 
 void ClearReceivedAtCommand(void)
 {
-    g_atCommandReceived = false;
+    __disable_irq();
+    RingBufferClear(&g_atCommandRingBuffer);
+    __enable_irq();
 }
 
 bool GetReceivedAtCommand(char *buffer, uint32_t timeout)
 {
     ASSERT(buffer != NULL);
+
     uint32_t tick = 0;
-    while (tick < timeout) {
-        if (g_atCommandReceived) {
-            __disable_irq();
-            strcpy(buffer, (char *)g_atCommandPacket);
-            g_atCommandReceived = false;
-            __enable_irq();
-            return true;
+    uint32_t index = 0;
+    bool overflow = false;
+
+    while (1) {
+        uint8_t byte = 0;
+        bool hasData = false;
+
+        __disable_irq();
+        if (RingBufferGetUsedSize(&g_atCommandRingBuffer) > 0) {
+            RingBufferRead(&g_atCommandRingBuffer, &byte, 1);
+            hasData = true;
         }
+        __enable_irq();
+
+        if (hasData) {
+            if (!overflow && index < (AT_COMMAND_MAX_LENGTH - 1)) {
+                buffer[index] = (char)byte;
+                index++;
+            } else {
+                overflow = true;
+            }
+
+            if (byte == '\n') {
+                if (index >= (AT_COMMAND_MAX_LENGTH - 1)) {
+                    index = AT_COMMAND_MAX_LENGTH - 1;
+                }
+                buffer[index] = '\0';
+                return true;
+            }
+
+            continue;
+        }
+
+        if (tick >= timeout) {
+            break;
+        }
+
         osDelay(1);
         tick++;
     }
+
+    buffer[0] = '\0';
     return false;
 }
 
 void ProcessAtCommand(void)
 {
-    printf("Received AT command: %s", g_atCommandPacket);
+    char received[AT_COMMAND_MAX_LENGTH];
+    if (GetReceivedAtCommand(received, 0)) {
+        printf("Received AT command: %s", received);
+    }
 }
 
 void SendAtCommand(const char *cmd)

@@ -7,6 +7,7 @@
 
 #define AT_COMMAND_MAX_LENGTH       256
 
+void AtCommandInit(void);
 void AtCommandByteReceived(uint8_t byte);
 void ClearReceivedAtCommand(void);
 bool GetReceivedAtCommand(char *buffer, uint32_t timeout);

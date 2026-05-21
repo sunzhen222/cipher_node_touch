@@ -72,6 +72,8 @@ static void BackgroundTask(void *argument)
     osStatus_t ret;
     printf("device started\n");
     PowerSwitchSetSource(POWER_SOURCE_WIFI, true);
+    osDelay(2000);
+    SendAtCommand("ATE0");
     while (1) {
         ret = osMessageQueueGet(g_backgroundQueue, &rcvMsg, NULL, 10000);
         if (ret != osOK) {
