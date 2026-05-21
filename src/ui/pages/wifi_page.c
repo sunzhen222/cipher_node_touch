@@ -11,6 +11,14 @@
 #include "images_declare.h"
 #include "user_assert.h"
 #include "background_task.h"
+#include "input_string.h"
+#include "confirm_win.h"
+#include "string.h"
+
+typedef struct {
+    char ssid[32];
+    char password[64];
+} WifiConnectRequest_t;
 
 typedef struct {
     lv_obj_t *connectedLabel;
@@ -22,6 +30,8 @@ typedef struct {
     lv_obj_t *refreshBtn;
     lv_obj_t *refreshImage;
     lv_obj_t *listObj;
+    char pendingSsid[32];
+    bool connecting;
     WifiConnectInfo_t connectInfo;
 } WifiPageValues_t;
 
@@ -37,6 +47,9 @@ static void StopRefreshRotationAnim(lv_obj_t *refreshImage);
 static int32_t AsyncWifiSearch(const void *inData, uint32_t inDataLen);
 static void WifiSearchResultDisplay(WifiItem_t *wifiListHead);
 static void WifiConnectStatusDisplay(void);
+static void WifiListItemClickHandler(lv_event_t *e);
+static void WifiPasswordInputHandler(const char *password);
+static int32_t AsyncWifiConnect(const void *inData, uint32_t inDataLen);
 static void ConnectedLayout(bool connected);
 
 Page_t g_wifiPage = {
@@ -50,6 +63,7 @@ static void WifiPageInit(void)
 {
     CreateGeneralNavigationBar();
     WifiPageValues_t *values = SRAM_MALLOC(sizeof(WifiPageValues_t));
+    memset(values, 0, sizeof(WifiPageValues_t));
     lv_obj_set_user_data(GetPageBackground(), values);
 
     values->connectedLabel = lv_label_create(GetPageBackground());
@@ -126,6 +140,24 @@ static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
             WifiItem_t *wifiListHead = (WifiItem_t *)(data);
             WifiSearchResultDisplay(wifiListHead);
             FreeWifiList(wifiListHead);
+        }
+        break;
+    case UI_MSG_CODE_WIFI_CONNECT_RESULT:
+        StopRefreshRotationAnim(values->refreshImage);
+        lv_obj_remove_state(values->refreshBtn, LV_STATE_DISABLED);
+        values->connecting = false;
+        if (dataLen == sizeof(bool) && data != NULL) {
+            bool connectOk = *((bool *)data);
+            if (connectOk) {
+                GetWifiConnectInfo(&values->connectInfo);
+                ConnectedLayout(values->connectInfo.connected);
+                WifiConnectStatusDisplay();
+                printf("wifi connect success, ssid: %s\n", values->connectInfo.ssid);
+            } else {
+                ConfirmWin_t confirmWin = {0};
+                confirmWin.text = "Wi-Fi connect failed";
+                CreateConfirmWin(GetPageBackground(), &confirmWin);
+            }
         }
         break;
     default:
@@ -226,6 +258,7 @@ static void WifiSearchResultDisplay(WifiItem_t *wifiListHead)
         lv_obj_set_style_bg_color(btn, lv_color_hex(0x202020), 0);
         lv_obj_set_style_bg_color(btn, lv_color_hex(0x606060), LV_STATE_PRESSED);
         lv_obj_set_style_transform_height(btn, 0, LV_STATE_PRESSED);
+        lv_obj_add_event_cb(btn, WifiListItemClickHandler, LV_EVENT_CLICKED, NULL);
 
         signalImg = lv_image_create(btn);
         lv_image_set_src(signalImg, GetWifiSignalImageByRssi(node->rssi));
@@ -244,6 +277,63 @@ static void WifiSearchResultDisplay(WifiItem_t *wifiListHead)
         node = node->next;
         index++;
     }
+}
+
+static void WifiListItemClickHandler(lv_event_t *e)
+{
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    lv_obj_t *btn = lv_event_get_target(e);
+    uint32_t childCount = lv_obj_get_child_count(btn);
+
+    if (values->connecting) {
+        return;
+    }
+
+    for (uint32_t i = 0; i < childCount; i++) {
+        lv_obj_t *child = lv_obj_get_child(btn, i);
+        if (lv_obj_check_type(child, &lv_label_class)) {
+            const char *ssid = lv_label_get_text(child);
+            printf("wifi list click ssid: %s\n", ssid);
+
+            snprintf(values->pendingSsid, sizeof(values->pendingSsid), "%s", ssid);
+            CreateInputString(GetPageBackground(), values->pendingSsid, "", 63, true, WifiPasswordInputHandler);
+            return;
+        }
+    }
+    printf("wifi list click ssid: <unknown>\n");
+}
+
+static void WifiPasswordInputHandler(const char *password)
+{
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    WifiConnectRequest_t request = {0};
+
+    if (values == NULL || values->pendingSsid[0] == '\0' || values->connecting) {
+        return;
+    }
+
+    snprintf(request.ssid, sizeof(request.ssid), "%s", values->pendingSsid);
+    if (password != NULL) {
+        snprintf(request.password, sizeof(request.password), "%s", password);
+    }
+
+    values->connecting = true;
+    lv_obj_add_state(values->refreshBtn, LV_STATE_DISABLED);
+    StartRefreshRotationAnim(values->refreshImage);
+    AsyncExecute(AsyncWifiConnect, &request, sizeof(request), 0);
+}
+
+static int32_t AsyncWifiConnect(const void *inData, uint32_t inDataLen)
+{
+    bool connectOk = false;
+
+    if (inData != NULL && inDataLen == sizeof(WifiConnectRequest_t)) {
+        const WifiConnectRequest_t *request = (const WifiConnectRequest_t *)inData;
+        connectOk = ConnectWifi(request->ssid, request->password);
+    }
+
+    SendUiMsg(UI_MSG_CODE_WIFI_CONNECT_RESULT, &connectOk, sizeof(connectOk));
+    return 0;
 }
 
 static void WifiConnectStatusDisplay(void)

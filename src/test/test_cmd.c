@@ -583,7 +583,7 @@ static void AtSendFunc(int argc, char *argv[])
         ClearReceivedAtCommand();
         SendAtCommand(argv[0]);
         char received[AT_COMMAND_MAX_LENGTH];
-        while (GetReceivedAtCommand(received, 5000)) {
+        while (GetReceivedAtCommand(received, 10000)) {
             printf("received:%s", received);
         }
     }

@@ -4,6 +4,7 @@
 #include "user_assert.h"
 #include "string.h"
 #include "stdlib.h"
+#include "stdio.h"
 
 
 static WifiSecurityType ParseSecurityType(const char *securityStr)
@@ -50,9 +51,54 @@ static bool ParseStaInfoSecurity(const char *line, WifiSecurityType *security)
 
 bool ConnectWifi(const char *ssid, const char *password)
 {
-    (void)ssid;
-    (void)password;
+    ASSERT(ssid != NULL);
+    ASSERT(password != NULL);
+
+    if (ssid[0] == '\0') {
+        return false;
+    }
+
+    char command[AT_COMMAND_MAX_LENGTH];
+    snprintf(command, sizeof(command), "AT+WJAP=%s,%s", ssid, password);
+
     ClearReceivedAtCommand();
+    SendAtCommand(command);
+
+    uint32_t elapsed = 0;
+    char received[AT_COMMAND_MAX_LENGTH];
+
+    while (elapsed < 15000) {
+        if (!GetReceivedAtCommand(received, 200)) {
+            elapsed += 200;
+            continue;
+        }
+
+        char trimmed[AT_COMMAND_MAX_LENGTH];
+        strncpy(trimmed, received, sizeof(trimmed) - 1);
+        trimmed[sizeof(trimmed) - 1] = '\0';
+        TrimLineEnd(trimmed);
+
+        if (trimmed[0] == '\0') {
+            continue;
+        }
+
+        if (strcmp(trimmed, "+EVENT:WIFI_GOT_IP") == 0) {
+            return true;
+        }
+
+        if (strncmp(trimmed, "+WJAP:", 6) == 0) {
+            int joinStatus = atoi(trimmed + 6);
+            if (joinStatus != 0) {
+                return false;
+            }
+            continue;
+        }
+
+        if (strcmp(trimmed, "ERROR") == 0) {
+            return false;
+        }
+    }
+
     return false;
 }
 
