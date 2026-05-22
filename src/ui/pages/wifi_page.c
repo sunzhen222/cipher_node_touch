@@ -300,7 +300,9 @@ static void WifiListItemClickHandler(lv_event_t *e)
             printf("wifi list click ssid: %s\n", ssid);
 
             snprintf(values->pendingSsid, sizeof(values->pendingSsid), "%s", ssid);
-            CreateInputString(GetPageBackground(), values->pendingSsid, "", 63, true, WifiPasswordInputHandler);
+            char title[128];
+            snprintf(title, sizeof(title), "Enter password for \n\n%s", ssid);
+            CreateInputString(GetPageBackground(), title, "", 63, true, WifiPasswordInputHandler);
             return;
         }
     }

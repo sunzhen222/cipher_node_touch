@@ -1,6 +1,7 @@
 #include "input_string.h"
 #include "user_memory.h"
 #include "user_utils.h"
+#include "images_declare.h"
 
 typedef struct {
     InputStringHandler_t handler;
@@ -30,30 +31,25 @@ lv_obj_t *CreateInputString(lv_obj_t *parent,
     inputStringValue->handler = handler;
     inputStringValue->bg = bg;
 
-    lv_obj_t *pad = lv_obj_create(bg);
-    lv_obj_set_size(pad, 320, 320);
-    lv_obj_align(pad, LV_ALIGN_BOTTOM_MID, 0, 0);
-    lv_obj_add_flag(pad, LV_OBJ_FLAG_CLICKABLE);
-
-    lv_obj_t *backButton = lv_button_create(pad);
+    lv_obj_t *backButton = lv_button_create(bg);
     lv_obj_set_size(backButton, 48, 48);
-    lv_obj_align(backButton, LV_ALIGN_TOP_LEFT, 8, 0);
+    lv_obj_align(backButton, LV_ALIGN_TOP_LEFT, 8, 10);
     lv_obj_remove_flag(backButton, LV_OBJ_FLAG_CLICK_FOCUSABLE);
     lv_obj_set_style_bg_color(backButton, lv_color_black(), 0);
     lv_obj_set_style_bg_color(backButton, lv_color_make(0x33, 0x33, 0x33), LV_STATE_PRESSED);
     lv_obj_t *backImg = lv_image_create(backButton);
-    lv_image_set_src(backImg, LV_SYMBOL_LEFT);
+    lv_image_set_src(backImg, &img_back);
     lv_obj_set_style_text_color(backImg, lv_color_white(), 0);
     lv_obj_align(backImg, LV_ALIGN_CENTER, 0, 0);
     lv_obj_add_event_cb(backButton, BackHandler, LV_EVENT_CLICKED, inputStringValue);
 
     lv_obj_t *label = lv_label_create(bg);
     lv_label_set_text(label, title);
-    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 48);
+    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, 32);
 
-    lv_obj_t *ta = lv_textarea_create(pad);
+    lv_obj_t *ta = lv_textarea_create(bg);
     lv_obj_set_size(ta, 288, 40);
-    lv_obj_align(ta, LV_ALIGN_TOP_MID, 0, 10);
+    lv_obj_align(ta, LV_ALIGN_BOTTOM_MID, 0, -170);
     lv_obj_set_style_pad_all(ta, 8, 0);
     lv_obj_set_style_text_color(lv_textarea_get_label(ta), lv_color_black(), 0);
     lv_textarea_set_one_line(ta, true);
@@ -62,7 +58,7 @@ lv_obj_t *CreateInputString(lv_obj_t *parent,
     lv_textarea_set_text(ta, value == NULL ? "" : value);
     inputStringValue->ta = ta;
 
-    lv_obj_t *keyboard = lv_keyboard_create(pad);
+    lv_obj_t *keyboard = lv_keyboard_create(bg);
     lv_obj_set_size(keyboard, lv_display_get_horizontal_resolution(NULL), 160);
     lv_obj_align(keyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_remove_flag(keyboard, LV_OBJ_FLAG_CLICK_FOCUSABLE);
@@ -72,7 +68,6 @@ lv_obj_t *CreateInputString(lv_obj_t *parent,
     lv_obj_add_event_cb(keyboard, InputStringKeyboardEventHandler, LV_EVENT_CANCEL, inputStringValue);
 
     lv_obj_add_event_cb(bg, KeepTaFocusEventHandler, LV_EVENT_CLICKED, inputStringValue);
-    lv_obj_add_event_cb(pad, KeepTaFocusEventHandler, LV_EVENT_CLICKED, inputStringValue);
     FocusTextarea(inputStringValue);
 
     return bg;
