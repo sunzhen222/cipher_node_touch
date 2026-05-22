@@ -15,6 +15,8 @@
 #include "lora.h"
 
 typedef struct {
+    lv_obj_t *avatarPreview;
+    lv_obj_t *avatarPreviewLabel;
     lv_obj_t *avatarColorDropdown;
     lv_obj_t *usernameInput;
     lv_obj_t *secretKeyInput;
@@ -52,6 +54,7 @@ static uint32_t GetSelectedAvatarColorValue(const lv_obj_t *dropdown);
 static uint32_t GetSfSelectedIndex(uint32_t sfValue);
 static uint32_t GetBwSelectedIndex(uint32_t bwValue);
 static uint32_t GetAvatarColorSelectedIndex(uint32_t colorValue);
+static void UpdateAvatarPreview(void);
 static void UpdateUnsavedState(void);
 
 static const char *g_avatarColorDropdownOptions = "Green\nBlue\nRed\nOrange\nPurple";
@@ -81,6 +84,9 @@ Page_t g_chatSettingsPage = {
 static void ChatSettingsPageInit(void)
 {
     char string[32];
+    const lv_coord_t rowGapY = 44;
+    const lv_coord_t inputYOffset = -6;
+    lv_coord_t y = 56;
 
     NavigationBar_t navigationBar = {
         .leftImgSrc = &img_back,
@@ -103,87 +109,106 @@ static void ChatSettingsPageInit(void)
     lv_obj_add_event_cb(button, SaveBtnEventHandler, LV_EVENT_CLICKED, NULL);
 
     label = lv_label_create(GetPageBackground());
+    lv_label_set_text(label, "Avatar Preview");
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
+    values->avatarPreview = lv_obj_create(GetPageBackground());
+    lv_obj_set_size(values->avatarPreview, 40, 40);
+    lv_obj_set_style_radius(values->avatarPreview, 5, 0);
+    lv_obj_set_style_border_width(values->avatarPreview, 0, 0);
+    lv_obj_align(values->avatarPreview, LV_ALIGN_TOP_RIGHT, -72, y + inputYOffset);
+    values->avatarPreviewLabel = lv_label_create(values->avatarPreview);
+    lv_obj_set_style_text_color(values->avatarPreviewLabel, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_center(values->avatarPreviewLabel);
+
+    y += rowGapY + 10;
+    label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "Avatar Color");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 56);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
     values->avatarColorDropdown = lv_dropdown_create(GetPageBackground());
     lv_obj_set_size(values->avatarColorDropdown, 120, 32);
-    lv_obj_align(values->avatarColorDropdown, LV_ALIGN_TOP_RIGHT, -32, 50);
+    lv_obj_align(values->avatarColorDropdown, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     lv_dropdown_set_options(values->avatarColorDropdown, g_avatarColorDropdownOptions);
     lv_dropdown_set_selected(values->avatarColorDropdown, GetAvatarColorSelectedIndex(DeviceSettingsGetLoraChatAvatarColor()));
     lv_obj_add_event_cb(values->avatarColorDropdown, AvatarColorDropdownEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
+    y += rowGapY;
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "Username");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 100);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
     values->usernameInput = lv_textarea_create(GetPageBackground());
     lv_textarea_set_one_line(values->usernameInput, true);
     lv_textarea_set_max_length(values->usernameInput, 31);
     lv_obj_set_style_pad_all(values->usernameInput, 8, 0);
     lv_obj_set_style_text_color(lv_textarea_get_label(values->usernameInput), lv_color_black(), 0);
     lv_obj_set_size(values->usernameInput, 120, 32);
-    lv_obj_align(values->usernameInput, LV_ALIGN_TOP_RIGHT, -32, 94);
+    lv_obj_align(values->usernameInput, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     lv_textarea_set_text(values->usernameInput, DeviceSettingsGetLoraChatUsername());
     lv_obj_add_event_cb(values->usernameInput, UsernameInputEventHandler, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(values->usernameInput, UsernameInputEventHandler, LV_EVENT_FOCUSED, NULL);
     lv_obj_add_event_cb(values->usernameInput, UsernameInputEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
+    y += rowGapY;
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "LoRa Secret Key");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 144);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
     values->secretKeyInput = lv_textarea_create(GetPageBackground());
     lv_textarea_set_one_line(values->secretKeyInput, true);
     lv_textarea_set_max_length(values->secretKeyInput, 95);
     lv_obj_set_style_pad_all(values->secretKeyInput, 8, 0);
     lv_obj_set_style_text_color(lv_textarea_get_label(values->secretKeyInput), lv_color_black(), 0);
     lv_obj_set_size(values->secretKeyInput, 120, 32);
-    lv_obj_align(values->secretKeyInput, LV_ALIGN_TOP_RIGHT, -32, 138);
+    lv_obj_align(values->secretKeyInput, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     lv_textarea_set_text(values->secretKeyInput, DeviceSettingsGetLoraSecretKey());
     lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_CLICKED, NULL);
     lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_FOCUSED, NULL);
     lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
+    y += rowGapY;
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "Frequency");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 188);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
     values->frequencyInput = lv_textarea_create(GetPageBackground());
     lv_textarea_set_one_line(values->frequencyInput, true);
     lv_obj_set_style_pad_all(values->frequencyInput, 8, 0);
     lv_obj_set_style_text_color(lv_textarea_get_label(values->frequencyInput), lv_color_black(), 0);
     lv_obj_set_size(values->frequencyInput, 120, 32);
-    lv_obj_align(values->frequencyInput, LV_ALIGN_TOP_RIGHT, -32, 182);
+    lv_obj_align(values->frequencyInput, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     snprintf(string, sizeof(string), "%lu", DeviceSettingsGetLoraFreq());
     lv_textarea_set_text(values->frequencyInput, string);
     lv_obj_add_event_cb(values->frequencyInput, FrequencyInputEventHandler, LV_EVENT_CLICKED, NULL);
 
+    y += rowGapY;
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "LoRa Net ID");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 232);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
     values->netIdInput = lv_textarea_create(GetPageBackground());
     lv_textarea_set_one_line(values->netIdInput, true);
     lv_obj_set_style_pad_all(values->netIdInput, 8, 0);
     lv_obj_set_style_text_color(lv_textarea_get_label(values->netIdInput), lv_color_black(), 0);
     lv_obj_set_size(values->netIdInput, 120, 32);
-    lv_obj_align(values->netIdInput, LV_ALIGN_TOP_RIGHT, -32, 226);
+    lv_obj_align(values->netIdInput, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     snprintf(string, sizeof(string), "%lu", DeviceSettingsGetLoraNetId());
     lv_textarea_set_text(values->netIdInput, string);
     lv_obj_add_event_cb(values->netIdInput, NetIdInputEventHandler, LV_EVENT_CLICKED, NULL);
 
+    y += rowGapY;
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "Spreading Factor");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 276);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
     values->sfDropdown = lv_dropdown_create(GetPageBackground());
     lv_obj_set_size(values->sfDropdown, 120, 32);
-    lv_obj_align(values->sfDropdown, LV_ALIGN_TOP_RIGHT, -32, 270);
+    lv_obj_align(values->sfDropdown, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     lv_dropdown_set_options(values->sfDropdown, g_sfDropdownOptions);
     lv_dropdown_set_selected(values->sfDropdown, GetSfSelectedIndex(DeviceSettingsGetLoraSpreadingFactor()));
     lv_obj_add_event_cb(values->sfDropdown, SfDropdownEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
+    y += rowGapY;
     label = lv_label_create(GetPageBackground());
     lv_label_set_text(label, "Bandwidth");
-    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, 320);
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
     values->bwDropdown = lv_dropdown_create(GetPageBackground());
     lv_obj_set_size(values->bwDropdown, 120, 32);
-    lv_obj_align(values->bwDropdown, LV_ALIGN_TOP_RIGHT, -32, 314);
+    lv_obj_align(values->bwDropdown, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     lv_dropdown_set_options(values->bwDropdown, g_bwDropdownOptions);
     lv_dropdown_set_selected(values->bwDropdown, GetBwSelectedIndex(DeviceSettingsGetLoraBandwidth()));
     lv_obj_add_event_cb(values->bwDropdown, BwDropdownEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
@@ -198,6 +223,7 @@ static void ChatSettingsPageInit(void)
     lv_label_set_text(values->unsavedLabel, "* Unsaved");
     lv_obj_align(values->unsavedLabel, LV_ALIGN_TOP_MID, 0, 8);
 
+    UpdateAvatarPreview();
     SetUnsavedState(false);
 }
 
@@ -331,6 +357,7 @@ static void NetIdInputNumberHandler(uint32_t input)
 static void AvatarColorDropdownEventHandler(lv_event_t *e)
 {
     UNUSED(e);
+    UpdateAvatarPreview();
     UpdateUnsavedState();
 }
 
@@ -343,6 +370,7 @@ static void UsernameInputEventHandler(lv_event_t *e)
         lv_keyboard_set_textarea(values->usernameKeyboard, values->usernameInput);
         lv_obj_remove_flag(values->usernameKeyboard, LV_OBJ_FLAG_HIDDEN);
     } else if (code == LV_EVENT_VALUE_CHANGED) {
+        UpdateAvatarPreview();
         UpdateUnsavedState();
     }
 }
@@ -446,6 +474,19 @@ static uint32_t GetAvatarColorSelectedIndex(uint32_t colorValue)
     }
 
     return 0;
+}
+
+static void UpdateAvatarPreview(void)
+{
+    char avatarText[2];
+    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    const char *username = lv_textarea_get_text(values->usernameInput);
+    uint32_t avatarColor = GetSelectedAvatarColorValue(values->avatarColorDropdown);
+
+    avatarText[0] = (username[0] != '\0') ? username[0] : '?';
+    avatarText[1] = '\0';
+    lv_obj_set_style_bg_color(values->avatarPreview, lv_color_hex(avatarColor), 0);
+    lv_label_set_text(values->avatarPreviewLabel, avatarText);
 }
 
 static void UpdateUnsavedState(void)
