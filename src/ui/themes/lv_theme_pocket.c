@@ -215,6 +215,7 @@ static void style_init(my_theme_t * theme)
 #if LV_USE_ARC
     style_init_reset(&theme->styles.arc_line);
     lv_style_set_arc_width(&theme->styles.arc_line, 6);
+    lv_style_set_arc_rounded(&theme->styles.arc_line, true);
     style_init_reset(&theme->styles.arc_knob);
     lv_style_set_pad_all(&theme->styles.arc_knob, 5);
 #endif
