@@ -172,13 +172,6 @@ static void LoraChatLayout(void)
     values->keyboard = lv_keyboard_create(GetPageBackground());
     lv_obj_set_size(values->keyboard, lv_display_get_horizontal_resolution(NULL), KEYBOARD_HEIGHT);
     lv_obj_align(values->keyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
-    lv_obj_set_style_bg_color(values->keyboard, lv_color_hex(0xF2F2F2), LV_PART_ITEMS);
-    lv_obj_set_style_text_color(values->keyboard, lv_color_hex(0x202020), LV_PART_ITEMS);
-    lv_obj_set_style_border_width(values->keyboard, 0, LV_PART_ITEMS);
-    lv_obj_set_style_bg_color(values->keyboard, lv_color_hex(0xCFCFCF), LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_text_color(values->keyboard, lv_color_hex(0x000000), LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_border_width(values->keyboard, 1, LV_PART_ITEMS | LV_STATE_PRESSED);
-    lv_obj_set_style_border_color(values->keyboard, lv_color_hex(0x8A8A8A), LV_PART_ITEMS | LV_STATE_PRESSED);
     lv_obj_add_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_event_cb(values->keyboard, InputKeyboardEventHandler, LV_EVENT_ALL, values);
 }

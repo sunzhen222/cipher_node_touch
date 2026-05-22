@@ -63,7 +63,7 @@ lv_obj_t *CreateInputString(lv_obj_t *parent,
     inputStringValue->ta = ta;
 
     lv_obj_t *keyboard = lv_keyboard_create(pad);
-    lv_obj_set_size(keyboard, 320, 250);
+    lv_obj_set_size(keyboard, lv_display_get_horizontal_resolution(NULL), 160);
     lv_obj_align(keyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
     lv_obj_remove_flag(keyboard, LV_OBJ_FLAG_CLICK_FOCUSABLE);
     lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_TEXT_LOWER);

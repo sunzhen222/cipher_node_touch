@@ -14,6 +14,7 @@
 #include "input_string.h"
 #include "confirm_win.h"
 #include "string.h"
+#include "loading_spinner.h"
 
 typedef struct {
     char ssid[32];
@@ -30,6 +31,7 @@ typedef struct {
     lv_obj_t *refreshBtn;
     lv_obj_t *refreshImage;
     lv_obj_t *listObj;
+    lv_obj_t *loadingSpinner;
     char pendingSsid[32];
     bool connecting;
     WifiConnectInfo_t connectInfo;
@@ -143,8 +145,10 @@ static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
         }
         break;
     case UI_MSG_CODE_WIFI_CONNECT_RESULT:
-        StopRefreshRotationAnim(values->refreshImage);
-        lv_obj_remove_state(values->refreshBtn, LV_STATE_DISABLED);
+        if (values->loadingSpinner) {
+            DeleteLoadingSpinner(values->loadingSpinner);
+            values->loadingSpinner = NULL;
+        }
         values->connecting = false;
         if (dataLen == sizeof(bool) && data != NULL) {
             bool connectOk = *((bool *)data);
@@ -318,8 +322,7 @@ static void WifiPasswordInputHandler(const char *password)
     }
 
     values->connecting = true;
-    lv_obj_add_state(values->refreshBtn, LV_STATE_DISABLED);
-    StartRefreshRotationAnim(values->refreshImage);
+    values->loadingSpinner = CreateLoadingSpinner(GetPageBackground(), 1000000);
     AsyncExecute(AsyncWifiConnect, &request, sizeof(request), 0);
 }
 
