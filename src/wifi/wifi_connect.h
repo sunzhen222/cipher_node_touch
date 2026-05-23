@@ -17,5 +17,7 @@ typedef struct {
 bool ConnectWifi(const char *ssid, const char *password);
 bool GetWifiConnectInfo(WifiConnectInfo_t *info);
 bool GetWifiRssi(int8_t *rssi);
+bool SetWifiAutoConnect(bool enable);
+bool DisconnectWifi(void);
 
 #endif

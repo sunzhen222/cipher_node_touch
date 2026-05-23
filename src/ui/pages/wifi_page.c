@@ -52,6 +52,10 @@ static void WifiConnectStatusDisplay(void);
 static void WifiListItemClickHandler(lv_event_t *e);
 static void WifiPasswordInputHandler(const char *password);
 static int32_t AsyncWifiConnect(const void *inData, uint32_t inDataLen);
+static int32_t AsyncWifiDisconnect(const void *inData, uint32_t inDataLen);
+static void ConnectedButtonClickHandler(lv_event_t *e);
+static void DisconnectConfirmOkHandler(lv_event_t *e);
+static void DisconnectConfirmCancelHandler(lv_event_t *e);
 static void ConnectedLayout(bool connected);
 
 Page_t g_wifiPage = {
@@ -78,6 +82,7 @@ static void WifiPageInit(void)
     lv_obj_align(values->connectedButton, LV_ALIGN_TOP_MID, 0, 57);
     lv_obj_set_layout(values->connectedButton, LV_LAYOUT_NONE);
     lv_obj_set_style_radius(values->connectedButton, 12, 0);
+    lv_obj_add_event_cb(values->connectedButton, ConnectedButtonClickHandler, LV_EVENT_CLICKED, NULL);
     values->connectedSignalImg = lv_image_create(values->connectedButton);
     lv_obj_align(values->connectedSignalImg, LV_ALIGN_LEFT_MID, 12, 0);
     values->connectedSsidLabel = lv_label_create(values->connectedButton);
@@ -160,6 +165,29 @@ static void WifiPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
             } else {
                 ConfirmWin_t confirmWin = {0};
                 confirmWin.text = "Wi-Fi connect failed";
+                CreateConfirmWin(GetPageBackground(), &confirmWin);
+            }
+        }
+        break;
+    case UI_MSG_CODE_WIFI_DISCONNECT_RESULT:
+        if (values->loadingSpinner) {
+            DeleteLoadingSpinner(values->loadingSpinner);
+            values->loadingSpinner = NULL;
+        }
+        values->connecting = false;
+        if (dataLen == sizeof(bool) && data != NULL) {
+            bool disconnectOk = *((bool *)data);
+            if (disconnectOk) {
+                memset(&values->connectInfo, 0, sizeof(values->connectInfo));
+                ConnectedLayout(false);
+
+                UiMsgWifiStatus_t wifiStatus = {0};
+                wifiStatus.connected = false;
+                wifiStatus.rssi = -127;
+                SendUiMsg(UI_MSG_CODE_WIFI, &wifiStatus, sizeof(wifiStatus));
+            } else {
+                ConfirmWin_t confirmWin = {0};
+                confirmWin.text = "Wi-Fi disconnect failed";
                 CreateConfirmWin(GetPageBackground(), &confirmWin);
             }
         }
@@ -335,10 +363,77 @@ static int32_t AsyncWifiConnect(const void *inData, uint32_t inDataLen)
     if (inData != NULL && inDataLen == sizeof(WifiConnectRequest_t)) {
         const WifiConnectRequest_t *request = (const WifiConnectRequest_t *)inData;
         connectOk = ConnectWifi(request->ssid, request->password);
+        if (connectOk) {
+            if (!SetWifiAutoConnect(true)) {
+                printf("set wifi auto connect failed\n");
+            }
+        }
     }
 
     SendUiMsg(UI_MSG_CODE_WIFI_CONNECT_RESULT, &connectOk, sizeof(connectOk));
     return 0;
+}
+
+static int32_t AsyncWifiDisconnect(const void *inData, uint32_t inDataLen)
+{
+    UNUSED(inData);
+    UNUSED(inDataLen);
+
+    bool disconnectOk = false;
+
+    if (DisconnectWifi()) {
+        disconnectOk = SetWifiAutoConnect(false);
+    }
+
+    SendUiMsg(UI_MSG_CODE_WIFI_DISCONNECT_RESULT, &disconnectOk, sizeof(disconnectOk));
+    return 0;
+}
+
+static void ConnectedButtonClickHandler(lv_event_t *e)
+{
+    UNUSED(e);
+
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    ASSERT(values != NULL);
+
+    if (values->connecting || !values->connectInfo.connected) {
+        return;
+    }
+
+    ConfirmWin_t confirmWin = {0};
+    confirmWin.text = "Disconnect current Wi-Fi?";
+    confirmWin.OkHandler = DisconnectConfirmOkHandler;
+    confirmWin.CancelHandler = DisconnectConfirmCancelHandler;
+    CreateConfirmWin(GetPageBackground(), &confirmWin);
+}
+
+static void DisconnectConfirmOkHandler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    WifiPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    lv_obj_t *bg = lv_event_get_user_data(e);
+
+    if (code != LV_EVENT_CLICKED || values == NULL || values->connecting) {
+        return;
+    }
+
+    if (bg != NULL) {
+        lv_obj_del(bg);
+    }
+
+    values->connecting = true;
+    values->loadingSpinner = CreateLoadingSpinner(GetPageBackground(), 1000000);
+    AsyncExecute(AsyncWifiDisconnect, NULL, 0, 0);
+}
+
+static void DisconnectConfirmCancelHandler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    lv_obj_t *bg = lv_event_get_user_data(e);
+
+    if (code == LV_EVENT_CLICKED && bg != NULL) {
+        lv_obj_del(bg);
+    }
 }
 
 static void WifiConnectStatusDisplay(void)
