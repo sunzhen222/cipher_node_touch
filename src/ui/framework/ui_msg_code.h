@@ -1,6 +1,14 @@
 #ifndef _UI_MSG_CODE_H
 #define _UI_MSG_CODE_H
 
+#include "stdint.h"
+#include "stdbool.h"
+
+typedef struct {
+    bool connected;
+    int8_t rssi;
+} UiMsgWifiStatus_t;
+
 
 enum {
     UI_MSG_CODE_BATTERY_PERCENT = 0,

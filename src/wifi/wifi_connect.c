@@ -54,6 +54,8 @@ bool ConnectWifi(const char *ssid, const char *password)
     ASSERT(ssid != NULL);
     ASSERT(password != NULL);
 
+    bool connectOk = false;
+
     if (ssid[0] == '\0') {
         return false;
     }
@@ -61,6 +63,7 @@ bool ConnectWifi(const char *ssid, const char *password)
     char command[AT_COMMAND_MAX_LENGTH];
     snprintf(command, sizeof(command), "AT+WJAP=%s,%s", ssid, password);
 
+    AtCommandLock();
     ClearReceivedAtCommand();
     SendAtCommand(command);
 
@@ -83,31 +86,39 @@ bool ConnectWifi(const char *ssid, const char *password)
         }
 
         if (strcmp(trimmed, "+EVENT:WIFI_GOT_IP") == 0) {
-            return true;
+            connectOk = true;
+            goto unlock_and_exit;
         }
 
         if (strncmp(trimmed, "+WJAP:", 6) == 0) {
             int joinStatus = atoi(trimmed + 6);
             if (joinStatus != 0) {
-                return false;
+                connectOk = false;
+                goto unlock_and_exit;
             }
             continue;
         }
 
         if (strcmp(trimmed, "ERROR") == 0) {
-            return false;
+            connectOk = false;
+            goto unlock_and_exit;
         }
     }
 
-    return false;
+unlock_and_exit:
+    AtCommandUnlock();
+    return connectOk;
 }
 
 bool GetWifiConnectInfo(WifiConnectInfo_t *info)
 {
     ASSERT(info != NULL);
 
+    bool connected = false;
+
     memset(info, 0, sizeof(WifiConnectInfo_t));
 
+    AtCommandLock();
     ClearReceivedAtCommand();
     SendAtCommand("AT+STAINFO?");
 
@@ -135,12 +146,14 @@ bool GetWifiConnectInfo(WifiConnectInfo_t *info)
                 info->security = security;
             }
             info->connected = (gotStatus && status == 3);
-            return info->connected;
+            connected = info->connected;
+            goto unlock_and_exit;
         }
 
         if (strcmp(trimmed, "ERROR") == 0) {
             info->connected = false;
-            return info->connected;
+            connected = false;
+            goto unlock_and_exit;
         }
 
         if (strncmp(trimmed, "+STAINFO:", 9) == 0) {
@@ -177,19 +190,24 @@ bool GetWifiConnectInfo(WifiConnectInfo_t *info)
         info->security = security;
     }
     info->connected = (gotStatus && status == 3);
-    return info->connected;
+    connected = info->connected;
+
+unlock_and_exit:
+    AtCommandUnlock();
+    return connected;
 }
 
 bool GetWifiRssi(int8_t *rssi)
 {
     ASSERT(rssi != NULL);
 
-    ClearReceivedAtCommand();
-    SendAtCommand("AT+WRSSI");
-
     bool gotRssi = false;
     int8_t parsedRssi = 0;
     char received[AT_COMMAND_MAX_LENGTH];
+
+    AtCommandLock();
+    ClearReceivedAtCommand();
+    SendAtCommand("AT+WRSSI");
 
     while (GetReceivedAtCommand(received, 5000)) {
         char trimmed[AT_COMMAND_MAX_LENGTH];
@@ -205,11 +223,12 @@ bool GetWifiRssi(int8_t *rssi)
             if (gotRssi) {
                 *rssi = parsedRssi;
             }
-            return gotRssi;
+            goto unlock_and_exit;
         }
 
         if (strcmp(trimmed, "ERROR") == 0) {
-            return false;
+            gotRssi = false;
+            goto unlock_and_exit;
         }
 
         if (strncmp(trimmed, "+WRSSI", 6) == 0) {
@@ -224,6 +243,9 @@ bool GetWifiRssi(int8_t *rssi)
     if (gotRssi) {
         *rssi = parsedRssi;
     }
+
+unlock_and_exit:
+    AtCommandUnlock();
     return gotRssi;
 }
 

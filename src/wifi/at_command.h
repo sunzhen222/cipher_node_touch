@@ -9,6 +9,8 @@
 
 void AtCommandInit(void);
 void AtCommandByteReceived(uint8_t byte);
+void AtCommandLock(void);
+void AtCommandUnlock(void);
 void ClearReceivedAtCommand(void);
 bool GetReceivedAtCommand(char *buffer, uint32_t timeout);
 void ProcessAtCommand(void);

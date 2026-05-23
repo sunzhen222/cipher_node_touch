@@ -10,10 +10,13 @@
 
 static uint8_t g_atCommandRingRawBuffer[AT_COMMAND_RING_SIZE];
 static RingBuffer_t g_atCommandRingBuffer;
+static osMutexId_t g_atCommandMutex;
 
 void AtCommandInit(void)
 {
     RingBufferInit(&g_atCommandRingBuffer, g_atCommandRingRawBuffer, sizeof(g_atCommandRingRawBuffer));
+    g_atCommandMutex = osMutexNew(NULL);
+    ASSERT(g_atCommandMutex != NULL);
 }
 
 void AtCommandByteReceived(uint8_t byte)
@@ -21,6 +24,24 @@ void AtCommandByteReceived(uint8_t byte)
     __disable_irq();
     RingBufferWrite(&g_atCommandRingBuffer, &byte, 1);
     __enable_irq();
+}
+
+void AtCommandLock(void)
+{
+    osStatus_t status;
+
+    ASSERT(g_atCommandMutex != NULL);
+    status = osMutexAcquire(g_atCommandMutex, osWaitForever);
+    ASSERT(status == osOK);
+}
+
+void AtCommandUnlock(void)
+{
+    osStatus_t status;
+
+    ASSERT(g_atCommandMutex != NULL);
+    status = osMutexRelease(g_atCommandMutex);
+    ASSERT(status == osOK);
 }
 
 void ClearReceivedAtCommand(void)

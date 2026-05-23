@@ -11,6 +11,7 @@
 #include "sht30_app.h"
 #include "at_command.h"
 #include "drv_power_switch.h"
+#include "wifi_connect.h"
 
 typedef struct {
     BackgroundAsyncFunc_t func;
@@ -73,7 +74,9 @@ static void BackgroundTask(void *argument)
     printf("device started\n");
     PowerSwitchSetSource(POWER_SOURCE_WIFI, true);
     osDelay(2000);
+    AtCommandLock();
     SendAtCommand("ATE0");
+    AtCommandUnlock();
     while (1) {
         ret = osMessageQueueGet(g_backgroundQueue, &rcvMsg, NULL, 10000);
         if (ret != osOK) {
@@ -82,9 +85,26 @@ static void BackgroundTask(void *argument)
         switch (rcvMsg.id) {
         case BACKGROUND_MSG_SECOND: {
             static uint32_t tempHumTick = 0;
+            static uint32_t wifiTick = 0;
             tempHumTick++;
+            wifiTick++;
             if (tempHumTick % 2 == 0) {
                 Sht30AppRefresh(false);
+            }
+            if (wifiTick % 10 == 0) {
+                UiMsgWifiStatus_t wifiStatus = {0};
+                WifiConnectInfo_t info = {0};
+
+                if (GetWifiConnectInfo(&info) && info.connected) {
+                    wifiStatus.connected = true;
+                    if (!GetWifiRssi(&wifiStatus.rssi)) {
+                        wifiStatus.rssi = -127;
+                    }
+                } else {
+                    wifiStatus.connected = false;
+                    wifiStatus.rssi = -127;
+                }
+                SendUiMsg(UI_MSG_CODE_WIFI, &wifiStatus, sizeof(wifiStatus));
             }
         }
         break;

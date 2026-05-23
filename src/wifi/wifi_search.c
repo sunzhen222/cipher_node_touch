@@ -129,14 +129,15 @@ static bool ParseScanLine(const char *line, WifiItem_t *item)
 uint32_t SearchWifi(WifiItem_t *wifiListHead)
 {
     ASSERT(wifiListHead != NULL);
+    uint32_t count = 0;
 
     FreeWifiList(wifiListHead);
     memset(wifiListHead, 0, sizeof(WifiItem_t));
 
+    AtCommandLock();
     ClearReceivedAtCommand();
     SendAtCommand("AT+WSCAN");
 
-    uint32_t count = 0;
     char received[AT_COMMAND_MAX_LENGTH];
     bool headFilled = false;
     WifiItem_t *tail = wifiListHead;
@@ -171,6 +172,7 @@ uint32_t SearchWifi(WifiItem_t *wifiListHead)
         }
     }
 
+    AtCommandUnlock();
     return count;
 }
 

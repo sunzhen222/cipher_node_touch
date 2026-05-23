@@ -11,6 +11,7 @@
 #include "sht30_app.h"
 
 static void BatteryPadTimerFunc(lv_timer_t *timer);
+static const lv_image_dsc_t *GetWifiSignalImageByRssi(int8_t rssi);
 
 static lv_obj_t *g_statusBar;
 static lv_obj_t *g_batteryImage;
@@ -56,6 +57,7 @@ void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen)
     uint32_t percent;
     BatteryStatus batteryStatus;
     Sht30Data_t sht30Data;
+    UiMsgWifiStatus_t wifiStatus;
 
     switch (code) {
     case UI_MSG_CODE_BATTERY_PERCENT:
@@ -100,9 +102,33 @@ void HandleStatusBarMsg(uint32_t code, void *data, uint32_t dataLen)
                               sht30Data.humidityRhx10 / 10,
                               sht30Data.humidityRhx10 % 10);
         break;
+    case UI_MSG_CODE_WIFI:
+        ASSERT(data != NULL);
+        ASSERT(dataLen == sizeof(wifiStatus));
+        wifiStatus = *(UiMsgWifiStatus_t *)data;
+        if (!wifiStatus.connected) {
+            lv_image_set_src(g_wifiImage, &img_wifi_disabled);
+        } else {
+            lv_image_set_src(g_wifiImage, GetWifiSignalImageByRssi(wifiStatus.rssi));
+        }
+        break;
     default:
         break;
     }
+}
+
+static const lv_image_dsc_t *GetWifiSignalImageByRssi(int8_t rssi)
+{
+    if (rssi >= -50) {
+        return &img_wifi_signal;
+    }
+    if (rssi >= -70) {
+        return &img_wifi_signal_weak3;
+    }
+    if (rssi >= -90) {
+        return &img_wifi_signal_weak2;
+    }
+    return &img_wifi_signal_weak1;
 }
 
 static void BatteryPadTimerFunc(lv_timer_t *timer)
