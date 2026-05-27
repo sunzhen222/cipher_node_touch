@@ -3611,11 +3611,6 @@
               <FilePath>..\\third\lvgl\src\others\translation\lv_translation.c</FilePath>
             </File>
             <File>
-              <FileName>vg_lite_matrix.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\\third\lvgl\src\others\vg_lite_tvg\vg_lite_matrix.c</FilePath>
-            </File>
-            <File>
               <FileName>lv_xml.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\\third\lvgl\src\others\xml\lv_xml.c</FilePath>
