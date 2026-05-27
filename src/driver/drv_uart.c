@@ -110,6 +110,36 @@ int _write(int fd, char *pBuffer, int size)
     return size;
 }
 
+#if defined(__CC_ARM)
+struct __FILE {
+    int handle;
+};
+
+FILE __stdout;
+FILE __stdin;
+
+int fputc(int ch, FILE *f)
+{
+    UNUSED(f);
+    uint8_t data = (uint8_t)ch;
+    HAL_UART_Transmit(&huart1, &data, 1, 1000);
+    return ch;
+}
+
+int fgetc(FILE *f)
+{
+    UNUSED(f);
+    return -1;
+}
+
+void _sys_exit(int x)
+{
+    UNUSED(x);
+    while (1) {
+    }
+}
+#endif
+
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2) {

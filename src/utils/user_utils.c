@@ -4,6 +4,17 @@
 #include "cJSON.h"
 #include "user_memory.h"
 
+#if defined(__CC_ARM) && (__ARMCC_VERSION < 6000000)
+size_t strnlen(const char *s, size_t maxlen)
+{
+    size_t len = 0;
+    while (len < maxlen && s[len] != '\0') {
+        len++;
+    }
+    return len;
+}
+#endif
+
 void PrintArray(const char *name, const void *data, uint16_t length)
 {
     printf("%s,length=%d\n", name, length);
