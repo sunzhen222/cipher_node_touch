@@ -80,13 +80,14 @@ static void LoraChatPageDeinit(void)
 
 static void LoraChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
 {
+    ChatItem_t *item;
     switch (code) {
     case UI_MSG_CODE_LORA_CHAT_ITEM:
         if (dataLen != sizeof(ChatItem_t *)) {
             printf("LoraChatPageMsgHandler: invalid dataLen\n");
             break;
         }
-        ChatItem_t *item = *(ChatItem_t **)data;
+        item = *(ChatItem_t **)data;
         AddNewLoraChatLayout(item);
         break;
     default:
