@@ -1,5 +1,5 @@
 ---
-name: embeded
+name: embedded
 description: 本工程嵌入式开发专用技能。适用于编译、烧录、调试、代码格式化、驱动开发、RTOS任务、UI开发等嵌入式相关任务。关键词：STM32、FreeRTOS、LVGL、CMake、Ninja、arm-none-eabi、build.bat、OTA。
 applyTo: "**"
 ---
