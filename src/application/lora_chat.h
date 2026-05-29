@@ -5,20 +5,20 @@
 #include "stdint.h"
 #include "stdbool.h"
 
-typedef struct ChatItem_t {
+typedef struct LoraChatItem_t {
     char name[16];
     char *text;
     uint8_t rssi;
     bool self;
     uint32_t headColor;
-    struct ChatItem_t *next;
-} ChatItem_t;
+    struct LoraChatItem_t *next;
+} LoraChatItem_t;
 
 void LoraChatInit(void);
 void ClearChatItems(void);
-ChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor);
+LoraChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor);
 void StartGetChatItem(void);
-ChatItem_t *GetNextChatItem(void);
+LoraChatItem_t *GetNextChatItem(void);
 
 void TestLoraChat(void);
 

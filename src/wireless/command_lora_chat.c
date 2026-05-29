@@ -91,7 +91,7 @@ void CommandLoraChat(FrameHead_t *head, const uint8_t *tlvData)
     CopyTlvBytes(avatarColorTlv, avatarColor, sizeof(avatarColor));
     color = ((uint32_t)avatarColor[0] << 16) | ((uint32_t)avatarColor[1] << 8) | avatarColor[2];
 
-    ChatItem_t *newItem = AddChatItem(username, text, 0, false, color);
+    LoraChatItem_t *newItem = AddChatItem(username, text, 0, false, color);
     SendUiMsg(UI_MSG_CODE_LORA_CHAT_ITEM, &newItem, sizeof(newItem));
     SRAM_FREE(text);
 }

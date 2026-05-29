@@ -3,8 +3,8 @@
 #include "user_memory.h"
 
 
-static ChatItem_t *g_chatListHead = NULL;
-static ChatItem_t *g_nextGetNode = NULL;
+static LoraChatItem_t *g_chatListHead = NULL;
+static LoraChatItem_t *g_nextGetNode = NULL;
 
 
 void LoraChatInit(void)
@@ -16,9 +16,9 @@ void LoraChatInit(void)
 
 void ClearChatItems(void)
 {
-    ChatItem_t *node = g_chatListHead;
+    LoraChatItem_t *node = g_chatListHead;
     while (node != NULL) {
-        ChatItem_t *next = node->next;
+        LoraChatItem_t *next = node->next;
         SRAM_FREE(node->text);
         SRAM_FREE(node);
         node = next;
@@ -29,9 +29,9 @@ void ClearChatItems(void)
 }
 
 
-ChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor)
+LoraChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor)
 {
-    ChatItem_t *item = SRAM_MALLOC(sizeof(ChatItem_t));
+    LoraChatItem_t *item = SRAM_MALLOC(sizeof(LoraChatItem_t));
     const char *safeName = (name != NULL) ? name : "";
     const char *safeText = (text != NULL) ? text : "";
     size_t textLen = strlen(safeText);
@@ -52,7 +52,7 @@ ChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool s
         return item;
     }
 
-    ChatItem_t *tail = g_chatListHead;
+    LoraChatItem_t *tail = g_chatListHead;
     while (tail->next != NULL) {
         tail = tail->next;
     }
@@ -67,9 +67,9 @@ void StartGetChatItem(void)
 }
 
 
-ChatItem_t *GetNextChatItem(void)
+LoraChatItem_t *GetNextChatItem(void)
 {
-    ChatItem_t *ret = g_nextGetNode;
+    LoraChatItem_t *ret = g_nextGetNode;
     if (g_nextGetNode != NULL) {
         g_nextGetNode = g_nextGetNode->next;
     }

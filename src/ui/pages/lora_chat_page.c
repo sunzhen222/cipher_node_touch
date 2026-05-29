@@ -30,7 +30,7 @@ static void LoraChatPageInit(void);
 static void LoraChatPageDeinit(void);
 static void LoraChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
 static void LoraChatLayout(void);
-static void AddNewLoraChatLayout(ChatItem_t *item);
+static void AddNewLoraChatLayout(LoraChatItem_t *item);
 static void InputTaEventHandler(lv_event_t *e);
 static void InputKeyboardEventHandler(lv_event_t *e);
 static void ChatListEventHandler(lv_event_t *e);
@@ -80,14 +80,14 @@ static void LoraChatPageDeinit(void)
 
 static void LoraChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
 {
-    ChatItem_t *item;
+    LoraChatItem_t *item;
     switch (code) {
     case UI_MSG_CODE_LORA_CHAT_ITEM:
-        if (dataLen != sizeof(ChatItem_t *)) {
+        if (dataLen != sizeof(LoraChatItem_t *)) {
             printf("LoraChatPageMsgHandler: invalid dataLen\n");
             break;
         }
-        item = *(ChatItem_t **)data;
+        item = *(LoraChatItem_t **)data;
         AddNewLoraChatLayout(item);
         break;
     default:
@@ -123,7 +123,7 @@ static void LoraChatLayout(void)
     lv_obj_add_event_cb(values->chatList, ChatListEventHandler, LV_EVENT_CLICKED, values);
 
     StartGetChatItem();
-    ChatItem_t *item;
+    LoraChatItem_t *item;
     while ((item = GetNextChatItem()) != NULL) {
         AddNewLoraChatLayout(item);
     }
@@ -252,7 +252,7 @@ static void ScrollChatListToBottom(lv_obj_t *chatList)
     }
 }
 
-static void AddNewLoraChatLayout(ChatItem_t *item)
+static void AddNewLoraChatLayout(LoraChatItem_t *item)
 {
     if (item == NULL) {
         return;
@@ -350,7 +350,7 @@ static void InputSendBtnEventHandler(lv_event_t *e)
     uint32_t avatarColor = DeviceSettingsGetLoraChatAvatarColor();
 
     printf("Send clicked, text: %s\n", lv_textarea_get_text(values->inputTa));
-    ChatItem_t *newItem = AddChatItem(username, lv_textarea_get_text(values->inputTa), 0, true, avatarColor);
+    LoraChatItem_t *newItem = AddChatItem(username, lv_textarea_get_text(values->inputTa), 0, true, avatarColor);
     SendLoraChat(username, lv_textarea_get_text(values->inputTa), avatarColor);
     SendUiMsg(UI_MSG_CODE_LORA_CHAT_ITEM, &newItem, sizeof(newItem));
     lv_textarea_set_text(values->inputTa, "");
