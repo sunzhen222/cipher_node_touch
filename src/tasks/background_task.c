@@ -106,6 +106,14 @@ static void BackgroundTask(void *argument)
                 }
                 SendUiMsg(UI_MSG_CODE_WIFI, &wifiStatus, sizeof(wifiStatus));
             }
+            AtCommandLock();
+            char received[AT_COMMAND_MAX_LENGTH];
+            if (HasReceivedAtCommandData()) {
+                while (GetReceivedAtCommand(received, 100)) {
+                    printf("bg_received:%s", received);
+                }
+            }
+            AtCommandUnlock();
         }
         break;
         case BACKGROUND_MSG_REFRESH_BATTERY: {

@@ -51,6 +51,17 @@ void ClearReceivedAtCommand(void)
     __enable_irq();
 }
 
+bool HasReceivedAtCommandData(void)
+{
+    bool hasData;
+
+    __disable_irq();
+    hasData = (RingBufferGetUsedSize(&g_atCommandRingBuffer) > 0);
+    __enable_irq();
+
+    return hasData;
+}
+
 bool GetReceivedAtCommand(char *buffer, uint32_t timeout)
 {
     ASSERT(buffer != NULL);

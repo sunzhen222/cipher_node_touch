@@ -12,6 +12,7 @@ void AtCommandByteReceived(uint8_t byte);
 void AtCommandLock(void);
 void AtCommandUnlock(void);
 void ClearReceivedAtCommand(void);
+bool HasReceivedAtCommandData(void);
 bool GetReceivedAtCommand(char *buffer, uint32_t timeout);
 void ProcessAtCommand(void);
 void SendAtCommand(const char *cmd);
