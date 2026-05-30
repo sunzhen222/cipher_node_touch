@@ -32,7 +32,7 @@ applyTo: "**"
 **编译流程说明**：
 1. CMake 配置 + Ninja 构建
 2. 生成 `cipher_node_touch.bin` 后，用 `OTA_File_Maker_Console.exe` 打包为 `update.bin`
-3. 若带 `copy` 参数，将 `update.bin` 复制到 `j:/update.bin`（设备挂载盘符）
+3. 若带 `copy` 参数，自动扫描盘符容量并将 `update.bin` 复制到匹配盘（默认 750KB~800KB）
 4. 若带 `flash` 参数，且存在 `cipher_node_touch.hex`，调用 `JLink -CommanderScript "../program.jlink"` 进行烧录
 
 **前置依赖**：按工程依赖正常安装即可。
@@ -121,7 +121,7 @@ build/           # 编译输出目录（CMake/Ninja 产物）
 - 在本仓库可使用 Python + pypdf 批量提取，例如：
 
 ```powershell
-C:/Users/64676/AppData/Local/Programs/Python/Python312/python.exe -c "from pypdf import PdfReader; from pathlib import Path; p=Path('hardware/SHT3X-DIS.pdf'); r=PdfReader(str(p)); texts=[]; [texts.append(f'\n===== PAGE {i+1} =====\n'+(pg.extract_text() or '')) for i,pg in enumerate(r.pages)]; Path('test_output/SHT3X-DIS_extracted.txt').write_text(''.join(texts), encoding='utf-8')"
+python -c "from pypdf import PdfReader; from pathlib import Path; p=Path('hardware/SHT3X-DIS.pdf'); r=PdfReader(str(p)); texts=[]; [texts.append(f'\n===== PAGE {i+1} =====\n'+(pg.extract_text() or '')) for i,pg in enumerate(r.pages)]; Path('test_output/SHT3X-DIS_extracted.txt').write_text(''.join(texts), encoding='utf-8')"
 ```
 
 - 提取后优先检索关键词：`I2C address`、`command`、`single shot`、`periodic`、`reset`、`CRC`、`timing`。
@@ -188,5 +188,5 @@ C:/Users/64676/AppData/Local/Programs/Python/Python312/python.exe -c "from pypdf
 
 ## 常见问题
 
-- **`j:/update.bin` 复制失败**：确认设备已通过 USB 挂载且盘符为 `J:`
+- **`copy` 未执行复制**：脚本会按容量区间自动识别目标盘（默认 750KB~800KB）。若未找到，会提示 `No drive found ... Skip copy.`，请确认设备已通过 USB 挂载且容量落在该区间，或按需调整 `build.bat` 中的 `target_min_bytes` / `target_max_bytes`。
 - **CMake 缓存问题**：使用 `.\build.bat rebuild` 清除构建目录后重新编译
