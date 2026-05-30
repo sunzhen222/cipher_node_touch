@@ -8,13 +8,11 @@
 #include "user_memory.h"
 #include "device_settings.h"
 #include "images_declare.h"
-#include "demos/lv_demos.h"
-#include "src/themes/default/lv_theme_default.h"
 
 typedef struct {
     lv_obj_t *imageTitle;
     lv_obj_t *buttonLoraChat;
-    lv_obj_t *buttonLvglDemo;
+    lv_obj_t *buttonMqttChat;
     lv_obj_t *buttonTouchTest;
     lv_obj_t *buttonSystem;
 } HomePageValues_t;
@@ -24,9 +22,6 @@ static void HomePageInit(void);
 static void HomePageDeinit(void);
 static void HomePageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
 static void HomePageButtonEventHandler(lv_event_t *e);
-#if LV_USE_DEMO_WIDGETS
-static void SwitchToDefaultThemeForDemo(void);
-#endif
 
 Page_t g_homePage = {
     .init = HomePageInit,
@@ -52,12 +47,12 @@ static void HomePageInit(void)
     lv_label_set_text(btnLabel, "LoRa Chat");
     lv_obj_add_event_cb(values->buttonLoraChat, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
-    values->buttonLvglDemo = lv_button_create(GetPageBackground());
-    lv_obj_set_size(values->buttonLvglDemo, 100, 60);
-    lv_obj_align(values->buttonLvglDemo, LV_ALIGN_TOP_RIGHT, -45, 140);
-    lv_obj_t *lvglDemoBtnLabel = lv_label_create(values->buttonLvglDemo);
-    lv_label_set_text(lvglDemoBtnLabel, "LVGL demo");
-    lv_obj_add_event_cb(values->buttonLvglDemo, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
+    values->buttonMqttChat = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->buttonMqttChat, 100, 60);
+    lv_obj_align(values->buttonMqttChat, LV_ALIGN_TOP_RIGHT, -45, 140);
+    lv_obj_t *mqttChatBtnLabel = lv_label_create(values->buttonMqttChat);
+    lv_label_set_text(mqttChatBtnLabel, "MQTT Chat");
+    lv_obj_add_event_cb(values->buttonMqttChat, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
     values->buttonTouchTest = lv_button_create(GetPageBackground());
     lv_obj_set_size(values->buttonTouchTest, 100, 60);
@@ -102,14 +97,9 @@ static void HomePageButtonEventHandler(lv_event_t *e)
         if (btn == values->buttonLoraChat) {
             printf("LoRa Chat button pressed\n");
             EnterNewPage(&g_loraChatPage);
-        } else if (btn == values->buttonLvglDemo) {
-            printf("LVGL Demo button pressed\n");
-#if LV_USE_DEMO_WIDGETS
-            SwitchToDefaultThemeForDemo();
-            lv_demo_widgets();
-#else
-            printf("lv_demo_widgets not enabled\n");
-#endif
+        } else if (btn == values->buttonMqttChat) {
+            printf("MQTT Chat button pressed\n");
+            EnterNewPage(&g_mqttChatPage);
         } else if (btn == values->buttonTouchTest) {
             printf("Touch Test button pressed\n");
             EnterNewPage(&g_touchTestPage);
@@ -119,23 +109,3 @@ static void HomePageButtonEventHandler(lv_event_t *e)
         }
     }
 }
-
-#if LV_USE_DEMO_WIDGETS
-static void SwitchToDefaultThemeForDemo(void)
-{
-#if LV_USE_THEME_DEFAULT
-    lv_display_t *disp = lv_display_get_default();
-
-    if (disp == NULL) {
-        return;
-    }
-
-    lv_theme_t *theme = lv_theme_default_init(disp,
-                        lv_palette_main(LV_PALETTE_BLUE),
-                        lv_palette_main(LV_PALETTE_RED),
-                        LV_THEME_DEFAULT_DARK,
-                        LV_FONT_DEFAULT);
-    lv_display_set_theme(disp, theme);
-#endif
-}
-#endif
