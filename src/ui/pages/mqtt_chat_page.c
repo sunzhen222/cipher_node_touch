@@ -7,6 +7,7 @@
 #include "user_utils.h"
 #include "user_memory.h"
 #include "images_declare.h"
+#include "mqtt_chat.h"
 
 #define INPUT_BAR_HEIGHT        50
 #define KEYBOARD_HEIGHT         160
@@ -29,6 +30,7 @@ static void MqttChatLayout(void);
 static void InputTaEventHandler(lv_event_t *e);
 static void InputKeyboardEventHandler(lv_event_t *e);
 static void ChatListEventHandler(lv_event_t *e);
+static void AddNewMqttChatLayout(MqttChatItem_t *item);
 static void InputSendBtnEventHandler(lv_event_t *e);
 static void UpdateSendButtonState(MqttChatPageValues_t *values);
 static void HideInputKeyboardAndRestoreLayout(MqttChatPageValues_t *values);
@@ -110,7 +112,12 @@ static void MqttChatLayout(void)
     lv_obj_set_flex_align(values->chatList, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START, LV_FLEX_ALIGN_START);
     lv_obj_add_event_cb(values->chatList, ChatListEventHandler, LV_EVENT_PRESSED, values);
     lv_obj_add_event_cb(values->chatList, ChatListEventHandler, LV_EVENT_CLICKED, values);
-    // TODO: Add MQTT message item rendering after topic/session model is finalized.
+
+    StartGetMqttChatItem();
+    MqttChatItem_t *item;
+    while ((item = GetNextMqttChatItem()) != NULL) {
+        AddNewMqttChatLayout(item);
+    }
 
     values->inputBar = lv_obj_create(GetPageBackground());
     lv_obj_set_size(values->inputBar, lv_display_get_horizontal_resolution(NULL), INPUT_BAR_HEIGHT);
@@ -211,17 +218,114 @@ static void ChatListEventHandler(lv_event_t *e)
     }
 }
 
+static void AddNewMqttChatLayout(MqttChatItem_t *item)
+{
+    if (item == NULL) {
+        return;
+    }
+
+    MqttChatPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    if (values == NULL || values->chatList == NULL) {
+        return;
+    }
+
+    lv_coord_t maxBubbleWidth = lv_display_get_horizontal_resolution(NULL) - 57 * 2;
+    lv_coord_t maxTextWidth = maxBubbleWidth - 20;
+
+    lv_obj_t *row = lv_obj_create(values->chatList);
+    lv_obj_set_width(row, lv_pct(100));
+    lv_obj_set_height(row, LV_SIZE_CONTENT);
+    lv_obj_set_style_bg_opa(row, LV_OPA_TRANSP, 0);
+    lv_obj_set_style_border_width(row, 0, 0);
+    lv_obj_set_style_pad_all(row, 0, 0);
+    lv_obj_add_event_cb(row, ChatListEventHandler, LV_EVENT_PRESSED, values);
+    lv_obj_add_event_cb(row, ChatListEventHandler, LV_EVENT_CLICKED, values);
+
+    lv_obj_t *avatar = lv_obj_create(row);
+    lv_obj_set_size(avatar, 40, 40);
+    lv_obj_set_style_radius(avatar, 5, 0);
+    lv_obj_set_style_bg_color(avatar, lv_color_hex(item->headColor), 0);
+    lv_obj_set_style_border_width(avatar, 0, 0);
+    if (item->self) {
+        lv_obj_align(avatar, LV_ALIGN_TOP_RIGHT, -8, 8);
+    } else {
+        lv_obj_align(avatar, LV_ALIGN_TOP_LEFT, 8, 8);
+    }
+
+    char avatarText[2];
+    avatarText[0] = (item->name[0] != '\0') ? item->name[0] : '?';
+    avatarText[1] = '\0';
+    lv_obj_t *avatarLabel = lv_label_create(avatar);
+    lv_label_set_text(avatarLabel, avatarText);
+    lv_obj_set_style_text_color(avatarLabel, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_center(avatarLabel);
+
+    lv_obj_t *nameLabel = lv_label_create(row);
+    lv_label_set_text(nameLabel, item->name);
+    lv_obj_set_style_text_color(nameLabel, lv_color_hex(0x888888), 0);
+    if (item->self) {
+        lv_obj_align(nameLabel, LV_ALIGN_TOP_RIGHT, -64, 8);
+    } else {
+        lv_obj_align(nameLabel, LV_ALIGN_TOP_LEFT, 64, 8);
+    }
+
+    lv_obj_t *bubble = lv_obj_create(row);
+    lv_obj_set_width(bubble, LV_SIZE_CONTENT);
+    lv_obj_set_style_max_width(bubble, maxBubbleWidth, 0);
+    lv_obj_set_height(bubble, LV_SIZE_CONTENT);
+    lv_obj_set_style_radius(bubble, 10, 0);
+    lv_obj_set_style_border_width(bubble, 0, 0);
+    lv_obj_set_style_pad_left(bubble, 10, 0);
+    lv_obj_set_style_pad_right(bubble, 10, 0);
+    lv_obj_set_style_pad_top(bubble, 8, 0);
+    lv_obj_set_style_pad_bottom(bubble, 8, 0);
+    lv_obj_set_style_pad_row(bubble, 4, 0);
+    lv_obj_set_style_bg_color(bubble, item->self ? lv_color_hex(0x95EC69) : lv_color_hex(0xFFFFFF), 0);
+    if (item->self) {
+        lv_obj_align(bubble, LV_ALIGN_TOP_RIGHT, -57, 24);
+    } else {
+        lv_obj_align(bubble, LV_ALIGN_TOP_LEFT, 57, 24);
+    }
+
+    lv_obj_t *bubbleArrow = lv_obj_create(row);
+    lv_obj_set_size(bubbleArrow, 6, 6);
+    lv_obj_set_style_radius(bubbleArrow, 0, 0);
+    lv_obj_set_style_border_width(bubbleArrow, 0, 0);
+    lv_obj_set_style_bg_color(bubbleArrow, item->self ? lv_color_hex(0x95EC69) : lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_transform_rotation(bubbleArrow, 450, 0);
+    if (item->self) {
+        lv_obj_align(bubbleArrow, LV_ALIGN_TOP_RIGHT, -51, 36);
+    } else {
+        lv_obj_align(bubbleArrow, LV_ALIGN_TOP_LEFT, 56, 36);
+    }
+
+    lv_obj_t *textLabel = lv_label_create(bubble);
+    lv_obj_set_width(textLabel, LV_SIZE_CONTENT);
+    lv_obj_set_style_max_width(textLabel, maxTextWidth, 0);
+    lv_label_set_long_mode(textLabel, LV_LABEL_LONG_WRAP);
+    lv_label_set_text(textLabel, item->text);
+    lv_obj_set_style_text_color(textLabel, lv_color_hex(0x222222), 0);
+
+    lv_obj_update_layout(values->chatList);
+    lv_obj_scroll_to_view(row, LV_ANIM_ON);
+}
+
 static void InputSendBtnEventHandler(lv_event_t *e)
 {
     MqttChatPageValues_t *values = lv_event_get_user_data(e);
     const char *text = lv_textarea_get_text(values->inputTa);
+    const char *username = "Me";
+    uint32_t avatarColor = 0x2FB35A;
 
     if (text[0] == '\0') {
         return;
     }
 
-    // TODO: Publish text to the selected MQTT topic after MQTT session management is available.
-    printf("MQTT send TODO, text: %s\n", text);
+    MqttChatItem_t *newItem = AddMqttChatItem(username, text, true, avatarColor);
+    AddNewMqttChatLayout(newItem);
+
+    // TODO: Publish text through MQTT transport layer after session management is available.
+    printf("MQTT send TODO, text=%s\n", text);
     lv_textarea_set_text(values->inputTa, "");
     UpdateSendButtonState(values);
 }
