@@ -12,6 +12,7 @@
 #include "lv_theme_pocket.h"
 #include "drv_timer.h"
 #include "device_settings.h"
+#include "snapshot.h"
 
 #define LVGL_TICK                       5
 
@@ -54,6 +55,7 @@ static void UiTask(void *argument)
     CreateStatusBar();
     EnterNewPage(&g_homePage);
     SetLcdBackLight(0);
+    RegisterButtonSnapshot();
 
     while (1) {
         ret = osMessageQueueGet(g_uiQueue, &rcvMsg, NULL, 10);

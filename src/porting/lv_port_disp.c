@@ -34,6 +34,7 @@ static void disp_flush(lv_display_t * disp, const lv_area_t * area, uint8_t * px
 /**********************
  *  STATIC VARIABLES
  **********************/
+static lv_port_disp_flush_observer_t g_flushObserver = NULL;
 
 
 /**********************
@@ -89,12 +90,21 @@ void disp_disable_update(void)
     disp_flush_enabled = false;
 }
 
+void lv_port_disp_set_flush_observer(lv_port_disp_flush_observer_t observer)
+{
+    g_flushObserver = observer;
+}
+
 /*Flush the content of the internal buffer the specific area on the display.
  *`px_map` contains the rendered image as raw pixel map and it should be copied to `area` on the display.
  *You can use DMA or any hardware acceleration to do this operation in the background but
  *'lv_display_flush_ready()' has to be called when it's finished.*/
 static void disp_flush(lv_display_t * disp_drv, const lv_area_t * area, uint8_t * px_map)
 {
+    if (g_flushObserver != NULL) {
+        g_flushObserver(disp_drv, area, px_map);
+    }
+
     if (disp_flush_enabled) {
         //lv_draw_sw_rgb565_swap(px_map, (area->y2 - area->y1 + 1) * (area->x2 - area->x1 + 1));
         LcdDraw(area->x1, area->y1, area->x2, area->y2, (uint16_t *)px_map);

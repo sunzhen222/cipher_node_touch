@@ -29,6 +29,7 @@ extern "C" {
 /**********************
  *      TYPEDEFS
  **********************/
+typedef void (*lv_port_disp_flush_observer_t)(lv_display_t * disp, const lv_area_t * area, uint8_t * px_map);
 
 /**********************
  * GLOBAL PROTOTYPES
@@ -43,6 +44,9 @@ void disp_enable_update(void);
 /* Disable updating the screen (the flushing process) when disp_flush() is called by LVGL
  */
 void disp_disable_update(void);
+
+/* Register an optional observer called on every flush. Pass NULL to disable it. */
+void lv_port_disp_set_flush_observer(lv_port_disp_flush_observer_t observer);
 
 /**********************
  *      MACROS
