@@ -54,6 +54,50 @@ void SystemClockConfig(void)
     ASSERT(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) == HAL_OK);
 }
 
+static void PrintLastResetReason(void)
+{
+    uint32_t csr = RCC->CSR;
+    uint8_t has_reason = 0;
+
+    printf("reset csr:0x%08lX\n", csr);
+    printf("last reset reason:");
+
+    if ((csr & RCC_CSR_LPWRRSTF) != 0U) {
+        printf(" LPWR");
+        has_reason = 1;
+    }
+    if ((csr & RCC_CSR_WWDGRSTF) != 0U) {
+        printf(" WWDG");
+        has_reason = 1;
+    }
+    if ((csr & RCC_CSR_WDGRSTF) != 0U) {
+        printf(" IWDG");
+        has_reason = 1;
+    }
+    if ((csr & RCC_CSR_SFTRSTF) != 0U) {
+        printf(" SOFT");
+        has_reason = 1;
+    }
+    if ((csr & RCC_CSR_PORRSTF) != 0U) {
+        printf(" POR");
+        has_reason = 1;
+    }
+    if ((csr & RCC_CSR_PINRSTF) != 0U) {
+        printf(" PIN");
+        has_reason = 1;
+    }
+    if ((csr & RCC_CSR_BORRSTF) != 0U) {
+        printf(" BOR");
+        has_reason = 1;
+    }
+
+    if (has_reason == 0U) {
+        printf(" unknown");
+    }
+
+    printf("\n");
+}
+
 
 
 void PrintSystemInfo(void)
@@ -74,4 +118,5 @@ void PrintSystemInfo(void)
     printf("build time:%s\n", GetBuildTime());
     printf("software version=%s\n", GetSoftwareVersionString());
     printf("hardware version=%s\n", GetHardwareVersionString());
+    PrintLastResetReason();
 }
