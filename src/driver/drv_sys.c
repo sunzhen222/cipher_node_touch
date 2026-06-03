@@ -3,6 +3,7 @@
 #include "stm32f4xx_hal.h"
 #include "software_version.h"
 #include "hardware_version.h"
+#include "drv_adc.h"
 
 uint32_t HAL_RCC_GetSysClockFreq(void);
 uint32_t HAL_RCC_GetHCLKFreq(void);
@@ -102,6 +103,8 @@ static void PrintLastResetReason(void)
 
 void PrintSystemInfo(void)
 {
+    int32_t temperatureCx10;
+
     printf("esc master\n");
     printf("compiler:");
 #ifdef __ARMCC_VERSION
@@ -118,5 +121,8 @@ void PrintSystemInfo(void)
     printf("build time:%s\n", GetBuildTime());
     printf("software version=%s\n", GetSoftwareVersionString());
     printf("hardware version=%s\n", GetHardwareVersionString());
+    temperatureCx10 = GetMcuTemperatureCx10();
+    printf("mcu temperature=%ld.%ldC\n", (long)(temperatureCx10 / 10),
+           (long)(temperatureCx10 >= 0 ? temperatureCx10 % 10 : -(temperatureCx10 % 10)));
     PrintLastResetReason();
 }

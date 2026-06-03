@@ -36,6 +36,7 @@
 #include "battery.h"
 #include "sht30_app.h"
 #include "at_command.h"
+#include "wifi_test.h"
 
 void Startup(void)
 {
@@ -70,6 +71,7 @@ void Startup(void)
     Uart2Start();
 
     UserMsgInit();
+    WifiTestInit();
     CreateCmdTask();
     CreateTestTask();
     CreateUsbTask();

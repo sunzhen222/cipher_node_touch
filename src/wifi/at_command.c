@@ -140,3 +140,46 @@ void TrimLineEnd(char *str)
     }
 }
 
+bool SendAtCommandWait(const char *command,
+                       const char *expectResult,
+                       const char *errResult,
+                       uint32_t timeout)
+{
+    ASSERT(command != NULL);
+    ASSERT(expectResult != NULL);
+
+    uint32_t elapsed = 0;
+    char received[AT_COMMAND_MAX_LENGTH];
+
+    ClearReceivedAtCommand();
+    SendAtCommand(command);
+    printf("Sent AT command: %s\n", command);
+
+    while (elapsed < timeout) {
+        if (!GetReceivedAtCommand(received, 200)) {
+            elapsed += 200;
+            continue;
+        }
+        printf("received:%s", received);
+
+        char trimmed[AT_COMMAND_MAX_LENGTH];
+        strncpy(trimmed, received, sizeof(trimmed) - 1);
+        trimmed[sizeof(trimmed) - 1] = '\0';
+        TrimLineEnd(trimmed);
+
+        if (trimmed[0] == '\0') {
+            continue;
+        }
+
+        if (strcmp(trimmed, expectResult) == 0) {
+            return true;
+        }
+
+        if (errResult != NULL && strcmp(trimmed, errResult) == 0) {
+            return false;
+        }
+    }
+
+    return false;
+}
+

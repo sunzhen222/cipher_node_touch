@@ -17,5 +17,9 @@ bool GetReceivedAtCommand(char *buffer, uint32_t timeout);
 void ProcessAtCommand(void);
 void SendAtCommand(const char *cmd);
 void TrimLineEnd(char *str);
+bool SendAtCommandWait(const char *command,
+                       const char *expectResult,
+                       const char *errResult,
+                       uint32_t timeout);
 
 #endif
