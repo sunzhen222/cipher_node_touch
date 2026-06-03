@@ -536,7 +536,6 @@ static void MqttSettingsButtonHandler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_CLICKED) {
-        // TODO: Add MQTT settings page (broker, auth, topic presets, QoS policy).
-        printf("MQTT settings page not implemented yet\n");
+        EnterNewPage(&g_mqttChatSettingsPage);
     }
 }

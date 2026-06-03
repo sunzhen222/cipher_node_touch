@@ -27,12 +27,12 @@ typedef struct {
     lv_obj_t *usernameKeyboard;
     lv_obj_t *unsavedLabel;
     bool unsaved;
-} ChatSettingsPageValues_t;
+} LoraChatSettingsPageValues_t;
 
 
-static void ChatSettingsPageInit(void);
-static void ChatSettingsPageDeinit(void);
-static void ChatSettingsPageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
+static void LoraChatSettingsPageInit(void);
+static void LoraChatSettingsPageDeinit(void);
+static void LoraChatSettingsPageMsgHandler(uint32_t code, void *data, uint32_t dataLen);
 static void BackButtonHandler(lv_event_t *e);
 static void ConfirmBackEventHandler(lv_event_t *e);
 static void SaveBtnEventHandler(lv_event_t *e);
@@ -73,15 +73,15 @@ static const uint32_t g_bwValues[] = {
     LLCC68_LORA_BANDWIDTH_500_KHZ,
 };
 
-Page_t g_chatSettingsPage = {
-    .init = ChatSettingsPageInit,
-    .deinit = ChatSettingsPageDeinit,
-    .msgHandler = ChatSettingsPageMsgHandler,
+Page_t g_loraChatSettingsPage = {
+    .init = LoraChatSettingsPageInit,
+    .deinit = LoraChatSettingsPageDeinit,
+    .msgHandler = LoraChatSettingsPageMsgHandler,
     .fullScreen = false,
 };
 
 
-static void ChatSettingsPageInit(void)
+static void LoraChatSettingsPageInit(void)
 {
     char string[32];
     const lv_coord_t rowGapY = 44;
@@ -96,7 +96,7 @@ static void ChatSettingsPageInit(void)
         .middleText = NULL,
     };
     CreateNavigationBar(&navigationBar);
-    ChatSettingsPageValues_t *values = SRAM_MALLOC(sizeof(ChatSettingsPageValues_t));
+    LoraChatSettingsPageValues_t *values = SRAM_MALLOC(sizeof(LoraChatSettingsPageValues_t));
     lv_obj_set_user_data(GetPageBackground(), values);
     lv_obj_t *label, *button;
 
@@ -227,13 +227,13 @@ static void ChatSettingsPageInit(void)
     SetUnsavedState(false);
 }
 
-static void ChatSettingsPageDeinit(void)
+static void LoraChatSettingsPageDeinit(void)
 {
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     SRAM_FREE(values);
 }
 
-static void ChatSettingsPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
+static void LoraChatSettingsPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
 {
     UNUSED(data);
     UNUSED(dataLen);
@@ -247,7 +247,7 @@ static void ChatSettingsPageMsgHandler(uint32_t code, void *data, uint32_t dataL
 static void BackButtonHandler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     if (code == LV_EVENT_CLICKED) {
         if (values->unsaved) {
             ConfirmWin_t confirmWin = {0};
@@ -272,7 +272,7 @@ static void ConfirmBackEventHandler(lv_event_t *e)
 
 static void SaveBtnEventHandler(lv_event_t *e)
 {
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     const char *username = lv_textarea_get_text(values->usernameInput);
     const char *secretKey = lv_textarea_get_text(values->secretKeyInput);
     uint32_t avatarColor = GetSelectedAvatarColorValue(values->avatarColorDropdown);
@@ -316,7 +316,7 @@ static void SaveBtnEventHandler(lv_event_t *e)
 
 static void FrequencyInputEventHandler(lv_event_t *e)
 {
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     uint32_t frequency = strtoul(lv_textarea_get_text(values->frequencyInput), NULL, 10);
 
     UNUSED(e);
@@ -327,7 +327,7 @@ static void FrequencyInputEventHandler(lv_event_t *e)
 static void FrequencyInputNumberHandler(uint32_t input)
 {
     char string[12];
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
 
     snprintf(string, sizeof(string), "%lu", input);
     lv_textarea_set_text(values->frequencyInput, string);
@@ -336,7 +336,7 @@ static void FrequencyInputNumberHandler(uint32_t input)
 
 static void NetIdInputEventHandler(lv_event_t *e)
 {
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     uint32_t netId = strtoul(lv_textarea_get_text(values->netIdInput), NULL, 10);
 
     UNUSED(e);
@@ -347,7 +347,7 @@ static void NetIdInputEventHandler(lv_event_t *e)
 static void NetIdInputNumberHandler(uint32_t input)
 {
     char string[12];
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
 
     snprintf(string, sizeof(string), "%lu", input);
     lv_textarea_set_text(values->netIdInput, string);
@@ -363,7 +363,7 @@ static void AvatarColorDropdownEventHandler(lv_event_t *e)
 
 static void UsernameInputEventHandler(lv_event_t *e)
 {
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     lv_event_code_t code = lv_event_get_code(e);
 
     if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) {
@@ -377,7 +377,7 @@ static void UsernameInputEventHandler(lv_event_t *e)
 
 static void SecretKeyInputEventHandler(lv_event_t *e)
 {
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     lv_event_code_t code = lv_event_get_code(e);
 
     if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) {
@@ -391,7 +391,7 @@ static void SecretKeyInputEventHandler(lv_event_t *e)
 static void UsernameKeyboardEventHandler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    ChatSettingsPageValues_t *values = lv_event_get_user_data(e);
+    LoraChatSettingsPageValues_t *values = lv_event_get_user_data(e);
     lv_obj_t *ta;
 
     if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL) {
@@ -479,7 +479,7 @@ static uint32_t GetAvatarColorSelectedIndex(uint32_t colorValue)
 static void UpdateAvatarPreview(void)
 {
     char avatarText[2];
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     const char *username = lv_textarea_get_text(values->usernameInput);
     uint32_t avatarColor = GetSelectedAvatarColorValue(values->avatarColorDropdown);
 
@@ -491,7 +491,7 @@ static void UpdateAvatarPreview(void)
 
 static void UpdateUnsavedState(void)
 {
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     const char *username = lv_textarea_get_text(values->usernameInput);
     const char *secretKey = lv_textarea_get_text(values->secretKeyInput);
     uint32_t avatarColor = GetSelectedAvatarColorValue(values->avatarColorDropdown);
@@ -527,7 +527,7 @@ static void UpdateUnsavedState(void)
 
 static void SetUnsavedState(bool unsaved)
 {
-    ChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
 
     values->unsaved = unsaved;
     if (unsaved) {
