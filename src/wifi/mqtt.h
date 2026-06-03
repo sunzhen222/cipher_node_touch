@@ -1,5 +1,5 @@
-#ifndef _MQTT_CONNECT_H
-#define _MQTT_CONNECT_H
+#ifndef _MQTT_H
+#define _MQTT_H
 
 #include "stdint.h"
 #include "stdbool.h"
@@ -17,5 +17,6 @@
 int32_t ConnectMqtt(void);
 bool IsMqttConnected(void);
 bool DisconnectMqtt(void);
+bool PublishMqtt(const char *topic, uint8_t qos, bool retained, const char *payload);
 
 #endif

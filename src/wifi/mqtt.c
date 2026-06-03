@@ -1,8 +1,10 @@
-#include "mqtt_connect.h"
+#include "mqtt.h"
 #include "at_command.h"
 #include "user_assert.h"
 #include "stm32f4xx_hal.h"
 #include "stdio.h"
+#include "string.h"
+#include "cmsis_os2.h"
 
 #define MQTT_BROKER_HOST             "t1bf11cf.ala.cn-shenzhen.emqxsl.cn"
 #define MQTT_BROKER_PORT             8883
@@ -11,6 +13,7 @@
 #define MQTT_AUTH_PREFIX             "CipherNodeTouch_"
 #define MQTT_SUBSCRIBE_TOPIC         "testtopic/chat"
 #define MQTT_SUBSCRIBE_QOS           0
+#define MQTT_PUBLISH_TIMEOUT_MS      5000
 
 static bool g_mqttConnected = false;
 
@@ -132,4 +135,32 @@ bool DisconnectMqtt(void)
     AtCommandUnlock();
 
     return disconnectOk;
+}
+
+bool PublishMqtt(const char *topic, uint8_t qos, bool retained, const char *payload)
+{
+    bool publishOk;
+    char command[AT_COMMAND_MAX_LENGTH];
+
+    if (topic == NULL || payload == NULL || topic[0] == '\0') {
+        return false;
+    }
+    size_t payloadLength = strlen(payload);
+
+    snprintf(command,
+             sizeof(command),
+             "AT+MQTTPUBRAW=%s,%u,%u,%u",
+             topic,
+             qos,
+             retained ? 1 : 0,
+             payloadLength);
+
+    AtCommandLock();
+    ClearReceivedAtCommand();
+    SendAtCommand(command);
+    osDelay(100);
+    publishOk = SendAtCommandWait(payload, "OK", "ERROR", MQTT_PUBLISH_TIMEOUT_MS);
+    AtCommandUnlock();
+
+    return publishOk;
 }

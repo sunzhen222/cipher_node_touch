@@ -1,6 +1,6 @@
 #include "wifi_test.h"
 #include "test_cmd.h"
-#include "mqtt_connect.h"
+#include "mqtt.h"
 #include "wifi_search.h"
 #include "stdio.h"
 #include "string.h"

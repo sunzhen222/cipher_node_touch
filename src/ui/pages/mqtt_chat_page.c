@@ -8,17 +8,21 @@
 #include "user_memory.h"
 #include "images_declare.h"
 #include "mqtt_chat.h"
-#include "mqtt_connect.h"
+#include "mqtt.h"
 #include "ui_msg.h"
 #include "background_task.h"
 #include "loading_spinner.h"
 #include "confirm_win.h"
+#include "cJSON.h"
 
 #define INPUT_BAR_HEIGHT                50
 #define KEYBOARD_HEIGHT                 160
 #define SEND_BTN_WIDTH                  52
 #define INPUT_BAR_GAP                   4
 #define MQTT_CHAT_BUTTON_AREA_HEIGHT    48
+#define MQTT_CHAT_TOPIC                 "testtopic/chat"
+#define MQTT_CHAT_PUBLISH_QOS           0
+#define MQTT_CHAT_PUBLISH_RETAINED      false
 
 typedef struct {
     lv_obj_t *connectBtn;
@@ -48,6 +52,7 @@ static void HideInputKeyboardAndRestoreLayout(MqttChatPageValues_t *values);
 static void ConnectBtnEventHandler(lv_event_t *e);
 static int32_t AsyncMqttConnect(const void *inData, uint32_t inDataLen);
 static int32_t AsyncMqttDisconnect(const void *inData, uint32_t inDataLen);
+static char *CreateMqttChatPayload(const char *username, uint32_t avatarColor, const char *text);
 static void BackButtonHandler(lv_event_t *e);
 static void MqttSettingsButtonHandler(lv_event_t *e);
 
@@ -383,6 +388,7 @@ static void InputSendBtnEventHandler(lv_event_t *e)
     const char *text = lv_textarea_get_text(values->inputTa);
     const char *username = "Me";
     uint32_t avatarColor = 0x2FB35A;
+    char *payload;
 
     if (text[0] == '\0') {
         return;
@@ -391,8 +397,13 @@ static void InputSendBtnEventHandler(lv_event_t *e)
     MqttChatItem_t *newItem = AddMqttChatItem(username, text, true, avatarColor);
     SendUiMsg(UI_MSG_CODE_MQTT_CHAT_ITEM, &newItem, sizeof(newItem));
 
-    // TODO: Publish text through MQTT transport layer after session management is available.
-    printf("MQTT send TODO, text=%s\n", text);
+    payload = CreateMqttChatPayload(username, avatarColor, text);
+    if (payload != NULL) {
+        if (!PublishMqtt(MQTT_CHAT_TOPIC, MQTT_CHAT_PUBLISH_QOS, MQTT_CHAT_PUBLISH_RETAINED, payload)) {
+            printf("MQTT publish failed, payload=%s\n", payload);
+        }
+        cJSON_free(payload);
+    }
     lv_textarea_set_text(values->inputTa, "");
     UpdateSendButtonState(values);
 }
@@ -475,6 +486,27 @@ static int32_t AsyncMqttDisconnect(const void *inData, uint32_t inDataLen)
     bool disconnectOk = DisconnectMqtt();
     SendUiMsg(UI_MSG_CODE_MQTT_DISCONNECT_RESULT, &disconnectOk, sizeof(disconnectOk));
     return 0;
+}
+
+static char *CreateMqttChatPayload(const char *username, uint32_t avatarColor, const char *text)
+{
+    cJSON *rootJson;
+    char avatarColorString[7];
+    char *payload;
+
+    rootJson = cJSON_CreateObject();
+    if (rootJson == NULL) {
+        return NULL;
+    }
+
+    snprintf(avatarColorString, sizeof(avatarColorString), "%06lX", (unsigned long)(avatarColor & 0xFFFFFF));
+    cJSON_AddStringToObject(rootJson, "name", username);
+    cJSON_AddStringToObject(rootJson, "avatarColor", avatarColorString);
+    cJSON_AddStringToObject(rootJson, "msg", text);
+    payload = cJSON_PrintUnformatted(rootJson);
+    cJSON_Delete(rootJson);
+
+    return payload;
 }
 
 static void BackButtonHandler(lv_event_t *e)
