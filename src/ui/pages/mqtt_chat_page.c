@@ -492,6 +492,7 @@ static char *CreateMqttChatPayload(const char *username, uint32_t avatarColor, c
 {
     cJSON *rootJson;
     char avatarColorString[7];
+    char senderId[9];
     char *payload;
 
     rootJson = cJSON_CreateObject();
@@ -500,6 +501,8 @@ static char *CreateMqttChatPayload(const char *username, uint32_t avatarColor, c
     }
 
     snprintf(avatarColorString, sizeof(avatarColorString), "%06lX", (unsigned long)(avatarColor & 0xFFFFFF));
+    GetMqttSenderId(senderId, sizeof(senderId));
+    cJSON_AddStringToObject(rootJson, "senderId", senderId);
     cJSON_AddStringToObject(rootJson, "name", username);
     cJSON_AddStringToObject(rootJson, "avatarColor", avatarColorString);
     cJSON_AddStringToObject(rootJson, "msg", text);

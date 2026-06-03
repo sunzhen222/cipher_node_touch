@@ -3,6 +3,7 @@
 
 #include "stdint.h"
 #include "stdbool.h"
+#include "stddef.h"
 
 #define MQTT_CONNECT_OK                     0
 #define MQTT_CONNECT_ERR_SET_HOST          -1
@@ -18,5 +19,6 @@ int32_t ConnectMqtt(void);
 bool IsMqttConnected(void);
 bool DisconnectMqtt(void);
 bool PublishMqtt(const char *topic, uint8_t qos, bool retained, const char *payload);
+void GetMqttSenderId(char *buffer, size_t bufferSize);
 
 #endif

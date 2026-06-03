@@ -5,6 +5,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "cmsis_os2.h"
+#include "sha256.h"
 
 #define MQTT_BROKER_HOST             "t1bf11cf.ala.cn-shenzhen.emqxsl.cn"
 #define MQTT_BROKER_PORT             8883
@@ -14,14 +15,39 @@
 #define MQTT_SUBSCRIBE_TOPIC         "testtopic/chat"
 #define MQTT_SUBSCRIBE_QOS           0
 #define MQTT_PUBLISH_TIMEOUT_MS      5000
+#define MQTT_SENDER_ID_LENGTH        8
 
 static bool g_mqttConnected = false;
 
+static void BuildMqttSenderId(char *buffer, size_t bufferSize)
+{
+    uint32_t uid[3];
+    uint8_t hash[SHA256_SIZE_BYTES];
+
+    if (buffer == NULL || bufferSize == 0) {
+        return;
+    }
+
+    uid[0] = HAL_GetUIDw0();
+    uid[1] = HAL_GetUIDw1();
+    uid[2] = HAL_GetUIDw2();
+    sha256(uid, sizeof(uid), hash);
+
+    snprintf(buffer,
+             bufferSize,
+             "%02X%02X%02X%02X",
+             hash[SHA256_SIZE_BYTES - 4],
+             hash[SHA256_SIZE_BYTES - 3],
+             hash[SHA256_SIZE_BYTES - 2],
+             hash[SHA256_SIZE_BYTES - 1]);
+}
+
 static void BuildMqttClientId(char *buffer, size_t bufferSize)
 {
-    uint32_t uid0 = HAL_GetUIDw0();
+    char senderId[MQTT_SENDER_ID_LENGTH + 1];
 
-    snprintf(buffer, bufferSize, "%s%08lX", MQTT_CLIENT_ID_PREFIX, uid0);
+    BuildMqttSenderId(senderId, sizeof(senderId));
+    snprintf(buffer, bufferSize, "%s%s", MQTT_CLIENT_ID_PREFIX, senderId);
 }
 
 static void BuildMqttAuthString(char *buffer, size_t bufferSize)
@@ -37,6 +63,11 @@ static void BuildMqttAuthString(char *buffer, size_t bufferSize)
 bool IsMqttConnected(void)
 {
     return g_mqttConnected;
+}
+
+void GetMqttSenderId(char *buffer, size_t bufferSize)
+{
+    BuildMqttSenderId(buffer, bufferSize);
 }
 
 int32_t ConnectMqtt(void)

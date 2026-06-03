@@ -6,11 +6,14 @@
 #include "string.h"
 #include "ui_msg.h"
 #include "user_memory.h"
+#include "mqtt.h"
 
 #define MQTT_SUB_EVENT_PREFIX       "+EVENT:MQTT_SUB,"
+#define MQTT_CHAT_JSON_KEY_SENDER   "senderId"
 #define MQTT_CHAT_JSON_KEY_NAME     "name"
 #define MQTT_CHAT_JSON_KEY_COLOR    "avatarColor"
 #define MQTT_CHAT_JSON_KEY_MSG      "msg"
+#define MQTT_SENDER_ID_LENGTH       8
 
 
 static MqttChatItem_t *g_mqttChatListHead = NULL;
@@ -154,9 +157,11 @@ static bool ParseMqttChatPayload(const char *payload, uint32_t payloadLen)
     bool ret = false;
     char *payloadString = NULL;
     cJSON *rootJson = NULL;
+    cJSON *senderJson;
     cJSON *nameJson;
     cJSON *colorJson;
     cJSON *msgJson;
+    char localSenderId[MQTT_SENDER_ID_LENGTH + 1];
     uint32_t avatarColor;
     MqttChatItem_t *item;
 
@@ -173,6 +178,15 @@ static bool ParseMqttChatPayload(const char *payload, uint32_t payloadLen)
         if (rootJson == NULL) {
             printf("mqtt chat: json parse failed\n");
             break;
+        }
+
+        senderJson = cJSON_GetObjectItem(rootJson, MQTT_CHAT_JSON_KEY_SENDER);
+        if (cJSON_IsString(senderJson)) {
+            GetMqttSenderId(localSenderId, sizeof(localSenderId));
+            if (strcmp(cJSON_GetStringValue(senderJson), localSenderId) == 0) {
+                ret = true;
+                break;
+            }
         }
 
         nameJson = cJSON_GetObjectItem(rootJson, MQTT_CHAT_JSON_KEY_NAME);
