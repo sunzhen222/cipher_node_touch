@@ -12,6 +12,8 @@
 #define MQTT_SUBSCRIBE_TOPIC         "testtopic/chat"
 #define MQTT_SUBSCRIBE_QOS           0
 
+static bool g_mqttConnected = false;
+
 static void BuildMqttClientId(char *buffer, size_t bufferSize)
 {
     uint32_t uid0 = HAL_GetUIDw0();
@@ -29,6 +31,11 @@ static void BuildMqttAuthString(char *buffer, size_t bufferSize)
     snprintf(buffer, bufferSize, "%s%08lX%08lX%08lX", MQTT_AUTH_PREFIX, uid0, uid1, uid2);
 }
 
+bool IsMqttConnected(void)
+{
+    return g_mqttConnected;
+}
+
 int32_t ConnectMqtt(void)
 {
     int32_t ret = MQTT_CONNECT_OK;
@@ -42,6 +49,11 @@ int32_t ConnectMqtt(void)
     AtCommandLock();
 
     do {
+        if (g_mqttConnected) {
+            ret = MQTT_CONNECT_OK;
+            break;
+        }
+
         snprintf(command, sizeof(command), "AT+MQTT=1,%s", MQTT_BROKER_HOST);
         if (!SendAtCommandWait(command, "OK", "ERROR", 5000)) {
             ret = MQTT_CONNECT_ERR_SET_HOST;
@@ -98,10 +110,26 @@ int32_t ConnectMqtt(void)
         }
 
         ret = MQTT_CONNECT_OK;
+        g_mqttConnected = true;
     } while (0);
     if (ret != MQTT_CONNECT_OK) {
         SendAtCommand("AT+MQTTDISCONN");
+        g_mqttConnected = false;
     }
     AtCommandUnlock();
     return ret;
+}
+
+bool DisconnectMqtt(void)
+{
+    bool disconnectOk;
+
+    AtCommandLock();
+    disconnectOk = SendAtCommandWait("AT+MQTTDISCONN", "OK", "ERROR", 5000);
+    if (disconnectOk) {
+        g_mqttConnected = false;
+    }
+    AtCommandUnlock();
+
+    return disconnectOk;
 }

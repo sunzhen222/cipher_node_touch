@@ -8,18 +8,28 @@
 #include "user_memory.h"
 #include "images_declare.h"
 #include "mqtt_chat.h"
+#include "mqtt_connect.h"
+#include "ui_msg.h"
+#include "background_task.h"
+#include "loading_spinner.h"
+#include "confirm_win.h"
 
-#define INPUT_BAR_HEIGHT        50
-#define KEYBOARD_HEIGHT         160
-#define SEND_BTN_WIDTH          52
-#define INPUT_BAR_GAP           4
+#define INPUT_BAR_HEIGHT                50
+#define KEYBOARD_HEIGHT                 160
+#define SEND_BTN_WIDTH                  52
+#define INPUT_BAR_GAP                   4
+#define MQTT_CHAT_BUTTON_AREA_HEIGHT    48
 
 typedef struct {
+    lv_obj_t *connectBtn;
+    lv_obj_t *connectBtnLabel;
     lv_obj_t *chatList;
     lv_obj_t *inputBar;
     lv_obj_t *inputTa;
     lv_obj_t *keyboard;
     lv_obj_t *sendBtn;
+    lv_obj_t *loadingSpinner;
+    bool mqttOperating;
 } MqttChatPageValues_t;
 
 
@@ -33,7 +43,11 @@ static void ChatListEventHandler(lv_event_t *e);
 static void AddNewMqttChatLayout(MqttChatItem_t *item);
 static void InputSendBtnEventHandler(lv_event_t *e);
 static void UpdateSendButtonState(MqttChatPageValues_t *values);
+static void UpdateConnectButtonState(MqttChatPageValues_t *values);
 static void HideInputKeyboardAndRestoreLayout(MqttChatPageValues_t *values);
+static void ConnectBtnEventHandler(lv_event_t *e);
+static int32_t AsyncMqttConnect(const void *inData, uint32_t inDataLen);
+static int32_t AsyncMqttDisconnect(const void *inData, uint32_t inDataLen);
 static void BackButtonHandler(lv_event_t *e);
 static void MqttSettingsButtonHandler(lv_event_t *e);
 
@@ -60,11 +74,15 @@ static void MqttChatPageInit(void)
     lv_obj_set_user_data(GetPageBackground(), values);
     lv_obj_set_scrollbar_mode(GetPageBackground(), LV_SCROLLBAR_MODE_OFF);
     lv_obj_remove_flag(GetPageBackground(), LV_OBJ_FLAG_SCROLLABLE);
+    values->connectBtn = NULL;
+    values->connectBtnLabel = NULL;
     values->chatList = NULL;
     values->inputBar = NULL;
     values->inputTa = NULL;
     values->keyboard = NULL;
     values->sendBtn = NULL;
+    values->loadingSpinner = NULL;
+    values->mqttOperating = false;
 
     MqttChatLayout();
 }
@@ -72,16 +90,42 @@ static void MqttChatPageInit(void)
 static void MqttChatPageDeinit(void)
 {
     MqttChatPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    if (values->loadingSpinner != NULL) {
+        DeleteLoadingSpinner(values->loadingSpinner);
+        values->loadingSpinner = NULL;
+    }
     SRAM_FREE(values);
 }
 
 static void MqttChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
 {
-    UNUSED(code);
-    UNUSED(data);
-    UNUSED(dataLen);
+    MqttChatPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
 
-    // TODO: Add MQTT UI message handling after MQTT transport and topic model are finalized.
+    switch (code) {
+    case UI_MSG_CODE_MQTT_CONNECT_RESULT:
+    case UI_MSG_CODE_MQTT_DISCONNECT_RESULT:
+        if (values == NULL || data == NULL || dataLen != sizeof(bool)) {
+            break;
+        }
+        if (values->loadingSpinner != NULL) {
+            DeleteLoadingSpinner(values->loadingSpinner);
+            values->loadingSpinner = NULL;
+        }
+        values->mqttOperating = false;
+        UpdateConnectButtonState(values);
+        bool operateOk = *((bool *)data);
+        if (code == UI_MSG_CODE_MQTT_CONNECT_RESULT && !operateOk) {
+            ConfirmWin_t confirmWin = {0};
+            confirmWin.text = "MQTT connect failed";
+            CreateConfirmWin(GetPageBackground(), &confirmWin);
+        }
+        printf("mqtt %s %s\n",
+               code == UI_MSG_CODE_MQTT_CONNECT_RESULT ? "connect" : "disconnect",
+               operateOk ? "ok" : "failed");
+        break;
+    default:
+        break;
+    }
 }
 
 static void MqttChatLayout(void)
@@ -101,11 +145,25 @@ static void MqttChatLayout(void)
         values->keyboard = NULL;
     }
 
+    values->connectBtn = lv_btn_create(GetPageBackground());
+    lv_obj_set_size(values->connectBtn, 96, MQTT_CHAT_BUTTON_AREA_HEIGHT - 8);
+    lv_obj_align(values->connectBtn, LV_ALIGN_TOP_RIGHT, -8, NAVIGATION_BAR_HEIGHT + 4);
+    lv_obj_set_style_radius(values->connectBtn, 5, 0);
+    lv_obj_set_style_bg_color(values->connectBtn, lv_color_hex(0x16803C), 0);
+    lv_obj_set_style_bg_color(values->connectBtn, lv_color_hex(0x134C26), LV_STATE_PRESSED);
+    lv_obj_set_style_bg_color(values->connectBtn, lv_color_hex(0x4A4A4A), LV_STATE_DISABLED);
+    lv_obj_set_style_text_color(values->connectBtn, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_add_event_cb(values->connectBtn, ConnectBtnEventHandler, LV_EVENT_CLICKED, values);
+
+    values->connectBtnLabel = lv_label_create(values->connectBtn);
+    lv_obj_center(values->connectBtnLabel);
+    UpdateConnectButtonState(values);
+
     values->chatList = lv_obj_create(GetPageBackground());
     lv_obj_set_size(values->chatList,
                     lv_display_get_horizontal_resolution(NULL),
-                    lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - INPUT_BAR_HEIGHT);
-    lv_obj_align(values->chatList, LV_ALIGN_TOP_LEFT, 0, NAVIGATION_BAR_HEIGHT);
+                    lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - MQTT_CHAT_BUTTON_AREA_HEIGHT - INPUT_BAR_HEIGHT);
+    lv_obj_align(values->chatList, LV_ALIGN_TOP_LEFT, 0, NAVIGATION_BAR_HEIGHT + MQTT_CHAT_BUTTON_AREA_HEIGHT);
     lv_obj_set_scrollbar_mode(values->chatList, LV_SCROLLBAR_MODE_OFF);
     lv_obj_add_flag(values->chatList, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_flex_flow(values->chatList, LV_FLEX_FLOW_COLUMN);
@@ -177,7 +235,7 @@ static void InputTaEventHandler(lv_event_t *e)
     if (code == LV_EVENT_FOCUSED || code == LV_EVENT_CLICKED) {
         lv_obj_set_size(values->chatList,
                         lv_display_get_horizontal_resolution(NULL),
-                        lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - INPUT_BAR_HEIGHT - KEYBOARD_HEIGHT);
+                        lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - MQTT_CHAT_BUTTON_AREA_HEIGHT - INPUT_BAR_HEIGHT - KEYBOARD_HEIGHT);
         lv_obj_align(values->inputBar, LV_ALIGN_BOTTOM_MID, 0, -KEYBOARD_HEIGHT);
         lv_keyboard_set_textarea(values->keyboard, values->inputTa);
         lv_obj_remove_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
@@ -340,6 +398,22 @@ static void UpdateSendButtonState(MqttChatPageValues_t *values)
     }
 }
 
+static void UpdateConnectButtonState(MqttChatPageValues_t *values)
+{
+    if (values == NULL || values->connectBtn == NULL || values->connectBtnLabel == NULL) {
+        return;
+    }
+
+    if (values->mqttOperating) {
+        lv_obj_add_state(values->connectBtn, LV_STATE_DISABLED);
+    } else {
+        lv_obj_remove_state(values->connectBtn, LV_STATE_DISABLED);
+    }
+
+    lv_label_set_text(values->connectBtnLabel, IsMqttConnected() ? "disconnect" : "connect");
+    lv_obj_center(values->connectBtnLabel);
+}
+
 static void HideInputKeyboardAndRestoreLayout(MqttChatPageValues_t *values)
 {
     if (values == NULL || values->keyboard == NULL || values->chatList == NULL || values->inputBar == NULL) {
@@ -350,8 +424,48 @@ static void HideInputKeyboardAndRestoreLayout(MqttChatPageValues_t *values)
     lv_obj_add_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_size(values->chatList,
                     lv_display_get_horizontal_resolution(NULL),
-                    lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - INPUT_BAR_HEIGHT);
+                    lv_display_get_vertical_resolution(NULL) - STATUS_BAR_HEIGHT - NAVIGATION_BAR_HEIGHT - MQTT_CHAT_BUTTON_AREA_HEIGHT - INPUT_BAR_HEIGHT);
     lv_obj_align(values->inputBar, LV_ALIGN_BOTTOM_MID, 0, 0);
+}
+
+static void ConnectBtnEventHandler(lv_event_t *e)
+{
+    lv_event_code_t code = lv_event_get_code(e);
+    MqttChatPageValues_t *values = lv_event_get_user_data(e);
+
+    if (code != LV_EVENT_CLICKED || values == NULL || values->mqttOperating) {
+        return;
+    }
+
+    values->mqttOperating = true;
+    UpdateConnectButtonState(values);
+    values->loadingSpinner = CreateLoadingSpinner(GetPageBackground(), 1000000);
+
+    if (IsMqttConnected()) {
+        AsyncExecute(AsyncMqttDisconnect, NULL, 0, 0);
+    } else {
+        AsyncExecute(AsyncMqttConnect, NULL, 0, 0);
+    }
+}
+
+static int32_t AsyncMqttConnect(const void *inData, uint32_t inDataLen)
+{
+    UNUSED(inData);
+    UNUSED(inDataLen);
+
+    bool connectOk = (ConnectMqtt() == MQTT_CONNECT_OK);
+    SendUiMsg(UI_MSG_CODE_MQTT_CONNECT_RESULT, &connectOk, sizeof(connectOk));
+    return 0;
+}
+
+static int32_t AsyncMqttDisconnect(const void *inData, uint32_t inDataLen)
+{
+    UNUSED(inData);
+    UNUSED(inDataLen);
+
+    bool disconnectOk = DisconnectMqtt();
+    SendUiMsg(UI_MSG_CODE_MQTT_DISCONNECT_RESULT, &disconnectOk, sizeof(disconnectOk));
+    return 0;
 }
 
 static void BackButtonHandler(lv_event_t *e)
