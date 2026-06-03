@@ -9,6 +9,7 @@
 #include "images_declare.h"
 #include "mqtt_chat.h"
 #include "mqtt.h"
+#include "wifi_connect.h"
 #include "ui_msg.h"
 #include "background_task.h"
 #include "loading_spinner.h"
@@ -33,6 +34,7 @@ typedef struct {
     lv_obj_t *keyboard;
     lv_obj_t *sendBtn;
     lv_obj_t *loadingSpinner;
+    bool wifiConnected;
     bool mqttOperating;
 } MqttChatPageValues_t;
 
@@ -66,6 +68,7 @@ Page_t g_mqttChatPage = {
 
 static void MqttChatPageInit(void)
 {
+    WifiConnectInfo_t wifiInfo = {0};
     NavigationBar_t navigationBar = {
         .leftImgSrc = &img_back,
         .leftBtnCb = BackButtonHandler,
@@ -87,6 +90,7 @@ static void MqttChatPageInit(void)
     values->keyboard = NULL;
     values->sendBtn = NULL;
     values->loadingSpinner = NULL;
+    values->wifiConnected = GetWifiConnectInfo(&wifiInfo) && wifiInfo.connected;
     values->mqttOperating = false;
 
     MqttChatLayout();
@@ -137,6 +141,13 @@ static void MqttChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
         item = *(MqttChatItem_t **)data;
         AddNewMqttChatLayout(item);
         break;
+    case UI_MSG_CODE_WIFI:
+        if (values == NULL || data == NULL || dataLen != sizeof(UiMsgWifiStatus_t)) {
+            break;
+        }
+        values->wifiConnected = ((UiMsgWifiStatus_t *)data)->connected;
+        UpdateConnectButtonState(values);
+        break;
     default:
         break;
     }
@@ -167,6 +178,7 @@ static void MqttChatLayout(void)
     lv_obj_set_style_bg_color(values->connectBtn, lv_color_hex(0x134C26), LV_STATE_PRESSED);
     lv_obj_set_style_bg_color(values->connectBtn, lv_color_hex(0x4A4A4A), LV_STATE_DISABLED);
     lv_obj_set_style_text_color(values->connectBtn, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_color(values->connectBtn, lv_color_hex(0x9A9A9A), LV_STATE_DISABLED);
     lv_obj_add_event_cb(values->connectBtn, ConnectBtnEventHandler, LV_EVENT_CLICKED, values);
 
     values->connectBtnLabel = lv_label_create(values->connectBtn);
@@ -424,7 +436,7 @@ static void UpdateConnectButtonState(MqttChatPageValues_t *values)
         return;
     }
 
-    if (values->mqttOperating) {
+    if (values->mqttOperating || !values->wifiConnected) {
         lv_obj_add_state(values->connectBtn, LV_STATE_DISABLED);
     } else {
         lv_obj_remove_state(values->connectBtn, LV_STATE_DISABLED);
@@ -453,7 +465,7 @@ static void ConnectBtnEventHandler(lv_event_t *e)
     lv_event_code_t code = lv_event_get_code(e);
     MqttChatPageValues_t *values = lv_event_get_user_data(e);
 
-    if (code != LV_EVENT_CLICKED || values == NULL || values->mqttOperating) {
+    if (code != LV_EVENT_CLICKED || values == NULL || values->mqttOperating || !values->wifiConnected) {
         return;
     }
 

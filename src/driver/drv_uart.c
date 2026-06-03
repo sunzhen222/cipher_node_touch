@@ -143,7 +143,7 @@ void _sys_exit(int x)
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
     if (huart->Instance == USART2) {
-        printf("UART2 Error Callback: ErrorCode=0x%08lX\n", huart->ErrorCode);
+        //printf("UART2 Error Callback: ErrorCode=0x%08lX\n", huart->ErrorCode);
     }
 }
 
