@@ -20,6 +20,7 @@ MqttChatItem_t *AddMqttChatItem(const char *name,
                                 uint32_t headColor);
 void StartGetMqttChatItem(void);
 MqttChatItem_t *GetNextMqttChatItem(void);
+bool ProcessMqttChatAtCommand(const char *received);
 
 void TestMqttChat(void);
 

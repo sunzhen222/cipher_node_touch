@@ -100,6 +100,7 @@ static void MqttChatPageDeinit(void)
 static void MqttChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
 {
     MqttChatPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    MqttChatItem_t *item;
 
     switch (code) {
     case UI_MSG_CODE_MQTT_CONNECT_RESULT:
@@ -122,6 +123,14 @@ static void MqttChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
         printf("mqtt %s %s\n",
                code == UI_MSG_CODE_MQTT_CONNECT_RESULT ? "connect" : "disconnect",
                operateOk ? "ok" : "failed");
+        break;
+    case UI_MSG_CODE_MQTT_CHAT_ITEM:
+        if (dataLen != sizeof(MqttChatItem_t *)) {
+            printf("MqttChatPageMsgHandler: invalid dataLen\n");
+            break;
+        }
+        item = *(MqttChatItem_t **)data;
+        AddNewMqttChatLayout(item);
         break;
     default:
         break;
@@ -380,7 +389,7 @@ static void InputSendBtnEventHandler(lv_event_t *e)
     }
 
     MqttChatItem_t *newItem = AddMqttChatItem(username, text, true, avatarColor);
-    AddNewMqttChatLayout(newItem);
+    SendUiMsg(UI_MSG_CODE_MQTT_CHAT_ITEM, &newItem, sizeof(newItem));
 
     // TODO: Publish text through MQTT transport layer after session management is available.
     printf("MQTT send TODO, text=%s\n", text);

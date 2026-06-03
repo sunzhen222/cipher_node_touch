@@ -9,6 +9,7 @@
 #include "lora.h"
 #include "battery.h"
 #include "sht30_app.h"
+#include "mqtt_chat.h"
 #include "at_command.h"
 #include "drv_power_switch.h"
 #include "wifi_connect.h"
@@ -111,6 +112,7 @@ static void BackgroundTask(void *argument)
             if (HasReceivedAtCommandData()) {
                 while (GetReceivedAtCommand(received, 100)) {
                     printf("bg_received:%s", received);
+                    ProcessMqttChatAtCommand(received);
                 }
             }
             AtCommandUnlock();
