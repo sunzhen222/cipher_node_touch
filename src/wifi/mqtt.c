@@ -6,15 +6,8 @@
 #include "string.h"
 #include "cmsis_os2.h"
 #include "sha256.h"
+#include "device_settings.h"
 
-#define MQTT_BROKER_HOST             "t1bf11cf.ala.cn-shenzhen.emqxsl.cn"
-#define MQTT_BROKER_PORT             8883
-#define MQTT_TLS_MODE                2
-#define MQTT_CLIENT_ID_PREFIX        "cipher_node_touch_board_"
-#define MQTT_AUTH_PREFIX             "CipherNodeTouch_"
-#define MQTT_SUBSCRIBE_TOPIC         "testtopic/chat"
-#define MQTT_SUBSCRIBE_QOS           0
-#define MQTT_PUBLISH_TIMEOUT_MS      5000
 #define MQTT_SENDER_ID_LENGTH        8
 
 static bool g_mqttConnected = false;
@@ -47,7 +40,7 @@ static void BuildMqttClientId(char *buffer, size_t bufferSize)
     char senderId[MQTT_SENDER_ID_LENGTH + 1];
 
     BuildMqttSenderId(senderId, sizeof(senderId));
-    snprintf(buffer, bufferSize, "%s%s", MQTT_CLIENT_ID_PREFIX, senderId);
+    snprintf(buffer, bufferSize, "%s%s", DeviceSettingsGetMqttClientIdPrefix(), senderId);
 }
 
 static void BuildMqttAuthString(char *buffer, size_t bufferSize)
@@ -57,7 +50,7 @@ static void BuildMqttAuthString(char *buffer, size_t bufferSize)
     uint32_t uid2 = HAL_GetUIDw2();
 
     // Keep UID formatting aligned with about_page, but concatenate without spaces.
-    snprintf(buffer, bufferSize, "%s%08lX%08lX%08lX", MQTT_AUTH_PREFIX, uid0, uid1, uid2);
+    snprintf(buffer, bufferSize, "%s%08lX%08lX%08lX", DeviceSettingsGetMqttAuthPrefix(), uid0, uid1, uid2);
 }
 
 bool IsMqttConnected(void)
@@ -88,21 +81,21 @@ int32_t ConnectMqtt(void)
             break;
         }
 
-        snprintf(command, sizeof(command), "AT+MQTT=1,%s", MQTT_BROKER_HOST);
+        snprintf(command, sizeof(command), "AT+MQTT=1,%s", DeviceSettingsGetMqttBrokerHost());
         if (!SendAtCommandWait(command, "OK", "ERROR", 5000)) {
             ret = MQTT_CONNECT_ERR_SET_HOST;
             printf("ConnectMqtt failed: set broker host, ret=%ld\n", (long)ret);
             break;
         }
 
-        snprintf(command, sizeof(command), "AT+MQTT=2,%d", MQTT_BROKER_PORT);
+        snprintf(command, sizeof(command), "AT+MQTT=2,%lu", (unsigned long)DeviceSettingsGetMqttBrokerPort());
         if (!SendAtCommandWait(command, "OK", "ERROR", 5000)) {
             ret = MQTT_CONNECT_ERR_SET_PORT;
             printf("ConnectMqtt failed: set broker port, ret=%ld\n", (long)ret);
             break;
         }
 
-        snprintf(command, sizeof(command), "AT+MQTT=3,%d", MQTT_TLS_MODE);
+        snprintf(command, sizeof(command), "AT+MQTT=3,%lu", (unsigned long)DeviceSettingsGetMqttTlsMode());
         if (!SendAtCommandWait(command, "OK", "ERROR", 5000)) {
             ret = MQTT_CONNECT_ERR_SET_TLS;
             printf("ConnectMqtt failed: set TLS mode, ret=%ld\n", (long)ret);
@@ -136,7 +129,11 @@ int32_t ConnectMqtt(void)
             break;
         }
 
-        snprintf(command, sizeof(command), "AT+MQTTSUB=%s,%d", MQTT_SUBSCRIBE_TOPIC, MQTT_SUBSCRIBE_QOS);
+        snprintf(command,
+                 sizeof(command),
+                 "AT+MQTTSUB=%s,%lu",
+                 DeviceSettingsGetMqttSubscribeTopic(),
+                 (unsigned long)DeviceSettingsGetMqttSubscribeQos());
         if (!SendAtCommandWait(command, "OK", "ERROR", 5000)) {
             ret = MQTT_CONNECT_ERR_SUBSCRIBE;
             printf("ConnectMqtt failed: subscribe topic, ret=%ld\n", (long)ret);
@@ -190,7 +187,7 @@ bool PublishMqtt(const char *topic, uint8_t qos, bool retained, const char *payl
     ClearReceivedAtCommand();
     SendAtCommand(command);
     osDelay(100);
-    publishOk = SendAtCommandWait(payload, "OK", "ERROR", MQTT_PUBLISH_TIMEOUT_MS);
+    publishOk = SendAtCommandWait(payload, "OK", "ERROR", DeviceSettingsGetMqttPublishTimeoutMs());
     AtCommandUnlock();
 
     return publishOk;

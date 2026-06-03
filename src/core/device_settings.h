@@ -19,6 +19,12 @@ void DeviceSettingsSetLoraChatAvatarColor(uint32_t color);
 const char *DeviceSettingsGetLoraChatUsername(void);
 void DeviceSettingsSetLoraChatUsername(const char *username);
 
+uint32_t DeviceSettingsGetMqttChatAvatarColor(void);
+void DeviceSettingsSetMqttChatAvatarColor(uint32_t color);
+
+const char *DeviceSettingsGetMqttChatUsername(void);
+void DeviceSettingsSetMqttChatUsername(const char *username);
+
 uint32_t DeviceSettingsGetLoraFreq(void);
 void DeviceSettingsSetLoraFreq(uint32_t freq);
 
@@ -36,6 +42,30 @@ void DeviceSettingsSetLoraSpreadingFactor(uint32_t sf);
 
 uint32_t DeviceSettingsGetLoraBandwidth(void);
 void DeviceSettingsSetLoraBandwidth(uint32_t bw);
+
+const char *DeviceSettingsGetMqttBrokerHost(void);
+void DeviceSettingsSetMqttBrokerHost(const char *host);
+
+uint32_t DeviceSettingsGetMqttBrokerPort(void);
+void DeviceSettingsSetMqttBrokerPort(uint32_t port);
+
+uint32_t DeviceSettingsGetMqttTlsMode(void);
+void DeviceSettingsSetMqttTlsMode(uint32_t tlsMode);
+
+const char *DeviceSettingsGetMqttClientIdPrefix(void);
+void DeviceSettingsSetMqttClientIdPrefix(const char *prefix);
+
+const char *DeviceSettingsGetMqttAuthPrefix(void);
+void DeviceSettingsSetMqttAuthPrefix(const char *prefix);
+
+const char *DeviceSettingsGetMqttSubscribeTopic(void);
+void DeviceSettingsSetMqttSubscribeTopic(const char *topic);
+
+uint32_t DeviceSettingsGetMqttSubscribeQos(void);
+void DeviceSettingsSetMqttSubscribeQos(uint32_t qos);
+
+uint32_t DeviceSettingsGetMqttPublishTimeoutMs(void);
+void DeviceSettingsSetMqttPublishTimeoutMs(uint32_t timeoutMs);
 
 void PrintDeviceSettings(void);
 

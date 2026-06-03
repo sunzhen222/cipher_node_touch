@@ -10,6 +10,7 @@
 #include "mqtt_chat.h"
 #include "mqtt.h"
 #include "wifi_connect.h"
+#include "device_settings.h"
 #include "ui_msg.h"
 #include "background_task.h"
 #include "loading_spinner.h"
@@ -21,7 +22,6 @@
 #define SEND_BTN_WIDTH                  52
 #define INPUT_BAR_GAP                   4
 #define MQTT_CHAT_BUTTON_AREA_HEIGHT    48
-#define MQTT_CHAT_TOPIC                 "testtopic/chat"
 #define MQTT_CHAT_PUBLISH_QOS           0
 #define MQTT_CHAT_PUBLISH_RETAINED      false
 
@@ -398,8 +398,8 @@ static void InputSendBtnEventHandler(lv_event_t *e)
 {
     MqttChatPageValues_t *values = lv_event_get_user_data(e);
     const char *text = lv_textarea_get_text(values->inputTa);
-    const char *username = "Me";
-    uint32_t avatarColor = 0x2FB35A;
+    const char *username = DeviceSettingsGetMqttChatUsername();
+    uint32_t avatarColor = DeviceSettingsGetMqttChatAvatarColor();
     char *payload;
 
     if (text[0] == '\0') {
@@ -411,7 +411,7 @@ static void InputSendBtnEventHandler(lv_event_t *e)
 
     payload = CreateMqttChatPayload(username, avatarColor, text);
     if (payload != NULL) {
-        if (!PublishMqtt(MQTT_CHAT_TOPIC, MQTT_CHAT_PUBLISH_QOS, MQTT_CHAT_PUBLISH_RETAINED, payload)) {
+        if (!PublishMqtt(DeviceSettingsGetMqttSubscribeTopic(), MQTT_CHAT_PUBLISH_QOS, MQTT_CHAT_PUBLISH_RETAINED, payload)) {
             printf("MQTT publish failed, payload=%s\n", payload);
         }
         cJSON_free(payload);

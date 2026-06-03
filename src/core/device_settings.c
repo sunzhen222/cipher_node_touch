@@ -21,42 +21,74 @@
 #define KEY_WIDGET_COLOR                    "widget_color"
 #define KEY_LORA_CHAT_AVATAR_COLOR          "lora_chat_avatar_color"
 #define KEY_LORA_CHAT_USERNAME              "lora_chat_username"
+#define KEY_MQTT_CHAT_AVATAR_COLOR          "mqtt_chat_avatar_color"
+#define KEY_MQTT_CHAT_USERNAME              "mqtt_chat_username"
 #define KEY_LORA_FREQ                       "lora_freq"
 #define KEY_DEVICE_ID                       "device_id"
 #define KEY_LORA_NET_ID                     "lora_net_id"
 #define KEY_LORA_SECRET_KEY                 "lora_secret_key"
 #define KEY_LORA_SPREADING_FACTOR           "lora_sf"
 #define KEY_LORA_BANDWIDTH                  "lora_bw"
+#define KEY_MQTT_BROKER_HOST                "mqtt_broker_host"
+#define KEY_MQTT_BROKER_PORT                "mqtt_broker_port"
+#define KEY_MQTT_TLS_MODE                   "mqtt_tls_mode"
+#define KEY_MQTT_CLIENT_ID_PREFIX           "mqtt_client_id_prefix"
+#define KEY_MQTT_AUTH_PREFIX                "mqtt_auth_prefix"
+#define KEY_MQTT_SUBSCRIBE_TOPIC            "mqtt_subscribe_topic"
+#define KEY_MQTT_SUBSCRIBE_QOS              "mqtt_subscribe_qos"
+#define KEY_MQTT_PUBLISH_TIMEOUT_MS         "mqtt_publish_timeout_ms"
 
 #define DEFAULT_BRIGHTNESS                  100
 #define DEFAULT_WIDGET_COLOR                LV_PALETTE_BLUE
 #define DEFAULT_LORA_CHAT_AVATAR_COLOR      0x2FB35A
-#define DEFAULT_LORA_CHAT_USERNAME          "Me"
+#define DEFAULT_LORA_CHAT_USERNAME          "CipherMan"
+#define DEFAULT_MQTT_CHAT_AVATAR_COLOR      0x2FB35A
+#define DEFAULT_MQTT_CHAT_USERNAME          "CipherMan"
 #define DEFAULT_LORA_FREQ                   434000000
 #define DEFAULT_DEVICE_ID                   1
 #define DEFAULT_LORA_NET_ID                 0
 #define DEFAULT_LORA_SECRET_KEY             "default_lora_secret_key"
 #define DEFAULT_LORA_SPREADING_FACTOR       LLCC68_LORA_DEFAULT_SF
 #define DEFAULT_LORA_BANDWIDTH              LLCC68_LORA_DEFAULT_BANDWIDTH
+#define DEFAULT_MQTT_BROKER_HOST            "t1bf11cf.ala.cn-shenzhen.emqxsl.cn"
+#define DEFAULT_MQTT_BROKER_PORT            8883
+#define DEFAULT_MQTT_TLS_MODE               2
+#define DEFAULT_MQTT_CLIENT_ID_PREFIX       "cipher_node_touch_board_"
+#define DEFAULT_MQTT_AUTH_PREFIX            "CipherNodeTouch_"
+#define DEFAULT_MQTT_SUBSCRIBE_TOPIC        "testtopic/chat"
+#define DEFAULT_MQTT_SUBSCRIBE_QOS          0
+#define DEFAULT_MQTT_PUBLISH_TIMEOUT_MS     5000
 
 typedef struct {
     uint32_t brightness;
     uint32_t widgetColor;
     uint32_t loraChatAvatarColor;
     char loraChatUsername[32];
+    uint32_t mqttChatAvatarColor;
+    char mqttChatUsername[32];
     uint32_t loraFreq;
     uint32_t deviceId;
     uint32_t loraNetId;
     char loraSecretKey[96];
     uint32_t loraSpreadingFactor;
     uint32_t loraBandwidth;
+    char mqttBrokerHost[64];
+    uint32_t mqttBrokerPort;
+    uint32_t mqttTlsMode;
+    char mqttClientIdPrefix[32];
+    char mqttAuthPrefix[32];
+    char mqttSubscribeTopic[64];
+    uint32_t mqttSubscribeQos;
+    uint32_t mqttPublishTimeoutMs;
 } DeviceSettings_t;
 
 static void SaveDeviceSettingsSync(void);
 static bool GetDeviceSettingsFromJsonString(const char *string);
 static char *GetJsonStringFromDeviceSettings(void);
+static void SetDefaultDeviceSettings(void);
+static void CopyStringValue(char *dst, size_t dstSize, const char *src);
 
-static const char g_deviceSettingsVersion[] = "0.0.2";
+static const char g_deviceSettingsVersion[] = "0.0.4";
 static DeviceSettings_t g_deviceSettings;
 
 void DeviceSettingsInit(void)
@@ -86,18 +118,7 @@ void DeviceSettingsInit(void)
 
     if (needRegenerate) {
         printf("regenerate settings\n");
-        g_deviceSettings.brightness = DEFAULT_BRIGHTNESS;
-        g_deviceSettings.widgetColor = DEFAULT_WIDGET_COLOR;
-        g_deviceSettings.loraChatAvatarColor = DEFAULT_LORA_CHAT_AVATAR_COLOR;
-        strncpy(g_deviceSettings.loraChatUsername, DEFAULT_LORA_CHAT_USERNAME, sizeof(g_deviceSettings.loraChatUsername) - 1);
-        g_deviceSettings.loraChatUsername[sizeof(g_deviceSettings.loraChatUsername) - 1] = '\0';
-        g_deviceSettings.loraFreq = DEFAULT_LORA_FREQ;
-        g_deviceSettings.deviceId = DEFAULT_DEVICE_ID;
-        g_deviceSettings.loraNetId = DEFAULT_LORA_NET_ID;
-        strncpy(g_deviceSettings.loraSecretKey, DEFAULT_LORA_SECRET_KEY, sizeof(g_deviceSettings.loraSecretKey) - 1);
-        g_deviceSettings.loraSecretKey[sizeof(g_deviceSettings.loraSecretKey) - 1] = '\0';
-        g_deviceSettings.loraSpreadingFactor = DEFAULT_LORA_SPREADING_FACTOR;
-        g_deviceSettings.loraBandwidth = DEFAULT_LORA_BANDWIDTH;
+        SetDefaultDeviceSettings();
         SaveDeviceSettingsSync();
     }
     PrintDeviceSettings();
@@ -147,6 +168,26 @@ void DeviceSettingsSetLoraChatUsername(const char *username)
 
     strncpy(g_deviceSettings.loraChatUsername, username, sizeof(g_deviceSettings.loraChatUsername) - 1);
     g_deviceSettings.loraChatUsername[sizeof(g_deviceSettings.loraChatUsername) - 1] = '\0';
+}
+
+uint32_t DeviceSettingsGetMqttChatAvatarColor(void)
+{
+    return g_deviceSettings.mqttChatAvatarColor;
+}
+
+void DeviceSettingsSetMqttChatAvatarColor(uint32_t color)
+{
+    g_deviceSettings.mqttChatAvatarColor = color;
+}
+
+const char *DeviceSettingsGetMqttChatUsername(void)
+{
+    return g_deviceSettings.mqttChatUsername;
+}
+
+void DeviceSettingsSetMqttChatUsername(const char *username)
+{
+    CopyStringValue(g_deviceSettings.mqttChatUsername, sizeof(g_deviceSettings.mqttChatUsername), username);
 }
 
 uint32_t DeviceSettingsGetLoraFreq(void)
@@ -211,6 +252,86 @@ uint32_t DeviceSettingsGetLoraBandwidth(void)
 void DeviceSettingsSetLoraBandwidth(uint32_t bw)
 {
     g_deviceSettings.loraBandwidth = bw;
+}
+
+const char *DeviceSettingsGetMqttBrokerHost(void)
+{
+    return g_deviceSettings.mqttBrokerHost;
+}
+
+void DeviceSettingsSetMqttBrokerHost(const char *host)
+{
+    CopyStringValue(g_deviceSettings.mqttBrokerHost, sizeof(g_deviceSettings.mqttBrokerHost), host);
+}
+
+uint32_t DeviceSettingsGetMqttBrokerPort(void)
+{
+    return g_deviceSettings.mqttBrokerPort;
+}
+
+void DeviceSettingsSetMqttBrokerPort(uint32_t port)
+{
+    g_deviceSettings.mqttBrokerPort = port;
+}
+
+uint32_t DeviceSettingsGetMqttTlsMode(void)
+{
+    return g_deviceSettings.mqttTlsMode;
+}
+
+void DeviceSettingsSetMqttTlsMode(uint32_t tlsMode)
+{
+    g_deviceSettings.mqttTlsMode = tlsMode;
+}
+
+const char *DeviceSettingsGetMqttClientIdPrefix(void)
+{
+    return g_deviceSettings.mqttClientIdPrefix;
+}
+
+void DeviceSettingsSetMqttClientIdPrefix(const char *prefix)
+{
+    CopyStringValue(g_deviceSettings.mqttClientIdPrefix, sizeof(g_deviceSettings.mqttClientIdPrefix), prefix);
+}
+
+const char *DeviceSettingsGetMqttAuthPrefix(void)
+{
+    return g_deviceSettings.mqttAuthPrefix;
+}
+
+void DeviceSettingsSetMqttAuthPrefix(const char *prefix)
+{
+    CopyStringValue(g_deviceSettings.mqttAuthPrefix, sizeof(g_deviceSettings.mqttAuthPrefix), prefix);
+}
+
+const char *DeviceSettingsGetMqttSubscribeTopic(void)
+{
+    return g_deviceSettings.mqttSubscribeTopic;
+}
+
+void DeviceSettingsSetMqttSubscribeTopic(const char *topic)
+{
+    CopyStringValue(g_deviceSettings.mqttSubscribeTopic, sizeof(g_deviceSettings.mqttSubscribeTopic), topic);
+}
+
+uint32_t DeviceSettingsGetMqttSubscribeQos(void)
+{
+    return g_deviceSettings.mqttSubscribeQos;
+}
+
+void DeviceSettingsSetMqttSubscribeQos(uint32_t qos)
+{
+    g_deviceSettings.mqttSubscribeQos = qos;
+}
+
+uint32_t DeviceSettingsGetMqttPublishTimeoutMs(void)
+{
+    return g_deviceSettings.mqttPublishTimeoutMs;
+}
+
+void DeviceSettingsSetMqttPublishTimeoutMs(uint32_t timeoutMs)
+{
+    g_deviceSettings.mqttPublishTimeoutMs = timeoutMs;
 }
 
 void SaveDeviceSettings(void)
@@ -283,16 +404,27 @@ static bool GetDeviceSettingsFromJsonString(const char *string)
             ret = false;
             break;
         }
+        SetDefaultDeviceSettings();
         g_deviceSettings.brightness = GetIntValue(rootJson, KEY_BRIGHTNESS, DEFAULT_BRIGHTNESS);
         g_deviceSettings.widgetColor = GetIntValue(rootJson, KEY_WIDGET_COLOR, DEFAULT_WIDGET_COLOR);
         g_deviceSettings.loraChatAvatarColor = GetIntValue(rootJson, KEY_LORA_CHAT_AVATAR_COLOR, DEFAULT_LORA_CHAT_AVATAR_COLOR);
         GetStringValue(rootJson, KEY_LORA_CHAT_USERNAME, DEFAULT_LORA_CHAT_USERNAME, g_deviceSettings.loraChatUsername);
+        g_deviceSettings.mqttChatAvatarColor = GetIntValue(rootJson, KEY_MQTT_CHAT_AVATAR_COLOR, DEFAULT_MQTT_CHAT_AVATAR_COLOR);
+        GetStringValue(rootJson, KEY_MQTT_CHAT_USERNAME, DEFAULT_MQTT_CHAT_USERNAME, g_deviceSettings.mqttChatUsername);
         g_deviceSettings.loraFreq = GetIntValue(rootJson, KEY_LORA_FREQ, DEFAULT_LORA_FREQ);
         g_deviceSettings.deviceId = GetIntValue(rootJson, KEY_DEVICE_ID, DEFAULT_DEVICE_ID);
         g_deviceSettings.loraNetId = GetIntValue(rootJson, KEY_LORA_NET_ID, DEFAULT_LORA_NET_ID);
         GetStringValue(rootJson, KEY_LORA_SECRET_KEY, DEFAULT_LORA_SECRET_KEY, g_deviceSettings.loraSecretKey);
         g_deviceSettings.loraSpreadingFactor = GetIntValue(rootJson, KEY_LORA_SPREADING_FACTOR, DEFAULT_LORA_SPREADING_FACTOR);
         g_deviceSettings.loraBandwidth = GetIntValue(rootJson, KEY_LORA_BANDWIDTH, DEFAULT_LORA_BANDWIDTH);
+        GetStringValue(rootJson, KEY_MQTT_BROKER_HOST, DEFAULT_MQTT_BROKER_HOST, g_deviceSettings.mqttBrokerHost);
+        g_deviceSettings.mqttBrokerPort = GetIntValue(rootJson, KEY_MQTT_BROKER_PORT, DEFAULT_MQTT_BROKER_PORT);
+        g_deviceSettings.mqttTlsMode = GetIntValue(rootJson, KEY_MQTT_TLS_MODE, DEFAULT_MQTT_TLS_MODE);
+        GetStringValue(rootJson, KEY_MQTT_CLIENT_ID_PREFIX, DEFAULT_MQTT_CLIENT_ID_PREFIX, g_deviceSettings.mqttClientIdPrefix);
+        GetStringValue(rootJson, KEY_MQTT_AUTH_PREFIX, DEFAULT_MQTT_AUTH_PREFIX, g_deviceSettings.mqttAuthPrefix);
+        GetStringValue(rootJson, KEY_MQTT_SUBSCRIBE_TOPIC, DEFAULT_MQTT_SUBSCRIBE_TOPIC, g_deviceSettings.mqttSubscribeTopic);
+        g_deviceSettings.mqttSubscribeQos = GetIntValue(rootJson, KEY_MQTT_SUBSCRIBE_QOS, DEFAULT_MQTT_SUBSCRIBE_QOS);
+        g_deviceSettings.mqttPublishTimeoutMs = GetIntValue(rootJson, KEY_MQTT_PUBLISH_TIMEOUT_MS, DEFAULT_MQTT_PUBLISH_TIMEOUT_MS);
     } while (0);
     cJSON_Delete(rootJson);
 
@@ -311,15 +443,61 @@ static char *GetJsonStringFromDeviceSettings(void)
     cJSON_AddItemToObject(rootJson, KEY_WIDGET_COLOR, cJSON_CreateNumber(g_deviceSettings.widgetColor));
     cJSON_AddItemToObject(rootJson, KEY_LORA_CHAT_AVATAR_COLOR, cJSON_CreateNumber(g_deviceSettings.loraChatAvatarColor));
     cJSON_AddItemToObject(rootJson, KEY_LORA_CHAT_USERNAME, cJSON_CreateString(g_deviceSettings.loraChatUsername));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_CHAT_AVATAR_COLOR, cJSON_CreateNumber(g_deviceSettings.mqttChatAvatarColor));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_CHAT_USERNAME, cJSON_CreateString(g_deviceSettings.mqttChatUsername));
     cJSON_AddItemToObject(rootJson, KEY_LORA_FREQ, cJSON_CreateNumber(g_deviceSettings.loraFreq));
     cJSON_AddItemToObject(rootJson, KEY_DEVICE_ID, cJSON_CreateNumber(g_deviceSettings.deviceId));
     cJSON_AddItemToObject(rootJson, KEY_LORA_NET_ID, cJSON_CreateNumber(g_deviceSettings.loraNetId));
     cJSON_AddItemToObject(rootJson, KEY_LORA_SECRET_KEY, cJSON_CreateString(g_deviceSettings.loraSecretKey));
     cJSON_AddItemToObject(rootJson, KEY_LORA_SPREADING_FACTOR, cJSON_CreateNumber(g_deviceSettings.loraSpreadingFactor));
     cJSON_AddItemToObject(rootJson, KEY_LORA_BANDWIDTH, cJSON_CreateNumber(g_deviceSettings.loraBandwidth));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_BROKER_HOST, cJSON_CreateString(g_deviceSettings.mqttBrokerHost));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_BROKER_PORT, cJSON_CreateNumber(g_deviceSettings.mqttBrokerPort));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_TLS_MODE, cJSON_CreateNumber(g_deviceSettings.mqttTlsMode));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_CLIENT_ID_PREFIX, cJSON_CreateString(g_deviceSettings.mqttClientIdPrefix));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_AUTH_PREFIX, cJSON_CreateString(g_deviceSettings.mqttAuthPrefix));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_SUBSCRIBE_TOPIC, cJSON_CreateString(g_deviceSettings.mqttSubscribeTopic));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_SUBSCRIBE_QOS, cJSON_CreateNumber(g_deviceSettings.mqttSubscribeQos));
+    cJSON_AddItemToObject(rootJson, KEY_MQTT_PUBLISH_TIMEOUT_MS, cJSON_CreateNumber(g_deviceSettings.mqttPublishTimeoutMs));
     retStr = cJSON_Print(rootJson);
     RemoveFormatChar(retStr);
     cJSON_Delete(rootJson);
 
     return retStr;
+}
+
+static void SetDefaultDeviceSettings(void)
+{
+    memset(&g_deviceSettings, 0, sizeof(g_deviceSettings));
+
+    g_deviceSettings.brightness = DEFAULT_BRIGHTNESS;
+    g_deviceSettings.widgetColor = DEFAULT_WIDGET_COLOR;
+    g_deviceSettings.loraChatAvatarColor = DEFAULT_LORA_CHAT_AVATAR_COLOR;
+    CopyStringValue(g_deviceSettings.loraChatUsername, sizeof(g_deviceSettings.loraChatUsername), DEFAULT_LORA_CHAT_USERNAME);
+    g_deviceSettings.mqttChatAvatarColor = DEFAULT_MQTT_CHAT_AVATAR_COLOR;
+    CopyStringValue(g_deviceSettings.mqttChatUsername, sizeof(g_deviceSettings.mqttChatUsername), DEFAULT_MQTT_CHAT_USERNAME);
+    g_deviceSettings.loraFreq = DEFAULT_LORA_FREQ;
+    g_deviceSettings.deviceId = DEFAULT_DEVICE_ID;
+    g_deviceSettings.loraNetId = DEFAULT_LORA_NET_ID;
+    CopyStringValue(g_deviceSettings.loraSecretKey, sizeof(g_deviceSettings.loraSecretKey), DEFAULT_LORA_SECRET_KEY);
+    g_deviceSettings.loraSpreadingFactor = DEFAULT_LORA_SPREADING_FACTOR;
+    g_deviceSettings.loraBandwidth = DEFAULT_LORA_BANDWIDTH;
+    CopyStringValue(g_deviceSettings.mqttBrokerHost, sizeof(g_deviceSettings.mqttBrokerHost), DEFAULT_MQTT_BROKER_HOST);
+    g_deviceSettings.mqttBrokerPort = DEFAULT_MQTT_BROKER_PORT;
+    g_deviceSettings.mqttTlsMode = DEFAULT_MQTT_TLS_MODE;
+    CopyStringValue(g_deviceSettings.mqttClientIdPrefix, sizeof(g_deviceSettings.mqttClientIdPrefix), DEFAULT_MQTT_CLIENT_ID_PREFIX);
+    CopyStringValue(g_deviceSettings.mqttAuthPrefix, sizeof(g_deviceSettings.mqttAuthPrefix), DEFAULT_MQTT_AUTH_PREFIX);
+    CopyStringValue(g_deviceSettings.mqttSubscribeTopic, sizeof(g_deviceSettings.mqttSubscribeTopic), DEFAULT_MQTT_SUBSCRIBE_TOPIC);
+    g_deviceSettings.mqttSubscribeQos = DEFAULT_MQTT_SUBSCRIBE_QOS;
+    g_deviceSettings.mqttPublishTimeoutMs = DEFAULT_MQTT_PUBLISH_TIMEOUT_MS;
+}
+
+static void CopyStringValue(char *dst, size_t dstSize, const char *src)
+{
+    if (dst == NULL || dstSize == 0 || src == NULL) {
+        return;
+    }
+
+    strncpy(dst, src, dstSize - 1);
+    dst[dstSize - 1] = '\0';
 }
