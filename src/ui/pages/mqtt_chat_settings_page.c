@@ -10,6 +10,7 @@
 #include "user_memory.h"
 #include "device_settings.h"
 #include "input_number.h"
+#include "input_text.h"
 #include "confirm_win.h"
 #include "images_declare.h"
 
@@ -27,7 +28,6 @@ typedef struct {
     lv_obj_t *subscribeTopicInput;
     lv_obj_t *subscribeQosInput;
     lv_obj_t *publishTimeoutInput;
-    lv_obj_t *keyboard;
     lv_obj_t *unsavedLabel;
     bool unsaved;
 } MqttChatSettingsPageValues_t;
@@ -40,7 +40,11 @@ static void ConfirmBackEventHandler(lv_event_t *e);
 static void SaveBtnEventHandler(lv_event_t *e);
 static void AvatarColorDropdownEventHandler(lv_event_t *e);
 static void TextInputEventHandler(lv_event_t *e);
-static void KeyboardEventHandler(lv_event_t *e);
+static void UsernameInputTextHandler(const char *input);
+static void BrokerHostInputTextHandler(const char *input);
+static void ClientIdPrefixInputTextHandler(const char *input);
+static void AuthPrefixInputTextHandler(const char *input);
+static void SubscribeTopicInputTextHandler(const char *input);
 static void BrokerPortInputEventHandler(lv_event_t *e);
 static void BrokerPortInputNumberHandler(uint32_t input);
 static void TlsModeInputEventHandler(lv_event_t *e);
@@ -175,12 +179,6 @@ static void MqttChatSettingsPageInit(void)
     values->publishTimeoutInput = CreateNumberInput(y, DeviceSettingsGetMqttPublishTimeoutMs());
     lv_obj_add_event_cb(values->publishTimeoutInput, PublishTimeoutInputEventHandler, LV_EVENT_CLICKED, NULL);
 
-    values->keyboard = lv_keyboard_create(GetPageBackground());
-    lv_obj_set_size(values->keyboard, lv_display_get_horizontal_resolution(NULL), 160);
-    lv_obj_align(values->keyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
-    lv_obj_add_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_event_cb(values->keyboard, KeyboardEventHandler, LV_EVENT_ALL, values);
-
     values->unsavedLabel = lv_label_create(GetPageBackground());
     lv_label_set_text(values->unsavedLabel, "* Unsaved");
     lv_obj_align(values->unsavedLabel, LV_ALIGN_TOP_MID, 0, 8);
@@ -260,36 +258,65 @@ static void AvatarColorDropdownEventHandler(lv_event_t *e)
 static void TextInputEventHandler(lv_event_t *e)
 {
     MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-    lv_event_code_t code = lv_event_get_code(e);
     lv_obj_t *target = lv_event_get_target(e);
 
-    if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) {
-        lv_keyboard_set_textarea(values->keyboard, target);
-        lv_obj_remove_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
-    } else if (code == LV_EVENT_VALUE_CHANGED) {
-        if (target == values->usernameInput) {
-            UpdateAvatarPreview();
-        }
-        UpdateUnsavedState();
+    if (target == values->usernameInput) {
+        CreateInputText(GetPageBackground(), "Username", lv_textarea_get_text(values->usernameInput),
+                        31, false, UsernameInputTextHandler);
+    } else if (target == values->brokerHostInput) {
+        CreateInputText(GetPageBackground(), "Broker Host", lv_textarea_get_text(values->brokerHostInput),
+                        63, false, BrokerHostInputTextHandler);
+    } else if (target == values->clientIdPrefixInput) {
+        CreateInputText(GetPageBackground(), "Client Prefix", lv_textarea_get_text(values->clientIdPrefixInput),
+                        31, false, ClientIdPrefixInputTextHandler);
+    } else if (target == values->authPrefixInput) {
+        CreateInputText(GetPageBackground(), "Auth Prefix", lv_textarea_get_text(values->authPrefixInput),
+                        31, false, AuthPrefixInputTextHandler);
+    } else if (target == values->subscribeTopicInput) {
+        CreateInputText(GetPageBackground(), "Topic", lv_textarea_get_text(values->subscribeTopicInput),
+                        63, false, SubscribeTopicInputTextHandler);
     }
 }
 
-static void KeyboardEventHandler(lv_event_t *e)
+static void UsernameInputTextHandler(const char *input)
 {
-    lv_event_code_t code = lv_event_get_code(e);
-    MqttChatSettingsPageValues_t *values = lv_event_get_user_data(e);
-    lv_obj_t *ta;
+    MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
 
-    if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL) {
-        ta = lv_keyboard_get_textarea(values->keyboard);
-        if (ta != NULL) {
-            lv_obj_clear_state(ta, LV_STATE_FOCUSED);
-            lv_indev_reset(NULL, ta);
-        }
-        lv_keyboard_set_textarea(values->keyboard, NULL);
-        lv_obj_add_flag(values->keyboard, LV_OBJ_FLAG_HIDDEN);
-        UpdateUnsavedState();
-    }
+    lv_textarea_set_text(values->usernameInput, input == NULL ? "" : input);
+    UpdateAvatarPreview();
+    UpdateUnsavedState();
+}
+
+static void BrokerHostInputTextHandler(const char *input)
+{
+    MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+
+    lv_textarea_set_text(values->brokerHostInput, input == NULL ? "" : input);
+    UpdateUnsavedState();
+}
+
+static void ClientIdPrefixInputTextHandler(const char *input)
+{
+    MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+
+    lv_textarea_set_text(values->clientIdPrefixInput, input == NULL ? "" : input);
+    UpdateUnsavedState();
+}
+
+static void AuthPrefixInputTextHandler(const char *input)
+{
+    MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+
+    lv_textarea_set_text(values->authPrefixInput, input == NULL ? "" : input);
+    UpdateUnsavedState();
+}
+
+static void SubscribeTopicInputTextHandler(const char *input)
+{
+    MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+
+    lv_textarea_set_text(values->subscribeTopicInput, input == NULL ? "" : input);
+    UpdateUnsavedState();
 }
 
 static void BrokerPortInputEventHandler(lv_event_t *e)
@@ -390,8 +417,6 @@ static lv_obj_t *CreateTextInput(lv_coord_t y, uint32_t maxLength, const char *t
     lv_obj_align(input, LV_ALIGN_TOP_RIGHT, -20, y - 6);
     lv_textarea_set_text(input, text);
     lv_obj_add_event_cb(input, TextInputEventHandler, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(input, TextInputEventHandler, LV_EVENT_FOCUSED, NULL);
-    lv_obj_add_event_cb(input, TextInputEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
     return input;
 }

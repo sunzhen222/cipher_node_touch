@@ -11,7 +11,7 @@
 #include "images_declare.h"
 #include "user_assert.h"
 #include "background_task.h"
-#include "input_string.h"
+#include "input_text.h"
 #include "confirm_win.h"
 #include "string.h"
 #include "loading_spinner.h"
@@ -330,7 +330,7 @@ static void WifiListItemClickHandler(lv_event_t *e)
             snprintf(values->pendingSsid, sizeof(values->pendingSsid), "%s", ssid);
             char title[128];
             snprintf(title, sizeof(title), "Enter password for \n\n%s", ssid);
-            CreateInputString(GetPageBackground(), title, "", 63, true, WifiPasswordInputHandler);
+            CreateInputText(GetPageBackground(), title, "", 63, true, WifiPasswordInputHandler);
             return;
         }
     }

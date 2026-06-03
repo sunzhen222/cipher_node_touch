@@ -10,6 +10,7 @@
 #include "user_memory.h"
 #include "device_settings.h"
 #include "input_number.h"
+#include "input_text.h"
 #include "confirm_win.h"
 #include "images_declare.h"
 #include "lora.h"
@@ -24,7 +25,6 @@ typedef struct {
     lv_obj_t *netIdInput;
     lv_obj_t *sfDropdown;
     lv_obj_t *bwDropdown;
-    lv_obj_t *usernameKeyboard;
     lv_obj_t *unsavedLabel;
     bool unsaved;
 } LoraChatSettingsPageValues_t;
@@ -42,8 +42,9 @@ static void NetIdInputEventHandler(lv_event_t *e);
 static void NetIdInputNumberHandler(uint32_t input);
 static void AvatarColorDropdownEventHandler(lv_event_t *e);
 static void UsernameInputEventHandler(lv_event_t *e);
+static void UsernameInputTextHandler(const char *input);
 static void SecretKeyInputEventHandler(lv_event_t *e);
-static void UsernameKeyboardEventHandler(lv_event_t *e);
+static void SecretKeyInputTextHandler(const char *input);
 static void SfDropdownEventHandler(lv_event_t *e);
 static void BwDropdownEventHandler(lv_event_t *e);
 
@@ -144,8 +145,6 @@ static void LoraChatSettingsPageInit(void)
     lv_obj_align(values->usernameInput, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     lv_textarea_set_text(values->usernameInput, DeviceSettingsGetLoraChatUsername());
     lv_obj_add_event_cb(values->usernameInput, UsernameInputEventHandler, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(values->usernameInput, UsernameInputEventHandler, LV_EVENT_FOCUSED, NULL);
-    lv_obj_add_event_cb(values->usernameInput, UsernameInputEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
     y += rowGapY;
     label = lv_label_create(GetPageBackground());
@@ -160,8 +159,6 @@ static void LoraChatSettingsPageInit(void)
     lv_obj_align(values->secretKeyInput, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     lv_textarea_set_text(values->secretKeyInput, DeviceSettingsGetLoraSecretKey());
     lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_CLICKED, NULL);
-    lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_FOCUSED, NULL);
-    lv_obj_add_event_cb(values->secretKeyInput, SecretKeyInputEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
     y += rowGapY;
     label = lv_label_create(GetPageBackground());
@@ -212,12 +209,6 @@ static void LoraChatSettingsPageInit(void)
     lv_dropdown_set_options(values->bwDropdown, g_bwDropdownOptions);
     lv_dropdown_set_selected(values->bwDropdown, GetBwSelectedIndex(DeviceSettingsGetLoraBandwidth()));
     lv_obj_add_event_cb(values->bwDropdown, BwDropdownEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
-
-    values->usernameKeyboard = lv_keyboard_create(GetPageBackground());
-    lv_obj_set_size(values->usernameKeyboard, lv_display_get_horizontal_resolution(NULL), 160);
-    lv_obj_align(values->usernameKeyboard, LV_ALIGN_BOTTOM_MID, 0, 0);
-    lv_obj_add_flag(values->usernameKeyboard, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_event_cb(values->usernameKeyboard, UsernameKeyboardEventHandler, LV_EVENT_ALL, values);
 
     values->unsavedLabel = lv_label_create(GetPageBackground());
     lv_label_set_text(values->unsavedLabel, "* Unsaved");
@@ -364,46 +355,44 @@ static void AvatarColorDropdownEventHandler(lv_event_t *e)
 static void UsernameInputEventHandler(lv_event_t *e)
 {
     LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-    lv_event_code_t code = lv_event_get_code(e);
 
-    if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) {
-        lv_keyboard_set_textarea(values->usernameKeyboard, values->usernameInput);
-        lv_obj_remove_flag(values->usernameKeyboard, LV_OBJ_FLAG_HIDDEN);
-    } else if (code == LV_EVENT_VALUE_CHANGED) {
-        UpdateAvatarPreview();
-        UpdateUnsavedState();
-    }
+    UNUSED(e);
+    CreateInputText(GetPageBackground(),
+                    "Username",
+                    lv_textarea_get_text(values->usernameInput),
+                    31,
+                    false,
+                    UsernameInputTextHandler);
+}
+
+static void UsernameInputTextHandler(const char *input)
+{
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+
+    lv_textarea_set_text(values->usernameInput, input == NULL ? "" : input);
+    UpdateAvatarPreview();
+    UpdateUnsavedState();
 }
 
 static void SecretKeyInputEventHandler(lv_event_t *e)
 {
     LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-    lv_event_code_t code = lv_event_get_code(e);
 
-    if (code == LV_EVENT_CLICKED || code == LV_EVENT_FOCUSED) {
-        lv_keyboard_set_textarea(values->usernameKeyboard, values->secretKeyInput);
-        lv_obj_remove_flag(values->usernameKeyboard, LV_OBJ_FLAG_HIDDEN);
-    } else if (code == LV_EVENT_VALUE_CHANGED) {
-        UpdateUnsavedState();
-    }
+    UNUSED(e);
+    CreateInputText(GetPageBackground(),
+                    "LoRa Secret Key",
+                    lv_textarea_get_text(values->secretKeyInput),
+                    95,
+                    false,
+                    SecretKeyInputTextHandler);
 }
 
-static void UsernameKeyboardEventHandler(lv_event_t *e)
+static void SecretKeyInputTextHandler(const char *input)
 {
-    lv_event_code_t code = lv_event_get_code(e);
-    LoraChatSettingsPageValues_t *values = lv_event_get_user_data(e);
-    lv_obj_t *ta;
+    LoraChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
 
-    if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL) {
-        ta = lv_keyboard_get_textarea(values->usernameKeyboard);
-        if (ta != NULL) {
-            lv_obj_clear_state(ta, LV_STATE_FOCUSED);
-            lv_indev_reset(NULL, ta);
-        }
-        lv_keyboard_set_textarea(values->usernameKeyboard, NULL);
-        lv_obj_add_flag(values->usernameKeyboard, LV_OBJ_FLAG_HIDDEN);
-        UpdateUnsavedState();
-    }
+    lv_textarea_set_text(values->secretKeyInput, input == NULL ? "" : input);
+    UpdateUnsavedState();
 }
 
 static void SfDropdownEventHandler(lv_event_t *e)

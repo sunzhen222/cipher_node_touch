@@ -1,25 +1,25 @@
-#include "input_string.h"
+#include "input_text.h"
 #include "user_memory.h"
 #include "user_utils.h"
 #include "images_declare.h"
 
 typedef struct {
-    InputStringHandler_t handler;
+    InputTextHandler_t handler;
     lv_obj_t *bg;
     lv_obj_t *ta;
-} InputStringValue_t;
+} InputTextValue_t;
 
-static void InputStringKeyboardEventHandler(lv_event_t *e);
+static void InputTextKeyboardEventHandler(lv_event_t *e);
 static void BackHandler(lv_event_t *e);
 static void KeepTaFocusEventHandler(lv_event_t *e);
-static void FocusTextarea(InputStringValue_t *inputStringValue);
+static void FocusTextarea(InputTextValue_t *inputTextValue);
 
-lv_obj_t *CreateInputString(lv_obj_t *parent,
-                            const char *title,
-                            const char *value,
-                            uint32_t maxLen,
-                            bool isPassword,
-                            InputStringHandler_t handler)
+lv_obj_t *CreateInputText(lv_obj_t *parent,
+                          const char *title,
+                          const char *value,
+                          uint32_t maxLen,
+                          bool isPassword,
+                          InputTextHandler_t handler)
 {
     lv_obj_t *bg = lv_obj_create(parent);
     lv_obj_set_size(bg, lv_obj_get_width(parent), lv_obj_get_height(parent));
@@ -27,9 +27,9 @@ lv_obj_t *CreateInputString(lv_obj_t *parent,
     lv_obj_set_style_bg_opa(bg, LV_OPA_COVER, 0);
     lv_obj_add_flag(bg, LV_OBJ_FLAG_CLICKABLE);
 
-    InputStringValue_t *inputStringValue = SRAM_MALLOC(sizeof(InputStringValue_t));
-    inputStringValue->handler = handler;
-    inputStringValue->bg = bg;
+    InputTextValue_t *inputTextValue = SRAM_MALLOC(sizeof(InputTextValue_t));
+    inputTextValue->handler = handler;
+    inputTextValue->bg = bg;
 
     lv_obj_t *backButton = lv_button_create(bg);
     lv_obj_set_size(backButton, 48, 48);
@@ -41,7 +41,7 @@ lv_obj_t *CreateInputString(lv_obj_t *parent,
     lv_image_set_src(backImg, &img_back);
     lv_obj_set_style_text_color(backImg, lv_color_white(), 0);
     lv_obj_align(backImg, LV_ALIGN_CENTER, 0, 0);
-    lv_obj_add_event_cb(backButton, BackHandler, LV_EVENT_CLICKED, inputStringValue);
+    lv_obj_add_event_cb(backButton, BackHandler, LV_EVENT_CLICKED, inputTextValue);
 
     lv_obj_t *label = lv_label_create(bg);
     lv_label_set_text(label, title);
@@ -56,7 +56,7 @@ lv_obj_t *CreateInputString(lv_obj_t *parent,
     lv_textarea_set_max_length(ta, maxLen);
     lv_textarea_set_password_mode(ta, isPassword);
     lv_textarea_set_text(ta, value == NULL ? "" : value);
-    inputStringValue->ta = ta;
+    inputTextValue->ta = ta;
 
     lv_obj_t *keyboard = lv_keyboard_create(bg);
     lv_obj_set_size(keyboard, lv_display_get_horizontal_resolution(NULL), 160);
@@ -64,52 +64,52 @@ lv_obj_t *CreateInputString(lv_obj_t *parent,
     lv_obj_remove_flag(keyboard, LV_OBJ_FLAG_CLICK_FOCUSABLE);
     lv_keyboard_set_mode(keyboard, LV_KEYBOARD_MODE_TEXT_LOWER);
     lv_keyboard_set_textarea(keyboard, ta);
-    lv_obj_add_event_cb(keyboard, InputStringKeyboardEventHandler, LV_EVENT_READY, inputStringValue);
-    lv_obj_add_event_cb(keyboard, InputStringKeyboardEventHandler, LV_EVENT_CANCEL, inputStringValue);
+    lv_obj_add_event_cb(keyboard, InputTextKeyboardEventHandler, LV_EVENT_READY, inputTextValue);
+    lv_obj_add_event_cb(keyboard, InputTextKeyboardEventHandler, LV_EVENT_CANCEL, inputTextValue);
 
-    lv_obj_add_event_cb(bg, KeepTaFocusEventHandler, LV_EVENT_CLICKED, inputStringValue);
-    FocusTextarea(inputStringValue);
+    lv_obj_add_event_cb(bg, KeepTaFocusEventHandler, LV_EVENT_CLICKED, inputTextValue);
+    FocusTextarea(inputTextValue);
 
     return bg;
 }
 
-static void InputStringKeyboardEventHandler(lv_event_t *e)
+static void InputTextKeyboardEventHandler(lv_event_t *e)
 {
     lv_event_code_t code = lv_event_get_code(e);
-    InputStringValue_t *inputStringValue = lv_event_get_user_data(e);
+    InputTextValue_t *inputTextValue = lv_event_get_user_data(e);
 
     if (code == LV_EVENT_READY) {
-        InputStringHandler_t handler = inputStringValue->handler;
+        InputTextHandler_t handler = inputTextValue->handler;
         if (handler != NULL) {
-            handler(lv_textarea_get_text(inputStringValue->ta));
+            handler(lv_textarea_get_text(inputTextValue->ta));
         }
     }
 
     if (code == LV_EVENT_READY || code == LV_EVENT_CANCEL) {
-        lv_obj_del(inputStringValue->bg);
-        SRAM_FREE(inputStringValue);
+        lv_obj_del(inputTextValue->bg);
+        SRAM_FREE(inputTextValue);
     }
 }
 
 static void BackHandler(lv_event_t *e)
 {
-    InputStringValue_t *inputStringValue = lv_event_get_user_data(e);
-    lv_obj_del(inputStringValue->bg);
-    SRAM_FREE(inputStringValue);
+    InputTextValue_t *inputTextValue = lv_event_get_user_data(e);
+    lv_obj_del(inputTextValue->bg);
+    SRAM_FREE(inputTextValue);
 }
 
 static void KeepTaFocusEventHandler(lv_event_t *e)
 {
-    InputStringValue_t *inputStringValue = lv_event_get_user_data(e);
-    FocusTextarea(inputStringValue);
+    InputTextValue_t *inputTextValue = lv_event_get_user_data(e);
+    FocusTextarea(inputTextValue);
 }
 
-static void FocusTextarea(InputStringValue_t *inputStringValue)
+static void FocusTextarea(InputTextValue_t *inputTextValue)
 {
-    if (inputStringValue == NULL || inputStringValue->ta == NULL) {
+    if (inputTextValue == NULL || inputTextValue->ta == NULL) {
         return;
     }
 
-    lv_group_focus_obj(inputStringValue->ta);
-    lv_obj_add_state(inputStringValue->ta, LV_STATE_FOCUSED);
+    lv_group_focus_obj(inputTextValue->ta);
+    lv_obj_add_state(inputTextValue->ta, LV_STATE_FOCUSED);
 }
