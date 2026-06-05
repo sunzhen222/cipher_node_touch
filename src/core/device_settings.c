@@ -32,8 +32,6 @@
 #define KEY_MQTT_BROKER_HOST                "mqtt_broker_host"
 #define KEY_MQTT_BROKER_PORT                "mqtt_broker_port"
 #define KEY_MQTT_TLS_MODE                   "mqtt_tls_mode"
-#define KEY_MQTT_CLIENT_ID_PREFIX           "mqtt_client_id_prefix"
-#define KEY_MQTT_AUTH_PREFIX                "mqtt_auth_prefix"
 #define KEY_MQTT_SUBSCRIBE_TOPIC            "mqtt_subscribe_topic"
 #define KEY_MQTT_SUBSCRIBE_QOS              "mqtt_subscribe_qos"
 #define KEY_MQTT_PUBLISH_TIMEOUT_MS         "mqtt_publish_timeout_ms"
@@ -53,8 +51,6 @@
 #define DEFAULT_MQTT_BROKER_HOST            "t1bf11cf.ala.cn-shenzhen.emqxsl.cn"
 #define DEFAULT_MQTT_BROKER_PORT            8883
 #define DEFAULT_MQTT_TLS_MODE               2
-#define DEFAULT_MQTT_CLIENT_ID_PREFIX       "cipher_node_touch_board_"
-#define DEFAULT_MQTT_AUTH_PREFIX            "CipherNodeTouch_"
 #define DEFAULT_MQTT_SUBSCRIBE_TOPIC        "testtopic/chat"
 #define DEFAULT_MQTT_SUBSCRIBE_QOS          0
 #define DEFAULT_MQTT_PUBLISH_TIMEOUT_MS     5000
@@ -75,8 +71,6 @@ typedef struct {
     char mqttBrokerHost[64];
     uint32_t mqttBrokerPort;
     uint32_t mqttTlsMode;
-    char mqttClientIdPrefix[32];
-    char mqttAuthPrefix[32];
     char mqttSubscribeTopic[64];
     uint32_t mqttSubscribeQos;
     uint32_t mqttPublishTimeoutMs;
@@ -284,26 +278,6 @@ void DeviceSettingsSetMqttTlsMode(uint32_t tlsMode)
     g_deviceSettings.mqttTlsMode = tlsMode;
 }
 
-const char *DeviceSettingsGetMqttClientIdPrefix(void)
-{
-    return g_deviceSettings.mqttClientIdPrefix;
-}
-
-void DeviceSettingsSetMqttClientIdPrefix(const char *prefix)
-{
-    CopyStringValue(g_deviceSettings.mqttClientIdPrefix, sizeof(g_deviceSettings.mqttClientIdPrefix), prefix);
-}
-
-const char *DeviceSettingsGetMqttAuthPrefix(void)
-{
-    return g_deviceSettings.mqttAuthPrefix;
-}
-
-void DeviceSettingsSetMqttAuthPrefix(const char *prefix)
-{
-    CopyStringValue(g_deviceSettings.mqttAuthPrefix, sizeof(g_deviceSettings.mqttAuthPrefix), prefix);
-}
-
 const char *DeviceSettingsGetMqttSubscribeTopic(void)
 {
     return g_deviceSettings.mqttSubscribeTopic;
@@ -420,8 +394,6 @@ static bool GetDeviceSettingsFromJsonString(const char *string)
         GetStringValue(rootJson, KEY_MQTT_BROKER_HOST, DEFAULT_MQTT_BROKER_HOST, g_deviceSettings.mqttBrokerHost);
         g_deviceSettings.mqttBrokerPort = GetIntValue(rootJson, KEY_MQTT_BROKER_PORT, DEFAULT_MQTT_BROKER_PORT);
         g_deviceSettings.mqttTlsMode = GetIntValue(rootJson, KEY_MQTT_TLS_MODE, DEFAULT_MQTT_TLS_MODE);
-        GetStringValue(rootJson, KEY_MQTT_CLIENT_ID_PREFIX, DEFAULT_MQTT_CLIENT_ID_PREFIX, g_deviceSettings.mqttClientIdPrefix);
-        GetStringValue(rootJson, KEY_MQTT_AUTH_PREFIX, DEFAULT_MQTT_AUTH_PREFIX, g_deviceSettings.mqttAuthPrefix);
         GetStringValue(rootJson, KEY_MQTT_SUBSCRIBE_TOPIC, DEFAULT_MQTT_SUBSCRIBE_TOPIC, g_deviceSettings.mqttSubscribeTopic);
         g_deviceSettings.mqttSubscribeQos = GetIntValue(rootJson, KEY_MQTT_SUBSCRIBE_QOS, DEFAULT_MQTT_SUBSCRIBE_QOS);
         g_deviceSettings.mqttPublishTimeoutMs = GetIntValue(rootJson, KEY_MQTT_PUBLISH_TIMEOUT_MS, DEFAULT_MQTT_PUBLISH_TIMEOUT_MS);
@@ -454,8 +426,6 @@ static char *GetJsonStringFromDeviceSettings(void)
     cJSON_AddItemToObject(rootJson, KEY_MQTT_BROKER_HOST, cJSON_CreateString(g_deviceSettings.mqttBrokerHost));
     cJSON_AddItemToObject(rootJson, KEY_MQTT_BROKER_PORT, cJSON_CreateNumber(g_deviceSettings.mqttBrokerPort));
     cJSON_AddItemToObject(rootJson, KEY_MQTT_TLS_MODE, cJSON_CreateNumber(g_deviceSettings.mqttTlsMode));
-    cJSON_AddItemToObject(rootJson, KEY_MQTT_CLIENT_ID_PREFIX, cJSON_CreateString(g_deviceSettings.mqttClientIdPrefix));
-    cJSON_AddItemToObject(rootJson, KEY_MQTT_AUTH_PREFIX, cJSON_CreateString(g_deviceSettings.mqttAuthPrefix));
     cJSON_AddItemToObject(rootJson, KEY_MQTT_SUBSCRIBE_TOPIC, cJSON_CreateString(g_deviceSettings.mqttSubscribeTopic));
     cJSON_AddItemToObject(rootJson, KEY_MQTT_SUBSCRIBE_QOS, cJSON_CreateNumber(g_deviceSettings.mqttSubscribeQos));
     cJSON_AddItemToObject(rootJson, KEY_MQTT_PUBLISH_TIMEOUT_MS, cJSON_CreateNumber(g_deviceSettings.mqttPublishTimeoutMs));
@@ -485,8 +455,6 @@ static void SetDefaultDeviceSettings(void)
     CopyStringValue(g_deviceSettings.mqttBrokerHost, sizeof(g_deviceSettings.mqttBrokerHost), DEFAULT_MQTT_BROKER_HOST);
     g_deviceSettings.mqttBrokerPort = DEFAULT_MQTT_BROKER_PORT;
     g_deviceSettings.mqttTlsMode = DEFAULT_MQTT_TLS_MODE;
-    CopyStringValue(g_deviceSettings.mqttClientIdPrefix, sizeof(g_deviceSettings.mqttClientIdPrefix), DEFAULT_MQTT_CLIENT_ID_PREFIX);
-    CopyStringValue(g_deviceSettings.mqttAuthPrefix, sizeof(g_deviceSettings.mqttAuthPrefix), DEFAULT_MQTT_AUTH_PREFIX);
     CopyStringValue(g_deviceSettings.mqttSubscribeTopic, sizeof(g_deviceSettings.mqttSubscribeTopic), DEFAULT_MQTT_SUBSCRIBE_TOPIC);
     g_deviceSettings.mqttSubscribeQos = DEFAULT_MQTT_SUBSCRIBE_QOS;
     g_deviceSettings.mqttPublishTimeoutMs = DEFAULT_MQTT_PUBLISH_TIMEOUT_MS;

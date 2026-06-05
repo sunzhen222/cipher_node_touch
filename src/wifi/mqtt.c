@@ -9,6 +9,8 @@
 #include "device_settings.h"
 
 #define MQTT_SENDER_ID_LENGTH        8
+#define MQTT_CLIENT_ID_PREFIX        "cipher_node_touch_board_"
+#define MQTT_AUTH_PREFIX             "CipherNodeTouch_"
 
 static bool g_mqttConnected = false;
 
@@ -40,7 +42,7 @@ static void BuildMqttClientId(char *buffer, size_t bufferSize)
     char senderId[MQTT_SENDER_ID_LENGTH + 1];
 
     BuildMqttSenderId(senderId, sizeof(senderId));
-    snprintf(buffer, bufferSize, "%s%s", DeviceSettingsGetMqttClientIdPrefix(), senderId);
+    snprintf(buffer, bufferSize, "%s%s", MQTT_CLIENT_ID_PREFIX, senderId);
 }
 
 static void BuildMqttAuthString(char *buffer, size_t bufferSize)
@@ -50,7 +52,7 @@ static void BuildMqttAuthString(char *buffer, size_t bufferSize)
     uint32_t uid2 = HAL_GetUIDw2();
 
     // Keep UID formatting aligned with about_page, but concatenate without spaces.
-    snprintf(buffer, bufferSize, "%s%08lX%08lX%08lX", DeviceSettingsGetMqttAuthPrefix(), uid0, uid1, uid2);
+    snprintf(buffer, bufferSize, "%s%08lX%08lX%08lX", MQTT_AUTH_PREFIX, uid0, uid1, uid2);
 }
 
 bool IsMqttConnected(void)

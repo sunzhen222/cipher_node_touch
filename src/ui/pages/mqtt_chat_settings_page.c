@@ -23,8 +23,6 @@ typedef struct {
     lv_obj_t *brokerHostInput;
     lv_obj_t *brokerPortInput;
     lv_obj_t *tlsModeInput;
-    lv_obj_t *clientIdPrefixInput;
-    lv_obj_t *authPrefixInput;
     lv_obj_t *subscribeTopicInput;
     lv_obj_t *subscribeQosInput;
     lv_obj_t *publishTimeoutInput;
@@ -42,8 +40,6 @@ static void AvatarColorDropdownEventHandler(lv_event_t *e);
 static void TextInputEventHandler(lv_event_t *e);
 static void UsernameInputTextHandler(const char *input);
 static void BrokerHostInputTextHandler(const char *input);
-static void ClientIdPrefixInputTextHandler(const char *input);
-static void AuthPrefixInputTextHandler(const char *input);
 static void SubscribeTopicInputTextHandler(const char *input);
 static void BrokerPortInputEventHandler(lv_event_t *e);
 static void BrokerPortInputNumberHandler(uint32_t input);
@@ -158,14 +154,6 @@ static void MqttChatSettingsPageInit(void)
     lv_obj_add_event_cb(values->tlsModeInput, TlsModeInputEventHandler, LV_EVENT_CLICKED, NULL);
 
     y += rowGapY;
-    CreateRowLabel("Client Prefix", y);
-    values->clientIdPrefixInput = CreateTextInput(y, 31, DeviceSettingsGetMqttClientIdPrefix());
-
-    y += rowGapY;
-    CreateRowLabel("Auth Prefix", y);
-    values->authPrefixInput = CreateTextInput(y, 31, DeviceSettingsGetMqttAuthPrefix());
-
-    y += rowGapY;
     CreateRowLabel("Topic", y);
     values->subscribeTopicInput = CreateTextInput(y, 63, DeviceSettingsGetMqttSubscribeTopic());
 
@@ -239,8 +227,6 @@ static void SaveBtnEventHandler(lv_event_t *e)
     DeviceSettingsSetMqttBrokerHost(lv_textarea_get_text(values->brokerHostInput));
     DeviceSettingsSetMqttBrokerPort(strtoul(lv_textarea_get_text(values->brokerPortInput), NULL, 10));
     DeviceSettingsSetMqttTlsMode(strtoul(lv_textarea_get_text(values->tlsModeInput), NULL, 10));
-    DeviceSettingsSetMqttClientIdPrefix(lv_textarea_get_text(values->clientIdPrefixInput));
-    DeviceSettingsSetMqttAuthPrefix(lv_textarea_get_text(values->authPrefixInput));
     DeviceSettingsSetMqttSubscribeTopic(lv_textarea_get_text(values->subscribeTopicInput));
     DeviceSettingsSetMqttSubscribeQos(strtoul(lv_textarea_get_text(values->subscribeQosInput), NULL, 10));
     DeviceSettingsSetMqttPublishTimeoutMs(strtoul(lv_textarea_get_text(values->publishTimeoutInput), NULL, 10));
@@ -266,12 +252,6 @@ static void TextInputEventHandler(lv_event_t *e)
     } else if (target == values->brokerHostInput) {
         CreateInputText(GetPageBackground(), "Broker Host", lv_textarea_get_text(values->brokerHostInput),
                         63, false, BrokerHostInputTextHandler);
-    } else if (target == values->clientIdPrefixInput) {
-        CreateInputText(GetPageBackground(), "Client Prefix", lv_textarea_get_text(values->clientIdPrefixInput),
-                        31, false, ClientIdPrefixInputTextHandler);
-    } else if (target == values->authPrefixInput) {
-        CreateInputText(GetPageBackground(), "Auth Prefix", lv_textarea_get_text(values->authPrefixInput),
-                        31, false, AuthPrefixInputTextHandler);
     } else if (target == values->subscribeTopicInput) {
         CreateInputText(GetPageBackground(), "Topic", lv_textarea_get_text(values->subscribeTopicInput),
                         63, false, SubscribeTopicInputTextHandler);
@@ -292,22 +272,6 @@ static void BrokerHostInputTextHandler(const char *input)
     MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
 
     lv_textarea_set_text(values->brokerHostInput, input == NULL ? "" : input);
-    UpdateUnsavedState();
-}
-
-static void ClientIdPrefixInputTextHandler(const char *input)
-{
-    MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-
-    lv_textarea_set_text(values->clientIdPrefixInput, input == NULL ? "" : input);
-    UpdateUnsavedState();
-}
-
-static void AuthPrefixInputTextHandler(const char *input)
-{
-    MqttChatSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
-
-    lv_textarea_set_text(values->authPrefixInput, input == NULL ? "" : input);
     UpdateUnsavedState();
 }
 
@@ -496,12 +460,6 @@ static void UpdateUnsavedState(void)
         unsaved = true;
     }
     if (tlsMode != DeviceSettingsGetMqttTlsMode()) {
-        unsaved = true;
-    }
-    if (strcmp(lv_textarea_get_text(values->clientIdPrefixInput), DeviceSettingsGetMqttClientIdPrefix()) != 0) {
-        unsaved = true;
-    }
-    if (strcmp(lv_textarea_get_text(values->authPrefixInput), DeviceSettingsGetMqttAuthPrefix()) != 0) {
         unsaved = true;
     }
     if (strcmp(lv_textarea_get_text(values->subscribeTopicInput), DeviceSettingsGetMqttSubscribeTopic()) != 0) {

@@ -52,12 +52,6 @@ void DeviceSettingsSetMqttBrokerPort(uint32_t port);
 uint32_t DeviceSettingsGetMqttTlsMode(void);
 void DeviceSettingsSetMqttTlsMode(uint32_t tlsMode);
 
-const char *DeviceSettingsGetMqttClientIdPrefix(void);
-void DeviceSettingsSetMqttClientIdPrefix(const char *prefix);
-
-const char *DeviceSettingsGetMqttAuthPrefix(void);
-void DeviceSettingsSetMqttAuthPrefix(const char *prefix);
-
 const char *DeviceSettingsGetMqttSubscribeTopic(void);
 void DeviceSettingsSetMqttSubscribeTopic(const char *topic);
 
