@@ -1,6 +1,8 @@
 @echo off
 setlocal EnableDelayedExpansion
 
+SET SCRIPT_DIR=%~dp0
+SET SCRIPT_DIR=%SCRIPT_DIR:~0,-1%
 SET build_simulator=false
 SET build_rebuild=false
 SET build_copy=false
@@ -25,9 +27,9 @@ for %%i in (%*) do (
 )
 
 if "%build_simulator%"=="true" (
-    SET BUILD_FOLDER=%CD%\simulator_build
+    SET BUILD_FOLDER=%SCRIPT_DIR%\simulator_build
 ) else (
-    SET BUILD_FOLDER=%CD%\build
+    SET BUILD_FOLDER=%SCRIPT_DIR%\build
 )
 
 if "%build_rebuild%"=="true" (
@@ -37,7 +39,7 @@ if "%build_rebuild%"=="true" (
 if not exist %BUILD_FOLDER% (
     mkdir %BUILD_FOLDER%
 )
-touch src/core/software_version.c
+touch "%SCRIPT_DIR%\src\core\software_version.c"
 
 pushd %BUILD_FOLDER%
 
@@ -49,7 +51,8 @@ del /q update.bin >nul 2>&1
 cmake .. -G "Ninja"
 cmake --build .
 if exist cipher_node_touch.bin (
-    %CD%/../tools/ota_file_maker/OTA_File_Maker_Console.exe mcu cipher_node_touch.bin update.bin aes
+    copy /Y /B "%SCRIPT_DIR%\tools\ota_file_maker\key.json" "key.json"
+    "%SCRIPT_DIR%\tools\ota_file_maker\OTA_File_Maker_Console.exe" mcu cipher_node_touch.bin update.bin aes
     if "%build_copy%"=="true" (
         set target_drive=
         for /f "usebackq delims=" %%d in (`powershell -NoProfile -Command "$min=%target_min_bytes%;$max=%target_max_bytes%;Get-CimInstance Win32_LogicalDisk | Where-Object { $_.DriveType -in 2,3 -and $_.Size -ge $min -and $_.Size -le $max } | Select-Object -ExpandProperty DeviceID -First 1"`) do set target_drive=%%d
