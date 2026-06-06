@@ -46,9 +46,15 @@ static void AboutPageInit(void)
     snprintf(buildTime, sizeof(buildTime), "Build time: %s", GetBuildTime());
 
     uint32_t uid[3];
+#ifdef SIMULATOR
+    uid[0] = 0x53494D55;
+    uid[1] = 0x4C41544FU;
+    uid[2] = 0x52303031U;
+#else
     uid[0] = *(uint32_t *)(STM32_UID_BASE + 0);
     uid[1] = *(uint32_t *)(STM32_UID_BASE + 4);
     uid[2] = *(uint32_t *)(STM32_UID_BASE + 8);
+#endif
     snprintf(uidStr, sizeof(uidStr), "UID: %08lX %08lX %08lX", uid[0], uid[1], uid[2]);
 
     UserMenuItem_t menuItems[] = {

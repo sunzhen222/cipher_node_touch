@@ -1,13 +1,17 @@
 
 cmake_minimum_required(VERSION 3.10)
+
+if(NOT CMAKE_BUILD_TYPE STREQUAL "simulator")
 set(CMAKE_SYSTEM_NAME               Generic)
 set(CMAKE_SYSTEM_PROCESSOR          arm)
+endif()
 
 set(CMAKE_C_STANDARD                11)
 set(CMAKE_C_STANDARD_REQUIRED       ON)
 set(CMAKE_C_EXTENSIONS              ON)
 set(CMAKE_COLOR_DIAGNOSTICS         ON)
 
+if(NOT CMAKE_BUILD_TYPE STREQUAL "simulator")
 set(CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY")
 
 set(CROSS_COMPILE_PREFIX arm-none-eabi)
@@ -17,6 +21,7 @@ set(CMAKE_ASM_COMPILER ${CROSS_COMPILE_PREFIX}-gcc)
 set(CMAKE_OBJCOPY ${CROSS_COMPILE_PREFIX}-objcopy)
 set(CMAKE_OBJDUMP ${CROSS_COMPILE_PREFIX}-objdump)
 set(CMAKE_SIZE ${CROSS_COMPILE_PREFIX}-size)
+endif()
 
 project(cipher_node_touch LANGUAGES C CXX)
 
@@ -47,6 +52,11 @@ set(UI_THEMES_DIR "${UI_DIR}/themes")
 set(UI_I18N_DIR "${UI_DIR}/i18n")
 set(LVGL_DIR "${PROJECT_DIR}/third/lvgl")
 set(CTAES_DIR "${PROJECT_DIR}/third/ctaes")
+
+if(CMAKE_BUILD_TYPE STREQUAL "simulator")
+    include(simulator.cmake)
+    return()
+endif()
 
 # MCU specific flags
 set(TARGET_FLAGS "-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard ")

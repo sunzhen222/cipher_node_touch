@@ -47,9 +47,41 @@ del /q cipher_node_touch.elf >nul 2>&1
 del /q cipher_node_touch.bin >nul 2>&1
 del /q cipher_node_touch.hex >nul 2>&1
 del /q update.bin >nul 2>&1
+del /q cipher_node_touch.exe >nul 2>&1
+
+if "%build_simulator%"=="true" (
+    cmake .. -G "Ninja" -DCMAKE_BUILD_TYPE=simulator
+    if errorlevel 1 (
+        popd
+        endlocal
+        exit /b 1
+    )
+    cmake --build .
+    if errorlevel 1 (
+        popd
+        endlocal
+        exit /b 1
+    )
+    if exist cipher_node_touch.exe (
+        start cipher_node_touch.exe
+    )
+    popd
+    endlocal
+    exit /b 0
+)
 
 cmake .. -G "Ninja"
+if errorlevel 1 (
+    popd
+    endlocal
+    exit /b 1
+)
 cmake --build .
+if errorlevel 1 (
+    popd
+    endlocal
+    exit /b 1
+)
 if exist cipher_node_touch.bin (
     copy /Y /B "%SCRIPT_DIR%\tools\ota_file_maker\key.json" "key.json"
     "%SCRIPT_DIR%\tools\ota_file_maker\OTA_File_Maker_Console.exe" mcu cipher_node_touch.bin update.bin aes
