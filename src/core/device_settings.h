@@ -58,6 +58,9 @@ void DeviceSettingsSetMqttSubscribeQos(uint32_t qos);
 uint32_t DeviceSettingsGetMqttPublishTimeoutMs(void);
 void DeviceSettingsSetMqttPublishTimeoutMs(uint32_t timeoutMs);
 
+uint32_t DeviceSettingsGetLockScreenTime(void);
+void DeviceSettingsSetLockScreenTime(uint32_t lockScreenTime);
+
 void PrintDeviceSettings(void);
 
 void DeviceSettingsTest(int argc, char *argv[]);

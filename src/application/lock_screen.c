@@ -10,7 +10,7 @@
 #include "device_settings.h"
 
 #define LOCK_SCREEN_TICK                                    1000
-#define LOCK_SCREEN_TIME_OUT                                60 * 1000
+#define LOCK_SCREEN_TIME_MAX_SECONDS                        3600
 
 static void ShortPressHandler(void);
 static void ReleaseHandler(void);
@@ -81,9 +81,19 @@ static void ReleaseHandler(void)
 
 static void LockScreenTimerFunc(void *argument)
 {
+    uint32_t lockScreenTime;
+    uint32_t lockScreenTimeout;
+
     UNUSED(argument);
+    lockScreenTime = DeviceSettingsGetLockScreenTime();
+    if (lockScreenTime > LOCK_SCREEN_TIME_MAX_SECONDS) {
+        ClearLockScreenTime();
+        return;
+    }
+
     g_lockScreenTick += LOCK_SCREEN_TICK;
-    if (g_lockScreenTick >= LOCK_SCREEN_TIME_OUT) {
+    lockScreenTimeout = lockScreenTime * LOCK_SCREEN_TICK;
+    if (g_lockScreenTick >= lockScreenTimeout) {
         g_lockScreenTick = 0;
         PubValueMsg(BACKGROUND_MSG_LOCK_SCREEN, 0);
     }
