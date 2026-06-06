@@ -1311,9 +1311,9 @@
               <FilePath>..\src\ui\pages\home_page.c</FilePath>
             </File>
             <File>
-              <FileName>lcd_brightness_page.c</FileName>
+              <FileName>lcd_settings_page.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\src\ui\pages\lcd_brightness_page.c</FilePath>
+              <FilePath>..\src\ui\pages\lcd_settings_page.c</FilePath>
             </File>
             <File>
               <FileName>lora_chat_page.c</FileName>
