@@ -110,6 +110,7 @@ static void MqttChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
 {
     MqttChatPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
     MqttChatItem_t *item;
+    bool operateOk;
 
     switch (code) {
     case UI_MSG_CODE_MQTT_CONNECT_RESULT:
@@ -123,7 +124,7 @@ static void MqttChatPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
         }
         values->mqttOperating = false;
         UpdateConnectButtonState(values);
-        bool operateOk = *((bool *)data);
+        operateOk = *((bool *)data);
         if (code == UI_MSG_CODE_MQTT_CONNECT_RESULT && !operateOk) {
             ConfirmWin_t confirmWin = {0};
             confirmWin.text = "MQTT connect failed";

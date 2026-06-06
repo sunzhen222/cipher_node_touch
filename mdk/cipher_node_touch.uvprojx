@@ -410,6 +410,11 @@
               <FilePath>..\src\application\lora_chat.c</FilePath>
             </File>
             <File>
+              <FileName>mqtt_chat.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\application\mqtt_chat.c</FilePath>
+            </File>
+            <File>
               <FileName>save_error.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\application\save_error.c</FilePath>
@@ -418,6 +423,11 @@
               <FileName>sht30_app.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\application\sht30_app.c</FilePath>
+            </File>
+            <File>
+              <FileName>snapshot.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\application\snapshot.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -1185,6 +1195,11 @@
               <FileType>1</FileType>
               <FilePath>..\src\test\test_cmd.c</FilePath>
             </File>
+            <File>
+              <FileName>wifi_test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\test\wifi_test.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -1291,11 +1306,6 @@
               <FilePath>..\src\ui\pages\about_page.c</FilePath>
             </File>
             <File>
-              <FileName>chat_settings_page.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\ui\pages\chat_settings_page.c</FilePath>
-            </File>
-            <File>
               <FileName>home_page.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\ui\pages\home_page.c</FilePath>
@@ -1311,6 +1321,21 @@
               <FilePath>..\src\ui\pages\lora_chat_page.c</FilePath>
             </File>
             <File>
+              <FileName>lora_chat_settings_page.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\ui\pages\lora_chat_settings_page.c</FilePath>
+            </File>
+            <File>
+              <FileName>mqtt_chat_page.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\ui\pages\mqtt_chat_page.c</FilePath>
+            </File>
+            <File>
+              <FileName>mqtt_chat_settings_page.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\ui\pages\mqtt_chat_settings_page.c</FilePath>
+            </File>
+            <File>
               <FileName>system_page.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\ui\pages\system_page.c</FilePath>
@@ -1319,11 +1344,6 @@
               <FileName>touch_test_page.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\ui\pages\touch_test_page.c</FilePath>
-            </File>
-            <File>
-              <FileName>widget_color_page.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\ui\pages\widget_color_page.c</FilePath>
             </File>
             <File>
               <FileName>wifi_page.c</FileName>
@@ -1356,9 +1376,9 @@
               <FilePath>..\src\ui\widgets\input_number.c</FilePath>
             </File>
             <File>
-              <FileName>input_string.c</FileName>
+              <FileName>input_text.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\src\ui\widgets\input_string.c</FilePath>
+              <FilePath>..\src\ui\widgets\input_text.c</FilePath>
             </File>
             <File>
               <FileName>loading_spinner.c</FileName>
@@ -1514,6 +1534,11 @@
               <FileName>at_command.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\wifi\at_command.c</FilePath>
+            </File>
+            <File>
+              <FileName>mqtt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\wifi\mqtt.c</FilePath>
             </File>
             <File>
               <FileName>wifi_connect.c</FileName>
