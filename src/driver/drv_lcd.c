@@ -30,6 +30,7 @@
 #define LCD_CS_LOW()                    HAL_GPIO_WritePin(LCD_CS_GPIO, LCD_CS_PIN, GPIO_PIN_RESET)
 
 SPI_HandleTypeDef *g_lcdSpi = NULL;
+static bool g_lcdIsOpen = false;
 
 static void LcdTestFunc(int argc, char *argv[]);
 static void LcdSpiWrite(const void *buff, uint32_t num);
@@ -45,12 +46,36 @@ void LcdInit(void)
     SetGpioOutput(LCD_RESET_GPIO, LCD_RESET_PIN, GPIO_PIN_SET);
     SetGpioOutput(LCD_DC_GPIO, LCD_DC_PIN, GPIO_PIN_SET);
     SetGpioOutput(LCD_CS_GPIO, LCD_CS_PIN, GPIO_PIN_SET);
+    g_lcdIsOpen = true;
     LcdReset();
     LcdConfig();
     RegisterTestCmd("lcd:", LcdTestFunc);
     LcdClear(0);
     Timer5Init();
     SetLcdBackLight(100);
+}
+
+void LcdOpen(void)
+{
+    g_lcdIsOpen = true;
+    SetGpioOutput(LCD_RESET_GPIO, LCD_RESET_PIN, GPIO_PIN_SET);
+    SetGpioOutput(LCD_DC_GPIO, LCD_DC_PIN, GPIO_PIN_SET);
+    SetGpioOutput(LCD_CS_GPIO, LCD_CS_PIN, GPIO_PIN_SET);
+    LcdReset();
+    LcdConfig();
+}
+
+void LcdClose(void)
+{
+    g_lcdIsOpen = false;
+    SetGpioOutput(LCD_RESET_GPIO, LCD_RESET_PIN, GPIO_PIN_RESET);
+    SetGpioOutput(LCD_DC_GPIO, LCD_DC_PIN, GPIO_PIN_RESET);
+    SetGpioOutput(LCD_CS_GPIO, LCD_CS_PIN, GPIO_PIN_RESET);
+}
+
+bool LcdIsOpen(void)
+{
+    return g_lcdIsOpen;
 }
 
 void SetLcdBackLight(uint32_t brightness)
@@ -74,6 +99,9 @@ void LcdReset(void)
 void LcdDraw(uint16_t startX, uint16_t startY, uint16_t endX, uint16_t endY, const void *map)
 {
     uint32_t bytes;
+    if (LcdIsOpen() == false) {
+        return;
+    }
     bytes = (endY - startY + 1) * (endX - startX + 1) * 3;
     LcdSetAddress(startX, startY, endX, endY);
     LCD_DC_HIGH();
@@ -82,6 +110,9 @@ void LcdDraw(uint16_t startX, uint16_t startY, uint16_t endX, uint16_t endY, con
 
 void LcdClear(uint32_t color)
 {
+    if (LcdIsOpen() == false) {
+        return;
+    }
     uint32_t line = 10;
     uint8_t *mem = SRAM_MALLOC(320 * line * 3);
     for (uint32_t i = 0; i < 320 * line; i++) {

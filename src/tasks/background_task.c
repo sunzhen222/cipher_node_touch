@@ -13,6 +13,7 @@
 #include "at_command.h"
 #include "drv_power_switch.h"
 #include "wifi_connect.h"
+#include "lock_screen.h"
 
 typedef struct {
     BackgroundAsyncFunc_t func;
@@ -78,6 +79,7 @@ static void BackgroundTask(void *argument)
     AtCommandLock();
     SendAtCommand("ATE0");
     AtCommandUnlock();
+    LockScreenInit();
     while (1) {
         ret = osMessageQueueGet(g_backgroundQueue, &rcvMsg, NULL, 10000);
         if (ret != osOK) {
@@ -143,6 +145,14 @@ static void BackgroundTask(void *argument)
         break;
         case BACKGROUND_MSG_AT_COMMAND: {
             ProcessAtCommand();
+        }
+        break;
+        case BACKGROUND_MSG_LOCK_SCREEN: {
+            LockScreen();
+        }
+        break;
+        case BACKGROUND_MSG_UNLOCK_SCREEN: {
+            UnlockScreen();
         }
         break;
         default:

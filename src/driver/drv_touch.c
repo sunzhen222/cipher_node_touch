@@ -35,7 +35,6 @@ static void TouchTestFunc(int argc, char *argv[]);
 static TouchPadIntCallbackFunc_t g_touchPadIntCallback;
 static TouchPadChipType g_touchPadChipType = TOUCH_PAD_CHIP_UNKNOWN;
 
-
 void TouchInit(TouchPadIntCallbackFunc_t func)
 {
     uint8_t addr = 0;
@@ -69,7 +68,6 @@ void TouchInit(TouchPadIntCallbackFunc_t func)
     HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 }
 
-
 void TouchReset(void)
 {
     TOUCH_RESET_LOW();
@@ -77,7 +75,6 @@ void TouchReset(void)
     TOUCH_RESET_HIGH();
     osDelay(100);
 }
-
 
 void TouchOnOff(bool on)
 {
@@ -88,7 +85,6 @@ void TouchOnOff(bool on)
     }
 }
 
-
 /// @brief Get touch status, including touch state, X/Y coordinate.
 /// @param status TouchStatus struct addr.
 int32_t TouchGetStatus(TouchStatus_t *status)
@@ -98,7 +94,7 @@ int32_t TouchGetStatus(TouchStatus_t *status)
     } else if (g_touchPadChipType == TOUCH_PAD_CHIP_FT6336) {
         return Ft6336GetStatus(status);
     }
-    return 0;
+    return -1;
 }
 
 void TouchPadIntHandler(void)
@@ -111,18 +107,11 @@ void TouchPadIntHandler(void)
 static int32_t Cst726GetStatus(TouchStatus_t *status)
 {
     HAL_StatusTypeDef ret;
-    uint8_t cmd[2], readBuff[7] = {0};
+    uint8_t readBuff[7] = {0};
 
-    cmd[0] = 0xD0;
-    cmd[1] = 0x00;
-    ret = HAL_I2C_Master_Transmit(&hi2c1, CST726_I2C_ADDR, cmd, 2, 100);
+    ret = HAL_I2C_Mem_Read(&hi2c1, CST726_I2C_ADDR, 0xD000, I2C_MEMADD_SIZE_16BIT, readBuff, 7, 100);
     if (ret != HAL_OK) {
         printf("i2c trans hall err:%d\n", ret);
-        return -1;
-    }
-    ret = HAL_I2C_Master_Receive(&hi2c1, CST726_I2C_ADDR, readBuff, 7, 100);
-    if (ret != HAL_OK) {
-        printf("i2c receive hall err:%d\n", ret);
         return -1;
     }
     if (readBuff[6] == 0xAB) {
@@ -140,17 +129,11 @@ static int32_t Cst726GetStatus(TouchStatus_t *status)
 static int32_t Ft6336GetStatus(TouchStatus_t *status)
 {
     HAL_StatusTypeDef ret;
-    uint8_t addr, readBuff[5] = {0};
+    uint8_t readBuff[5] = {0};
 
-    addr = 2;
-    ret = HAL_I2C_Master_Transmit(&hi2c1, FT6336_I2C_ADDR, &addr, 1, 100);
+    ret = HAL_I2C_Mem_Read(&hi2c1, FT6336_I2C_ADDR, 0x02, I2C_MEMADD_SIZE_8BIT, readBuff, 5, 100);
     if (ret != HAL_OK) {
         printf("i2c trans hall err:%d\n", ret);
-        return -1;
-    }
-    ret = HAL_I2C_Master_Receive(&hi2c1, FT6336_I2C_ADDR, readBuff, 5, 100);
-    if (ret != HAL_OK) {
-        printf("i2c receive hall err:%d\n", ret);
         return -1;
     }
     //PrintArray("ft6336 rcv data", readBuff, 5);

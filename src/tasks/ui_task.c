@@ -71,6 +71,11 @@ static void UiTask(void *argument)
                 BackToRootPage();
             }
             break;
+            case UI_MSG_REFRESH: {
+                lv_obj_invalidate(lv_screen_active());
+                lv_refr_now(disp);
+            }
+            break;
             case UI_MSG_RELOAD_THEME: {
                 printf("reload UI theme\n");
                 theme = lv_theme_pocket_init(disp);

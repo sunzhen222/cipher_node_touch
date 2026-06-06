@@ -24,6 +24,7 @@ void UserMsgInit(void)
 
     SubMessageID(UI_MSG_USER_EVENT, g_uiQueue);
     SubMessageID(UI_MSG_HOME, g_uiQueue);
+    SubMessageID(UI_MSG_REFRESH, g_uiQueue);
     SubMessageID(UI_MSG_RELOAD_THEME, g_uiQueue);
 
 
@@ -32,6 +33,8 @@ void UserMsgInit(void)
     SubMessageID(BACKGROUND_MSG_LORA_IRQ, g_backgroundQueue);
     SubMessageID(BACKGROUND_MSG_EXECUTE, g_backgroundQueue);
     SubMessageID(BACKGROUND_MSG_AT_COMMAND, g_backgroundQueue);
+    SubMessageID(BACKGROUND_MSG_LOCK_SCREEN, g_backgroundQueue);
+    SubMessageID(BACKGROUND_MSG_UNLOCK_SCREEN, g_backgroundQueue);
 
     SubMessageID(WIRELESS_MSG_LORA_SEND, g_wirelessQueue);
 }
