@@ -10,9 +10,6 @@ void SaveDeviceSettings(void);
 uint32_t DeviceSettingsGetBrightness(void);
 void DeviceSettingsSetBrightness(uint32_t brightness);
 
-uint32_t DeviceSettingsGetWidgetColor(void);
-void DeviceSettingsSetWidgetColor(uint32_t color);
-
 uint32_t DeviceSettingsGetLoraChatAvatarColor(void);
 void DeviceSettingsSetLoraChatAvatarColor(uint32_t color);
 

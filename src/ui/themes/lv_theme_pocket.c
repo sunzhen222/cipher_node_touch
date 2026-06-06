@@ -7,7 +7,6 @@
 
 #include "lv_theme_pocket.h"
 #include "src/core/lv_global.h"
-#include "device_settings.h"
 
 /*********************
  *      DEFINES
@@ -17,6 +16,7 @@ struct _my_theme_t;
 typedef struct _my_theme_t my_theme_t;
 
 //#define theme_def (*(my_theme_t **)(&LV_GLOBAL_DEFAULT()->theme_pocket))
+#define THEME_MAIN_PALETTE LV_PALETTE_BLUE
 static void *theme_def;
 //#define theme_def (*(my_theme_t **)(&LV_GLOBAL_DEFAULT()->theme_pocket))
 
@@ -166,15 +166,15 @@ static void style_init(my_theme_t * theme)
 
     style_init_reset(&theme->styles.main_color_100);
     lv_style_set_bg_opa(&theme->styles.main_color_100, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.main_color_100, lv_palette_main(DeviceSettingsGetWidgetColor()));
+    lv_style_set_bg_color(&theme->styles.main_color_100, lv_palette_main(THEME_MAIN_PALETTE));
 
     style_init_reset(&theme->styles.main_color_70);
     lv_style_set_bg_opa(&theme->styles.main_color_70, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.main_color_70, ColorDarkenPct(lv_palette_main(DeviceSettingsGetWidgetColor()), 70));
+    lv_style_set_bg_color(&theme->styles.main_color_70, ColorDarkenPct(lv_palette_main(THEME_MAIN_PALETTE), 70));
 
     style_init_reset(&theme->styles.main_color_30);
     lv_style_set_bg_opa(&theme->styles.main_color_30, LV_OPA_COVER);
-    lv_style_set_bg_color(&theme->styles.main_color_30, ColorDarkenPct(lv_palette_main(DeviceSettingsGetWidgetColor()), 30));
+    lv_style_set_bg_color(&theme->styles.main_color_30, ColorDarkenPct(lv_palette_main(THEME_MAIN_PALETTE), 30));
     style_init_reset(&theme->styles.grey_color);
     lv_style_set_bg_opa(&theme->styles.grey_color, LV_OPA_COVER);
     lv_style_set_bg_color(&theme->styles.grey_color, lv_palette_main(LV_PALETTE_GREY));
@@ -241,7 +241,7 @@ static void style_init(my_theme_t * theme)
     lv_style_set_bg_color(&theme->styles.keyboard_pad_tiny, lv_color_make(220, 220, 220));
 
     style_init_reset(&theme->styles.keyboard_outline_primary);
-    lv_style_set_outline_color(&theme->styles.keyboard_outline_primary, lv_palette_main(DeviceSettingsGetWidgetColor()));
+    lv_style_set_outline_color(&theme->styles.keyboard_outline_primary, lv_palette_main(THEME_MAIN_PALETTE));
     lv_style_set_outline_width(&theme->styles.keyboard_outline_primary, 2);
     lv_style_set_outline_pad(&theme->styles.keyboard_outline_primary, 2);
     lv_style_set_outline_opa(&theme->styles.keyboard_outline_primary, LV_OPA_50);
@@ -271,8 +271,8 @@ static void style_init(my_theme_t * theme)
 
     style_init_reset(&theme->styles.keyboard_focus_key);
     lv_style_set_bg_opa(&theme->styles.keyboard_focus_key, LV_OPA_20);
-    lv_style_set_bg_color(&theme->styles.keyboard_focus_key, lv_palette_main(DeviceSettingsGetWidgetColor()));
-    lv_style_set_text_color(&theme->styles.keyboard_focus_key, lv_palette_main(DeviceSettingsGetWidgetColor()));
+    lv_style_set_bg_color(&theme->styles.keyboard_focus_key, lv_palette_main(THEME_MAIN_PALETTE));
+    lv_style_set_text_color(&theme->styles.keyboard_focus_key, lv_palette_main(THEME_MAIN_PALETTE));
 
     style_init_reset(&theme->styles.keyboard_edited);
     lv_style_set_bg_opa(&theme->styles.keyboard_edited, LV_OPA_20);

@@ -20,7 +20,6 @@ typedef struct {
     uint32_t menuItemCount;
 } SystemPageValues_t;
 
-static void WidgetColorCallback(lv_event_t *e);
 static void LcdBrightnessCallback(lv_event_t *e);
 static void WifiPageCallback(lv_event_t *e);
 static void FactoryResetCallback(lv_event_t *e);
@@ -41,7 +40,6 @@ static void SystemPageInit(void)
     lv_obj_set_user_data(GetPageBackground(), values);
 
     UserMenuItem_t menuItems[] = {
-        {"Widget color", WidgetColorCallback},
         {"LCD brightness", LcdBrightnessCallback},
         {"WiFi", WifiPageCallback},
         {"Factory Reset", FactoryResetCallback},
@@ -69,11 +67,6 @@ static void SystemPageMsgHandler(uint32_t code, void *data, uint32_t dataLen)
     //default:
     //    break;
     //}
-}
-
-static void WidgetColorCallback(lv_event_t *e)
-{
-    UNUSED(e);
 }
 
 static void LcdBrightnessCallback(lv_event_t *e)

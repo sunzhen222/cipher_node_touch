@@ -9,7 +9,6 @@
 #include "user_utils.h"
 #include "test_cmd.h"
 #include "flash_map.h"
-#include "lvgl.h"
 #include "lora.h"
 
 
@@ -18,7 +17,6 @@
 #define KEY_VERSION                         "version"
 
 #define KEY_BRIGHTNESS                      "brightness"
-#define KEY_WIDGET_COLOR                    "widget_color"
 #define KEY_LORA_CHAT_AVATAR_COLOR          "lora_chat_avatar_color"
 #define KEY_LORA_CHAT_USERNAME              "lora_chat_username"
 #define KEY_MQTT_CHAT_AVATAR_COLOR          "mqtt_chat_avatar_color"
@@ -37,7 +35,6 @@
 #define KEY_MQTT_PUBLISH_TIMEOUT_MS         "mqtt_publish_timeout_ms"
 
 #define DEFAULT_BRIGHTNESS                  100
-#define DEFAULT_WIDGET_COLOR                LV_PALETTE_BLUE
 #define DEFAULT_LORA_CHAT_AVATAR_COLOR      0x2FB35A
 #define DEFAULT_LORA_CHAT_USERNAME          "CipherMan"
 #define DEFAULT_MQTT_CHAT_AVATAR_COLOR      0x2FB35A
@@ -57,7 +54,6 @@
 
 typedef struct {
     uint32_t brightness;
-    uint32_t widgetColor;
     uint32_t loraChatAvatarColor;
     char loraChatUsername[32];
     uint32_t mqttChatAvatarColor;
@@ -127,16 +123,6 @@ uint32_t DeviceSettingsGetBrightness(void)
 void DeviceSettingsSetBrightness(uint32_t brightness)
 {
     g_deviceSettings.brightness = brightness;
-}
-
-uint32_t DeviceSettingsGetWidgetColor(void)
-{
-    return g_deviceSettings.widgetColor;
-}
-
-void DeviceSettingsSetWidgetColor(uint32_t color)
-{
-    g_deviceSettings.widgetColor = color;
 }
 
 uint32_t DeviceSettingsGetLoraChatAvatarColor(void)
@@ -380,7 +366,6 @@ static bool GetDeviceSettingsFromJsonString(const char *string)
         }
         SetDefaultDeviceSettings();
         g_deviceSettings.brightness = GetIntValue(rootJson, KEY_BRIGHTNESS, DEFAULT_BRIGHTNESS);
-        g_deviceSettings.widgetColor = GetIntValue(rootJson, KEY_WIDGET_COLOR, DEFAULT_WIDGET_COLOR);
         g_deviceSettings.loraChatAvatarColor = GetIntValue(rootJson, KEY_LORA_CHAT_AVATAR_COLOR, DEFAULT_LORA_CHAT_AVATAR_COLOR);
         GetStringValue(rootJson, KEY_LORA_CHAT_USERNAME, DEFAULT_LORA_CHAT_USERNAME, g_deviceSettings.loraChatUsername);
         g_deviceSettings.mqttChatAvatarColor = GetIntValue(rootJson, KEY_MQTT_CHAT_AVATAR_COLOR, DEFAULT_MQTT_CHAT_AVATAR_COLOR);
@@ -412,7 +397,6 @@ static char *GetJsonStringFromDeviceSettings(void)
     rootJson = cJSON_CreateObject();
     cJSON_AddItemToObject(rootJson, KEY_VERSION, cJSON_CreateString(g_deviceSettingsVersion));
     cJSON_AddItemToObject(rootJson, KEY_BRIGHTNESS, cJSON_CreateNumber(g_deviceSettings.brightness));
-    cJSON_AddItemToObject(rootJson, KEY_WIDGET_COLOR, cJSON_CreateNumber(g_deviceSettings.widgetColor));
     cJSON_AddItemToObject(rootJson, KEY_LORA_CHAT_AVATAR_COLOR, cJSON_CreateNumber(g_deviceSettings.loraChatAvatarColor));
     cJSON_AddItemToObject(rootJson, KEY_LORA_CHAT_USERNAME, cJSON_CreateString(g_deviceSettings.loraChatUsername));
     cJSON_AddItemToObject(rootJson, KEY_MQTT_CHAT_AVATAR_COLOR, cJSON_CreateNumber(g_deviceSettings.mqttChatAvatarColor));
@@ -441,7 +425,6 @@ static void SetDefaultDeviceSettings(void)
     memset(&g_deviceSettings, 0, sizeof(g_deviceSettings));
 
     g_deviceSettings.brightness = DEFAULT_BRIGHTNESS;
-    g_deviceSettings.widgetColor = DEFAULT_WIDGET_COLOR;
     g_deviceSettings.loraChatAvatarColor = DEFAULT_LORA_CHAT_AVATAR_COLOR;
     CopyStringValue(g_deviceSettings.loraChatUsername, sizeof(g_deviceSettings.loraChatUsername), DEFAULT_LORA_CHAT_USERNAME);
     g_deviceSettings.mqttChatAvatarColor = DEFAULT_MQTT_CHAT_AVATAR_COLOR;
