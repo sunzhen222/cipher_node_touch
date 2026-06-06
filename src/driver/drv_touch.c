@@ -38,6 +38,7 @@ static TouchPadChipType g_touchPadChipType = TOUCH_PAD_CHIP_UNKNOWN;
 void TouchInit(TouchPadIntCallbackFunc_t func)
 {
     uint8_t addr = 0;
+    SetGpioOutput(TOUCH_RESET_GPIO, TOUCH_RESET_PIN, GPIO_PIN_SET);
     TOUCH_RESET_HIGH();
     if (GetFirstI2cDeviceAddr(&hi2c1, &addr)) {
         if (addr == CST726_I2C_ADDR) {
