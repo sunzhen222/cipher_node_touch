@@ -190,3 +190,4 @@ python -c "from pypdf import PdfReader; from pathlib import Path; p=Path('hardwa
 
 - **`copy` 未执行复制**：脚本会按容量区间自动识别目标盘（默认 750KB~800KB）。若未找到，会提示 `No drive found ... Skip copy.`，请确认设备已通过 USB 挂载且容量落在该区间，或按需调整 `build.bat` 中的 `target_min_bytes` / `target_max_bytes`。
 - **CMake 缓存问题**：使用 `.\build.bat rebuild` 清除构建目录后重新编译
+- **编译时 RAM 不够**：适当减小 FreeRTOS 配置中的 `configTOTAL_HEAP_SIZE` 值，给静态变量、栈或链接保留区腾出内存空间。
