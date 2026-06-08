@@ -1,5 +1,6 @@
 /personal
 /build
 /simulator_build
+/simulator_flash.bin
 /node_modules
 /test_output

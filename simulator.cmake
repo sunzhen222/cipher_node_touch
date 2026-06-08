@@ -36,6 +36,7 @@ include_directories(${WIRELESS_DIR})
 include_directories(${DRIVER_DIR})
 include_directories(${CORE_DIR})
 include_directories(${TASKS_DIR})
+include_directories(${TEST_DIR})
 include_directories(${LVGL_DIR})
 
 file(GLOB SIMULATOR_FILES
@@ -77,6 +78,7 @@ set(SIMULATOR_APPLICATION_FILES
 
 set(SIMULATOR_UTILS_FILES
     "${UTILS_DIR}/user_utils.c"
+    "${CORE_DIR}/device_settings.c"
 )
 
 set(SIMULATOR_COMPONENTS_FILES
@@ -101,6 +103,7 @@ set(objsrc
 
 add_executable(${PROJECT_NAME} ${objsrc})
 target_compile_options(${PROJECT_NAME} PRIVATE -Wno-format)
+target_compile_definitions(${PROJECT_NAME} PRIVATE SIMULATOR_FLASH_FILE="${PROJECT_DIR}/simulator_flash.bin")
 
 add_subdirectory(${LVGL_DIR})
 target_compile_options(lvgl PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-unused-parameter>)

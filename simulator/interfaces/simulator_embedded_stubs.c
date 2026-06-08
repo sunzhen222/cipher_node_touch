@@ -3,40 +3,37 @@
 #include <string.h>
 #include "SDL2/SDL.h"
 #include "background_task.h"
-#include "device_settings.h"
 #include "drv_lcd.h"
 #include "drv_w25qxx.h"
+#include "flash_map.h"
 #include "hardware_version.h"
 #include "lora.h"
 #include "mqtt.h"
 #include "software_version.h"
+#include "test_cmd.h"
 #include "user_assert.h"
 #include "user_memory.h"
 #include "wifi_connect.h"
 #include "wifi_search.h"
 
-static uint32_t g_brightness = 80;
-static uint32_t g_lockScreenTime = 30;
-static uint32_t g_loraAvatarColor = 0x2FB35A;
-static uint32_t g_mqttAvatarColor = 0x6155F5;
-static uint32_t g_loraFreq = 438000000U;
-static uint32_t g_deviceId = 0x12345678U;
-static uint32_t g_loraNetId = 1;
-static uint32_t g_loraSf = LLCC68_LORA_SF_7;
-static uint32_t g_loraBw = LLCC68_LORA_BANDWIDTH_250_KHZ;
-static uint32_t g_mqttBrokerPort = 1883;
-static uint32_t g_mqttTlsMode = 0;
-static uint32_t g_mqttSubscribeQos = 0;
-static uint32_t g_mqttPublishTimeoutMs = 3000;
-static bool g_touchWakeupEnabled = true;
+#ifndef SIMULATOR_FLASH_FILE
+#define SIMULATOR_FLASH_FILE "simulator_flash.bin"
+#endif
+
+#define SIMULATOR_FLASH_SIZE (SPI_FLASH_ADDR_ERR_INFO + SPI_FLASH_SIZE_ERR_INFO)
+#define SIMULATOR_FLASH_ERASE_VALUE 0xFF
+
+static uint32_t g_lcdBrightness = 80;
 static bool g_wifiConnected = false;
 static bool g_mqttConnected = false;
-static char g_loraUsername[32] = "Alice";
-static char g_mqttUsername[32] = "MQTT User";
-static char g_loraSecretKey[96] = "simulator-secret";
-static char g_mqttBrokerHost[64] = "broker.emqx.io";
-static char g_mqttSubscribeTopic[64] = "cipher_node_touch/simulator";
 static char g_wifiSsid[32] = "";
+
+void ShowAssert(const char *file, uint32_t line);
+
+static void ensure_flash_file(void);
+static void flash_read(uint8_t *buffer, uint32_t addr, uint32_t size);
+static void flash_write(const uint8_t *buffer, uint32_t addr, uint32_t size);
+static void flash_fill(uint32_t addr, uint32_t size, uint8_t value);
 
 static void copy_string(char *dest, size_t destSize, const char *src)
 {
@@ -44,6 +41,146 @@ static void copy_string(char *dest, size_t destSize, const char *src)
         return;
     }
     snprintf(dest, destSize, "%s", src == NULL ? "" : src);
+}
+
+static void ensure_flash_file(void)
+{
+    FILE *file = fopen(SIMULATOR_FLASH_FILE, "r+b");
+    uint8_t buffer[256];
+    long size = 0;
+
+    if (file == NULL) {
+        file = fopen(SIMULATOR_FLASH_FILE, "w+b");
+        if (file == NULL) {
+            ShowAssert(__FILE__, __LINE__);
+            abort();
+        }
+    } else {
+        if (fseek(file, 0, SEEK_END) != 0) {
+            fclose(file);
+            ShowAssert(__FILE__, __LINE__);
+            abort();
+        }
+        size = ftell(file);
+        if (size < 0) {
+            fclose(file);
+            ShowAssert(__FILE__, __LINE__);
+            abort();
+        }
+    }
+
+    memset(buffer, SIMULATOR_FLASH_ERASE_VALUE, sizeof(buffer));
+    while ((uint32_t)size < SIMULATOR_FLASH_SIZE) {
+        uint32_t remaining = SIMULATOR_FLASH_SIZE - (uint32_t)size;
+        size_t chunk = remaining > sizeof(buffer) ? sizeof(buffer) : remaining;
+        if (fwrite(buffer, 1, chunk, file) != chunk) {
+            fclose(file);
+            ShowAssert(__FILE__, __LINE__);
+            abort();
+        }
+        size += (long)chunk;
+    }
+
+    fclose(file);
+}
+
+static void flash_read(uint8_t *buffer, uint32_t addr, uint32_t size)
+{
+    FILE *file;
+
+    if (size == 0) {
+        return;
+    }
+    if (buffer == NULL || addr > SIMULATOR_FLASH_SIZE || size > SIMULATOR_FLASH_SIZE - addr) {
+        ShowAssert(__FILE__, __LINE__);
+        return;
+    }
+
+    ensure_flash_file();
+    file = fopen(SIMULATOR_FLASH_FILE, "rb");
+    if (file == NULL || fseek(file, (long)addr, SEEK_SET) != 0 || fread(buffer, 1, size, file) != size) {
+        if (file != NULL) {
+            fclose(file);
+        }
+        ShowAssert(__FILE__, __LINE__);
+        return;
+    }
+    fclose(file);
+}
+
+static void flash_write(const uint8_t *buffer, uint32_t addr, uint32_t size)
+{
+    FILE *file;
+    uint8_t *oldData;
+
+    if (size == 0) {
+        return;
+    }
+    if (buffer == NULL || addr > SIMULATOR_FLASH_SIZE || size > SIMULATOR_FLASH_SIZE - addr) {
+        ShowAssert(__FILE__, __LINE__);
+        return;
+    }
+
+    oldData = malloc(size);
+    if (oldData == NULL) {
+        ShowAssert(__FILE__, __LINE__);
+        abort();
+    }
+
+    flash_read(oldData, addr, size);
+    for (uint32_t i = 0; i < size; i++) {
+        oldData[i] &= buffer[i];
+    }
+
+    file = fopen(SIMULATOR_FLASH_FILE, "r+b");
+    if (file == NULL || fseek(file, (long)addr, SEEK_SET) != 0 || fwrite(oldData, 1, size, file) != size) {
+        free(oldData);
+        if (file != NULL) {
+            fclose(file);
+        }
+        ShowAssert(__FILE__, __LINE__);
+        return;
+    }
+
+    free(oldData);
+    fclose(file);
+}
+
+static void flash_fill(uint32_t addr, uint32_t size, uint8_t value)
+{
+    FILE *file;
+    uint8_t buffer[256];
+
+    if (size == 0) {
+        return;
+    }
+    if (addr > SIMULATOR_FLASH_SIZE || size > SIMULATOR_FLASH_SIZE - addr) {
+        ShowAssert(__FILE__, __LINE__);
+        return;
+    }
+
+    memset(buffer, value, sizeof(buffer));
+    ensure_flash_file();
+    file = fopen(SIMULATOR_FLASH_FILE, "r+b");
+    if (file == NULL || fseek(file, (long)addr, SEEK_SET) != 0) {
+        if (file != NULL) {
+            fclose(file);
+        }
+        ShowAssert(__FILE__, __LINE__);
+        return;
+    }
+
+    while (size > 0) {
+        size_t chunk = size > sizeof(buffer) ? sizeof(buffer) : size;
+        if (fwrite(buffer, 1, chunk, file) != chunk) {
+            fclose(file);
+            ShowAssert(__FILE__, __LINE__);
+            return;
+        }
+        size -= (uint32_t)chunk;
+    }
+
+    fclose(file);
 }
 
 void ShowAssert(const char *file, uint32_t line)
@@ -90,53 +227,38 @@ void SramFree(void *p) { SramFreeTrack(p, __FILE__, __LINE__, __func__); }
 void *SramRealloc(void *p, size_t size) { return SramReallocTrack(p, size, __FILE__, __LINE__, __func__); }
 void PrintHeapInfo(void) {}
 
-void DeviceSettingsInit(void) {}
-void SaveDeviceSettings(void) { printf("simulator: SaveDeviceSettings\n"); }
-uint32_t DeviceSettingsGetBrightness(void) { return g_brightness; }
-void DeviceSettingsSetBrightness(uint32_t brightness) { g_brightness = brightness; }
-uint32_t DeviceSettingsGetLoraChatAvatarColor(void) { return g_loraAvatarColor; }
-void DeviceSettingsSetLoraChatAvatarColor(uint32_t color) { g_loraAvatarColor = color; }
-const char *DeviceSettingsGetLoraChatUsername(void) { return g_loraUsername; }
-void DeviceSettingsSetLoraChatUsername(const char *username) { copy_string(g_loraUsername, sizeof(g_loraUsername), username); }
-uint32_t DeviceSettingsGetMqttChatAvatarColor(void) { return g_mqttAvatarColor; }
-void DeviceSettingsSetMqttChatAvatarColor(uint32_t color) { g_mqttAvatarColor = color; }
-const char *DeviceSettingsGetMqttChatUsername(void) { return g_mqttUsername; }
-void DeviceSettingsSetMqttChatUsername(const char *username) { copy_string(g_mqttUsername, sizeof(g_mqttUsername), username); }
-uint32_t DeviceSettingsGetLoraFreq(void) { return g_loraFreq; }
-void DeviceSettingsSetLoraFreq(uint32_t freq) { g_loraFreq = freq; }
-uint32_t DeviceSettingsGetDeviceId(void) { return g_deviceId; }
-void DeviceSettingsSetDeviceId(uint32_t id) { g_deviceId = id; }
-uint32_t DeviceSettingsGetLoraNetId(void) { return g_loraNetId; }
-void DeviceSettingsSetLoraNetId(uint32_t id) { g_loraNetId = id; }
-const char *DeviceSettingsGetLoraSecretKey(void) { return g_loraSecretKey; }
-void DeviceSettingsSetLoraSecretKey(const char *secretKey) { copy_string(g_loraSecretKey, sizeof(g_loraSecretKey), secretKey); }
-uint32_t DeviceSettingsGetLoraSpreadingFactor(void) { return g_loraSf; }
-void DeviceSettingsSetLoraSpreadingFactor(uint32_t sf) { g_loraSf = sf; }
-uint32_t DeviceSettingsGetLoraBandwidth(void) { return g_loraBw; }
-void DeviceSettingsSetLoraBandwidth(uint32_t bw) { g_loraBw = bw; }
-const char *DeviceSettingsGetMqttBrokerHost(void) { return g_mqttBrokerHost; }
-void DeviceSettingsSetMqttBrokerHost(const char *host) { copy_string(g_mqttBrokerHost, sizeof(g_mqttBrokerHost), host); }
-uint32_t DeviceSettingsGetMqttBrokerPort(void) { return g_mqttBrokerPort; }
-void DeviceSettingsSetMqttBrokerPort(uint32_t port) { g_mqttBrokerPort = port; }
-uint32_t DeviceSettingsGetMqttTlsMode(void) { return g_mqttTlsMode; }
-void DeviceSettingsSetMqttTlsMode(uint32_t tlsMode) { g_mqttTlsMode = tlsMode; }
-const char *DeviceSettingsGetMqttSubscribeTopic(void) { return g_mqttSubscribeTopic; }
-void DeviceSettingsSetMqttSubscribeTopic(const char *topic) { copy_string(g_mqttSubscribeTopic, sizeof(g_mqttSubscribeTopic), topic); }
-uint32_t DeviceSettingsGetMqttSubscribeQos(void) { return g_mqttSubscribeQos; }
-void DeviceSettingsSetMqttSubscribeQos(uint32_t qos) { g_mqttSubscribeQos = qos; }
-uint32_t DeviceSettingsGetMqttPublishTimeoutMs(void) { return g_mqttPublishTimeoutMs; }
-void DeviceSettingsSetMqttPublishTimeoutMs(uint32_t timeoutMs) { g_mqttPublishTimeoutMs = timeoutMs; }
-uint32_t DeviceSettingsGetLockScreenTime(void) { return g_lockScreenTime; }
-void DeviceSettingsSetLockScreenTime(uint32_t lockScreenTime) { g_lockScreenTime = lockScreenTime; }
-bool DeviceSettingsGetTouchWakeupEnabled(void) { return g_touchWakeupEnabled; }
-void DeviceSettingsSetTouchWakeupEnabled(bool enabled) { g_touchWakeupEnabled = enabled; }
-void PrintDeviceSettings(void) {}
-void DeviceSettingsTest(int argc, char *argv[]) { (void)argc; (void)argv; }
+void RegisterTestCmd(const char *cmdString, const TestCmdFunc_t func) { (void)cmdString; (void)func; }
+bool CompareAndRunTestCmd(const char *inputString) { (void)inputString; return false; }
 
-void SetLcdBackLight(uint32_t brightness) { g_brightness = brightness; }
+bool W25qxx_Init(void)
+{
+    ensure_flash_file();
+    return true;
+}
+
+void W25qxx_EraseChip(void)
+{
+    flash_fill(0, SIMULATOR_FLASH_SIZE, SIMULATOR_FLASH_ERASE_VALUE);
+}
+
+void W25qxx_EraseAddr(uint32_t addr)
+{
+    uint32_t sectorAddr = addr - (addr % FATFS_FLASH_SECTOR_SIZE);
+    flash_fill(sectorAddr, FATFS_FLASH_SECTOR_SIZE, SIMULATOR_FLASH_ERASE_VALUE);
+}
+
+void W25qxx_WriteBytes(uint8_t *pBuffer, uint32_t addr, uint32_t size)
+{
+    flash_write(pBuffer, addr, size);
+}
+
+void W25qxx_ReadBytes(uint8_t *pBuffer, uint32_t addr, uint32_t size)
+{
+    flash_read(pBuffer, addr, size);
+}
+
+void SetLcdBackLight(uint32_t brightness) { g_lcdBrightness = brightness; }
 bool LcdIsOpen(void) { return true; }
-void W25qxx_EraseChip(void) { printf("simulator: W25qxx_EraseChip\n"); }
-void W25qxx_WriteBytes(uint8_t *pBuffer, uint32_t addr, uint32_t size) { (void)pBuffer; (void)addr; (void)size; }
 void NVIC_SystemReset(void) { printf("simulator: NVIC_SystemReset\n"); }
 
 uint32_t GetHardwareVersion(void) { return 0; }

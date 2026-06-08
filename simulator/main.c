@@ -10,6 +10,8 @@
 #include "lv_theme_pocket.h"
 #include "lora_chat.h"
 #include "mqtt_chat.h"
+#include "device_settings.h"
+#include "drv_w25qxx.h"
 
 static SDL_Thread *g_tickThread = NULL;
 
@@ -48,6 +50,8 @@ int main(int argc, char *argv[])
     theme = lv_theme_pocket_init(disp);
     lv_display_set_theme(disp, theme);
 
+    W25qxx_Init();
+    DeviceSettingsInit();
     LoraChatInit();
     MqttChatInit();
     TestLoraChat();

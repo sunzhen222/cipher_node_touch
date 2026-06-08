@@ -16,6 +16,9 @@
 #define LLCC68_LORA_BANDWIDTH_250_KHZ 5
 #define LLCC68_LORA_BANDWIDTH_500_KHZ 6
 
+#define LLCC68_LORA_DEFAULT_SF LLCC68_LORA_SF_7
+#define LLCC68_LORA_DEFAULT_BANDWIDTH LLCC68_LORA_BANDWIDTH_250_KHZ
+
 uint8_t LoraSettings(void);
 const char *LoraGetWirelessStatus(void);
 bool LoraTxBusy(void);
