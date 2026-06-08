@@ -24,6 +24,8 @@
 /* USER CODE BEGIN INCLUDE */
 #include <stdio.h>
 #include "user_utils.h"
+#include "usb_task.h"
+#include "cmd_task.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -270,12 +272,11 @@ static int8_t CDC_Receive_FS(uint8_t *Buf, uint32_t *Len)
 {
     /* USER CODE BEGIN 6 */
     uint32_t i;
-    for (i = 0 ; i < *Len; i++)
-        printf("%.2X ", Buf[i]);
-    printf("\n");
+    for (i = 0 ; i < *Len; i++) {
+        TestCmdRcvByte(Buf[i]);
+    }
     USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-    CDC_Transmit_FS(Buf, *Len);
     return (USBD_OK);
     /* USER CODE END 6 */
 }
@@ -300,6 +301,7 @@ uint8_t CDC_Transmit_FS(uint8_t *Buf, uint16_t Len)
     lastIdx = hUsbDeviceFS.classId;
     hUsbDeviceFS.classId = USBD_CoreFindEP(&hUsbDeviceFS, CDC_IN_EP);
     if (hcdc->TxState != 0) {
+        hUsbDeviceFS.classId = lastIdx;
         return USBD_BUSY;
     }
     USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
@@ -328,6 +330,7 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
     UNUSED(Buf);
     UNUSED(Len);
     UNUSED(epnum);
+    UsbCdcTransmitComplete();
     /* USER CODE END 13 */
     return result;
 }

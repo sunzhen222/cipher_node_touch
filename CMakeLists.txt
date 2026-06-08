@@ -60,9 +60,12 @@ endif()
 
 # MCU specific flags
 set(TARGET_FLAGS "-mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard ")
+file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" PROJECT_DIR_SLASH)
+set(FILE_PREFIX_MAP_FLAGS "-ffile-prefix-map=${PROJECT_DIR_SLASH}/= -ffile-prefix-map=${CMAKE_SOURCE_DIR}\\\\=")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wpedantic -fdata-sections -ffunction-sections")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FILE_PREFIX_MAP_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -g3")
 
 set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp -MMD -MP")

@@ -6,6 +6,7 @@
 #include "user_utils.h"
 #include "drv_timer.h"
 #include "at_command.h"
+#include "usb_task.h"
 
 #define UART2_RX_LEN        256
 #define UART2_RX_IDLE_MS    10
@@ -107,6 +108,7 @@ int _write(int fd, char *pBuffer, int size)
 {
     UNUSED(fd);
     HAL_UART_Transmit(&huart1, (uint8_t *)pBuffer, size, 1000);
+    SendUsbCdc(pBuffer, size);
     return size;
 }
 

@@ -13,12 +13,12 @@ void ShowAssert(const char *file, uint32_t line)
     char str[256] = {0};
     uint32_t flashWriteIndex = 0;
 
-    printf("assert,file=%s\nline=%lu\n", file, line);
+    printf("assert,file=%s,line=%lu\n", file, line);
 
-    sprintf(str, "hardware version: %s, software version: %s, build time: %s\n", GetHardwareVersionString(), GetSoftwareVersionString(), GetBuildTime());
+    snprintf(str, sizeof(str), "hardware version: %s, software version: %s, build time: %s\n", GetHardwareVersionString(), GetSoftwareVersionString(), GetBuildTime());
     W25qxx_WriteBytes((uint8_t *)str, SPI_FLASH_ADDR_ERR_INFO + flashWriteIndex, strlen(str));
     flashWriteIndex += strlen(str);
-    sprintf(str, "assert,file=%s\nline=%lu\n\n", file, line);
+    snprintf(str, sizeof(str), "assert,file=%s,line=%lu\n\n", file, line);
     W25qxx_WriteBytes((uint8_t *)str, SPI_FLASH_ADDR_ERR_INFO + flashWriteIndex, strlen(str));
     NVIC_SystemReset();
 }

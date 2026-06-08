@@ -2,6 +2,11 @@
 #include "user_assert.h"
 #include "ring_buffer.h"
 
+/**
+ * @brief Get the number of bytes currently stored in the ring buffer.
+ * @param ringBuffer Ring buffer instance.
+ * @return Number of used bytes.
+ */
 static uint32_t RingBufferUsedSize(const RingBuffer_t *ringBuffer)
 {
     if (ringBuffer->head >= ringBuffer->tail) {
@@ -10,6 +15,12 @@ static uint32_t RingBufferUsedSize(const RingBuffer_t *ringBuffer)
     return ringBuffer->size - (ringBuffer->tail - ringBuffer->head);
 }
 
+/**
+ * @brief Initialize a ring buffer instance with caller-provided storage.
+ * @param ringBuffer Ring buffer instance to initialize.
+ * @param buffer Raw storage used by the ring buffer.
+ * @param size Raw storage size in bytes. Usable capacity is size - 1.
+ */
 void RingBufferInit(RingBuffer_t *ringBuffer, uint8_t *buffer, uint32_t size)
 {
     ASSERT(ringBuffer != NULL);
@@ -22,24 +33,43 @@ void RingBufferInit(RingBuffer_t *ringBuffer, uint8_t *buffer, uint32_t size)
     ringBuffer->tail = 0;
 }
 
+/**
+ * @brief Check whether the ring buffer contains no data.
+ * @param ringBuffer Ring buffer instance.
+ * @return true if empty, otherwise false.
+ */
 bool RingBufferIsEmpty(const RingBuffer_t *ringBuffer)
 {
     ASSERT(ringBuffer != NULL);
     return ringBuffer->head == ringBuffer->tail;
 }
 
+/**
+ * @brief Get the number of bytes currently available to read.
+ * @param ringBuffer Ring buffer instance.
+ * @return Number of readable bytes.
+ */
 uint32_t RingBufferGetUsedSize(const RingBuffer_t *ringBuffer)
 {
     ASSERT(ringBuffer != NULL);
     return RingBufferUsedSize(ringBuffer);
 }
 
+/**
+ * @brief Get the number of bytes that can still be written.
+ * @param ringBuffer Ring buffer instance.
+ * @return Number of writable bytes.
+ */
 uint32_t RingBufferGetFreeSize(const RingBuffer_t *ringBuffer)
 {
     ASSERT(ringBuffer != NULL);
     return (ringBuffer->size - 1U) - RingBufferUsedSize(ringBuffer);
 }
 
+/**
+ * @brief Discard all data in the ring buffer.
+ * @param ringBuffer Ring buffer instance.
+ */
 void RingBufferClear(RingBuffer_t *ringBuffer)
 {
     ASSERT(ringBuffer != NULL);
@@ -47,6 +77,14 @@ void RingBufferClear(RingBuffer_t *ringBuffer)
     ringBuffer->tail = 0;
 }
 
+/**
+ * @brief Write bytes into the ring buffer.
+ * @param ringBuffer Ring buffer instance.
+ * @param data Source data buffer.
+ * @param dataLen Number of bytes requested to write.
+ * @return Number of bytes actually written. This may be less than dataLen when
+ *         free space is insufficient.
+ */
 uint32_t RingBufferWrite(RingBuffer_t *ringBuffer, const uint8_t *data, uint32_t dataLen)
 {
     uint32_t freeLen;
@@ -80,6 +118,14 @@ uint32_t RingBufferWrite(RingBuffer_t *ringBuffer, const uint8_t *data, uint32_t
     return writeLen;
 }
 
+/**
+ * @brief Read bytes from the ring buffer.
+ * @param ringBuffer Ring buffer instance.
+ * @param data Destination data buffer.
+ * @param dataLen Number of bytes requested to read.
+ * @return Number of bytes actually read. This may be less than dataLen when
+ *         stored data is insufficient.
+ */
 uint32_t RingBufferRead(RingBuffer_t *ringBuffer, uint8_t *data, uint32_t dataLen)
 {
     uint32_t usedLen;

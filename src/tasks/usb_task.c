@@ -8,17 +8,30 @@
 #include "usb_device.h"
 #include "test_cmd.h"
 #include "usbd_cdc_if.h"
+#include "ring_buffer.h"
 
 #define USB_IRQ_IN_TASK                 1
-#define USB_CDC_BUFF_LEN                1024
+#define USB_CDC_RING_BUFFER_LEN         1536
+#define USB_CDC_TX_BUFF_LEN             256
+
+typedef enum {
+    USB_CDC_TX_IDLE = 0,
+    USB_CDC_TX_READY,
+    USB_CDC_TX_ACTIVE,
+} UsbCdcTxState_t;
 
 extern PCD_HandleTypeDef hpcd_USB_OTG_FS;
 
 static void UsbTask(void *pvParameter);
 static void UsbTestFunc(int argc, char *argv[]);
+static void UsbCdcSendFromRingBuffer(void);
 
 osThreadId_t g_usbTaskId;
-static uint8_t g_usbCdcSendBuff[USB_CDC_BUFF_LEN];
+static RingBuffer_t g_usbCdcRingBuffer;
+static uint8_t *g_usbCdcRingRawBuffer;
+static uint8_t *g_usbCdcTxBuff;
+static uint32_t g_usbCdcTxLen;
+static volatile UsbCdcTxState_t g_usbCdcTxState = USB_CDC_TX_IDLE;
 
 void CreateUsbTask(void)
 {
@@ -37,9 +50,13 @@ static void UsbTask(void *pvParameter)
     osStatus_t ret;
 
     RegisterTestCmd("usb:", UsbTestFunc);
+    g_usbCdcRingRawBuffer = SRAM_MALLOC(USB_CDC_RING_BUFFER_LEN + 1);
+    g_usbCdcTxBuff = SRAM_MALLOC(USB_CDC_TX_BUFF_LEN);
+    RingBufferInit(&g_usbCdcRingBuffer, g_usbCdcRingRawBuffer, USB_CDC_RING_BUFFER_LEN + 1);
     MX_USB_DEVICE_Init();
     while (1) {
-        ret = osMessageQueueGet(g_usbQueue, &rcvMsg, NULL, 10000);
+        ret = osMessageQueueGet(g_usbQueue, &rcvMsg, NULL,
+                                (g_usbCdcTxState == USB_CDC_TX_READY) ? 1 : 10000);
         if (ret == osOK) {
             switch (rcvMsg.id) {
             case USB_MSG_ISR_HANDLER: {
@@ -51,11 +68,7 @@ static void UsbTask(void *pvParameter)
             }
             break;
             case USB_MSG_SEND_CDC: {
-                uint8_t sendRet;
-                sendRet = CDC_Transmit_FS(g_usbCdcSendBuff, rcvMsg.value);
-                if (sendRet != 0) {
-                    printf("usb cdc send err,%d\n", sendRet);
-                }
+                UsbCdcSendFromRingBuffer();
             }
             break;
             default:
@@ -64,6 +77,9 @@ static void UsbTask(void *pvParameter)
             if (rcvMsg.buffer != NULL) {
                 SRAM_FREE(rcvMsg.buffer);
             }
+        }
+        if (g_usbCdcTxState != USB_CDC_TX_ACTIVE) {
+            UsbCdcSendFromRingBuffer();
         }
     }
 }
@@ -82,9 +98,58 @@ void OTG_FS_IRQHandler(void)
 
 void SendUsbCdc(void *data, uint32_t len)
 {
-    ASSERT(len <= USB_CDC_BUFF_LEN);
-    memcpy(g_usbCdcSendBuff, data, len);
-    PubValueMsg(USB_MSG_SEND_CDC, len);
+    ASSERT(data != NULL);
+    if (g_usbCdcRingRawBuffer == NULL) {
+        return;
+    }
+
+    if (len == 0) {
+        return;
+    }
+
+    __disable_irq();
+    RingBufferWrite(&g_usbCdcRingBuffer, data, len);
+    __enable_irq();
+
+    PubValueMsg(USB_MSG_SEND_CDC, 0);
+}
+
+void UsbCdcTransmitComplete(void)
+{
+    g_usbCdcTxState = USB_CDC_TX_IDLE;
+    g_usbCdcTxLen = 0;
+    PubValueMsg(USB_MSG_SEND_CDC, 0);
+}
+
+static void UsbCdcSendFromRingBuffer(void)
+{
+    uint8_t sendRet;
+
+    if (g_usbCdcTxState == USB_CDC_TX_ACTIVE) {
+        return;
+    }
+
+    if (g_usbCdcTxState == USB_CDC_TX_IDLE) {
+        ASSERT(g_usbCdcTxBuff != NULL);
+        __disable_irq();
+        g_usbCdcTxLen = RingBufferRead(&g_usbCdcRingBuffer, g_usbCdcTxBuff, USB_CDC_TX_BUFF_LEN);
+        __enable_irq();
+
+        if (g_usbCdcTxLen == 0) {
+            return;
+        }
+        g_usbCdcTxState = USB_CDC_TX_READY;
+    }
+
+    sendRet = CDC_Transmit_FS(g_usbCdcTxBuff, g_usbCdcTxLen);
+    if (sendRet == USBD_OK) {
+        g_usbCdcTxState = USB_CDC_TX_ACTIVE;
+    } else if (sendRet != USBD_BUSY) {
+        printf("usb cdc send err,%d\n", sendRet);
+        g_usbCdcTxLen = 0;
+        g_usbCdcTxState = USB_CDC_TX_IDLE;
+        PubValueMsg(USB_MSG_SEND_CDC, 0);
+    }
 }
 
 
