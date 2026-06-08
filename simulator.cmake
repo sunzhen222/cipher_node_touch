@@ -100,6 +100,7 @@ set(objsrc
 )
 
 add_executable(${PROJECT_NAME} ${objsrc})
+target_compile_options(${PROJECT_NAME} PRIVATE -Wno-format)
 
 add_subdirectory(${LVGL_DIR})
 target_compile_options(lvgl PRIVATE $<$<COMPILE_LANGUAGE:C>:-Wno-unused-parameter>)

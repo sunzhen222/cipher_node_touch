@@ -28,6 +28,7 @@ static uint32_t g_mqttBrokerPort = 1883;
 static uint32_t g_mqttTlsMode = 0;
 static uint32_t g_mqttSubscribeQos = 0;
 static uint32_t g_mqttPublishTimeoutMs = 3000;
+static bool g_touchWakeupEnabled = true;
 static bool g_wifiConnected = false;
 static bool g_mqttConnected = false;
 static char g_loraUsername[32] = "Alice";
@@ -127,6 +128,8 @@ uint32_t DeviceSettingsGetMqttPublishTimeoutMs(void) { return g_mqttPublishTimeo
 void DeviceSettingsSetMqttPublishTimeoutMs(uint32_t timeoutMs) { g_mqttPublishTimeoutMs = timeoutMs; }
 uint32_t DeviceSettingsGetLockScreenTime(void) { return g_lockScreenTime; }
 void DeviceSettingsSetLockScreenTime(uint32_t lockScreenTime) { g_lockScreenTime = lockScreenTime; }
+bool DeviceSettingsGetTouchWakeupEnabled(void) { return g_touchWakeupEnabled; }
+void DeviceSettingsSetTouchWakeupEnabled(bool enabled) { g_touchWakeupEnabled = enabled; }
 void PrintDeviceSettings(void) {}
 void DeviceSettingsTest(int argc, char *argv[]) { (void)argc; (void)argv; }
 
