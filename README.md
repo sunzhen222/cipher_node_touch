@@ -10,6 +10,7 @@
 
 逐条运行以下命令安装工具链：
 ```bash
+pacman -Syyu
 pacman -S mingw-w64-x86_64-gcc
 pacman -S mingw-w64-x86_64-arm-none-eabi-gcc
 pacman -S mingw-w64-x86_64-make
@@ -28,15 +29,7 @@ C:\msys64\usr\bin
 
 ### 3. 工具检测
 
-打开终端，输入以下指令确认工具已正常安装：
-```bash
-gcc --version
-arm-none-eabi-gcc --version
-make --version
-cmake --version
-```
-
-如正常显示各个软件版本，说明已正常安装。
+运行ck_build_env.bat检查所需工具是否已正常安装。
 
 ### 4. 编译项目
 
