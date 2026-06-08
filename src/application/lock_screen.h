@@ -9,5 +9,6 @@ void LockScreenInit(void);
 void ClearLockScreenTime(void);
 void LockScreen(void);
 void UnlockScreen(void);
+bool IsScreenLocked(void);
 
 #endif

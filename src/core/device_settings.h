@@ -61,6 +61,9 @@ void DeviceSettingsSetMqttPublishTimeoutMs(uint32_t timeoutMs);
 uint32_t DeviceSettingsGetLockScreenTime(void);
 void DeviceSettingsSetLockScreenTime(uint32_t lockScreenTime);
 
+bool DeviceSettingsGetTouchWakeupEnabled(void);
+void DeviceSettingsSetTouchWakeupEnabled(bool enabled);
+
 void PrintDeviceSettings(void);
 
 void DeviceSettingsTest(int argc, char *argv[]);

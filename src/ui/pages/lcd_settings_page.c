@@ -13,6 +13,7 @@
 typedef struct {
     uint32_t brightness;
     uint32_t lockScreenTime;
+    bool touchWakeupEnabled;
     bool valueChanged;
 } LcdSettingsPageValues_t;
 
@@ -23,6 +24,7 @@ static void LcdSettingsPageMsgHandler(uint32_t code, void *data, uint32_t dataLe
 
 static void SliderBrightnessEventCallback(lv_event_t *e);
 static void LockScreenTimeDropdownEventCallback(lv_event_t *e);
+static void TouchWakeupSwitchEventCallback(lv_event_t *e);
 static uint32_t GetLockScreenTimeSelectedIndex(uint32_t lockScreenTime);
 static uint32_t GetSelectedLockScreenTimeValue(const lv_obj_t *dropdown);
 
@@ -79,6 +81,18 @@ static void LcdSettingsPageInit(void)
     lv_dropdown_set_options(temp, g_lockScreenTimeDropdownOptions);
     lv_dropdown_set_selected(temp, GetLockScreenTimeSelectedIndex(DeviceSettingsGetLockScreenTime()));
     lv_obj_add_event_cb(temp, LockScreenTimeDropdownEventCallback, LV_EVENT_VALUE_CHANGED, NULL);
+
+    temp = lv_label_create(GetPageBackground());
+    lv_label_set_text(temp, "Touch Wakeup");
+    lv_obj_align(temp, LV_ALIGN_TOP_LEFT, 32, 260);
+
+    temp = lv_switch_create(GetPageBackground());
+    lv_obj_set_size(temp, 64, 32);
+    lv_obj_align(temp, LV_ALIGN_TOP_RIGHT, -32, 254);
+    if (DeviceSettingsGetTouchWakeupEnabled()) {
+        lv_obj_add_state(temp, LV_STATE_CHECKED);
+    }
+    lv_obj_add_event_cb(temp, TouchWakeupSwitchEventCallback, LV_EVENT_VALUE_CHANGED, NULL);
 }
 
 static void LcdSettingsPageDeinit(void)
@@ -121,6 +135,17 @@ static void LockScreenTimeDropdownEventCallback(lv_event_t *e)
     printf("Lock Screen Time: %lu\n", values->lockScreenTime);
 
     DeviceSettingsSetLockScreenTime(values->lockScreenTime);
+    values->valueChanged = true;
+}
+
+static void TouchWakeupSwitchEventCallback(lv_event_t *e)
+{
+    LcdSettingsPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    lv_obj_t *sw = lv_event_get_target(e);
+    values->touchWakeupEnabled = lv_obj_has_state(sw, LV_STATE_CHECKED);
+    printf("Touch Wakeup Enabled: %u\n", values->touchWakeupEnabled);
+
+    DeviceSettingsSetTouchWakeupEnabled(values->touchWakeupEnabled);
     values->valueChanged = true;
 }
 

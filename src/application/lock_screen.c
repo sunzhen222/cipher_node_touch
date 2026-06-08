@@ -42,7 +42,9 @@ void LockScreen(void)
     if (g_screenLocked) {
         return;
     }
-    TouchOnOff(false);
+    if (!DeviceSettingsGetTouchWakeupEnabled()) {
+        TouchOnOff(false);
+    }
     osTimerStop(g_lockScreenTimer);
     ClearLockScreenTime();
     SetLcdBackLight(0);
@@ -53,17 +55,23 @@ void LockScreen(void)
 
 void UnlockScreen(void)
 {
+    TouchOnOff(true);
     if (!g_screenLocked) {
         return;
     }
     osTimerStart(g_lockScreenTimer, LOCK_SCREEN_TICK);
     ClearLockScreenTime();
-    TouchOnOff(true);
     //PowerSwitchSetSource(POWER_SOURCE_LCD, true);
     LcdOpen();
     PubValueMsg(UI_MSG_REFRESH, 0);
+    osDelay(50);
     SetLcdBackLight(DeviceSettingsGetBrightness());
     g_screenLocked = false;
+}
+
+bool IsScreenLocked(void)
+{
+    return g_screenLocked;
 }
 
 static void ShortPressHandler(void)

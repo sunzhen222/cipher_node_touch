@@ -4,6 +4,7 @@
 #include "cmsis_os2.h"
 #include "user_utils.h"
 #include "lock_screen.h"
+#include "user_msg.h"
 
 osThreadId_t g_touchTaskHandle;
 osSemaphoreId_t g_touchSem = NULL;
@@ -41,6 +42,9 @@ static void TouchTask(void *argument)
     while (1) {
         waitTime = g_touchStatus.touch ? 1000 : osWaitForever;
         ClearLockScreenTime();
+        if (IsScreenLocked()) {
+            PubValueMsg(BACKGROUND_MSG_UNLOCK_SCREEN, 0);
+        }
         osSemaphoreAcquire(g_touchSem, waitTime);
         osKernelLock();
         TouchGetStatus(&g_touchStatus);

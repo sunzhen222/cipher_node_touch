@@ -34,6 +34,7 @@
 #define KEY_MQTT_SUBSCRIBE_QOS              "mqtt_subscribe_qos"
 #define KEY_MQTT_PUBLISH_TIMEOUT_MS         "mqtt_publish_timeout_ms"
 #define KEY_LOCK_SCREEN_TIME                "lock_screen_time"
+#define KEY_TOUCH_WAKEUP_ENABLED            "touch_wakeup_enabled"
 
 #define DEFAULT_BRIGHTNESS                  100
 #define DEFAULT_LORA_CHAT_AVATAR_COLOR      0x2FB35A
@@ -53,6 +54,7 @@
 #define DEFAULT_MQTT_SUBSCRIBE_QOS          0
 #define DEFAULT_MQTT_PUBLISH_TIMEOUT_MS     5000
 #define DEFAULT_LOCK_SCREEN_TIME            60
+#define DEFAULT_TOUCH_WAKEUP_ENABLED        true
 
 typedef struct {
     uint32_t brightness;
@@ -73,6 +75,7 @@ typedef struct {
     uint32_t mqttSubscribeQos;
     uint32_t mqttPublishTimeoutMs;
     uint32_t lockScreenTime;
+    bool touchWakeupEnabled;
 } DeviceSettings_t;
 
 static void SaveDeviceSettingsSync(void);
@@ -307,6 +310,16 @@ void DeviceSettingsSetLockScreenTime(uint32_t lockScreenTime)
     g_deviceSettings.lockScreenTime = lockScreenTime;
 }
 
+bool DeviceSettingsGetTouchWakeupEnabled(void)
+{
+    return g_deviceSettings.touchWakeupEnabled;
+}
+
+void DeviceSettingsSetTouchWakeupEnabled(bool enabled)
+{
+    g_deviceSettings.touchWakeupEnabled = enabled;
+}
+
 void SaveDeviceSettings(void)
 {
     SaveDeviceSettingsSync();
@@ -396,6 +409,7 @@ static bool GetDeviceSettingsFromJsonString(const char *string)
         g_deviceSettings.mqttSubscribeQos = GetIntValue(rootJson, KEY_MQTT_SUBSCRIBE_QOS, DEFAULT_MQTT_SUBSCRIBE_QOS);
         g_deviceSettings.mqttPublishTimeoutMs = GetIntValue(rootJson, KEY_MQTT_PUBLISH_TIMEOUT_MS, DEFAULT_MQTT_PUBLISH_TIMEOUT_MS);
         g_deviceSettings.lockScreenTime = GetIntValue(rootJson, KEY_LOCK_SCREEN_TIME, DEFAULT_LOCK_SCREEN_TIME);
+        g_deviceSettings.touchWakeupEnabled = GetBoolValue(rootJson, KEY_TOUCH_WAKEUP_ENABLED, DEFAULT_TOUCH_WAKEUP_ENABLED);
     } while (0);
     cJSON_Delete(rootJson);
 
@@ -428,6 +442,7 @@ static char *GetJsonStringFromDeviceSettings(void)
     cJSON_AddItemToObject(rootJson, KEY_MQTT_SUBSCRIBE_QOS, cJSON_CreateNumber(g_deviceSettings.mqttSubscribeQos));
     cJSON_AddItemToObject(rootJson, KEY_MQTT_PUBLISH_TIMEOUT_MS, cJSON_CreateNumber(g_deviceSettings.mqttPublishTimeoutMs));
     cJSON_AddItemToObject(rootJson, KEY_LOCK_SCREEN_TIME, cJSON_CreateNumber(g_deviceSettings.lockScreenTime));
+    cJSON_AddItemToObject(rootJson, KEY_TOUCH_WAKEUP_ENABLED, cJSON_CreateBool(g_deviceSettings.touchWakeupEnabled));
     retStr = cJSON_Print(rootJson);
     RemoveFormatChar(retStr);
     cJSON_Delete(rootJson);
@@ -457,6 +472,7 @@ static void SetDefaultDeviceSettings(void)
     g_deviceSettings.mqttSubscribeQos = DEFAULT_MQTT_SUBSCRIBE_QOS;
     g_deviceSettings.mqttPublishTimeoutMs = DEFAULT_MQTT_PUBLISH_TIMEOUT_MS;
     g_deviceSettings.lockScreenTime = DEFAULT_LOCK_SCREEN_TIME;
+    g_deviceSettings.touchWakeupEnabled = DEFAULT_TOUCH_WAKEUP_ENABLED;
 }
 
 static void CopyStringValue(char *dst, size_t dstSize, const char *src)
