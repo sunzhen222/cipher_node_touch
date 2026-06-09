@@ -12,6 +12,7 @@ applyTo: "**"
 - **构建系统**：CMake + Ninja（工具链：`arm-none-eabi-gcc`）
 - **模拟器**：PC/Windows + SDL2 + LVGL，用于本地 UI 和应用逻辑调试
 - **UI 框架**：LVGL v9（移植在 `src/porting/`）
+- **UI 文案约束**：项目固件未内置中文字体，所有 UI 可见文本、标点和符号必须使用英文/ASCII，避免中文字符或中文标点显示异常。
 - **RTOS**：FreeRTOS（含 CMSIS-RTOS V2 封装）
 - **固件升级**：OTA，生成 `update.bin`（AES 加密）
 
