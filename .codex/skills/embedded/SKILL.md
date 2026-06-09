@@ -10,6 +10,7 @@ applyTo: "**"
 
 - **目标芯片**：STM32F405RGTx（Cortex-M4，带 FPU）
 - **构建系统**：CMake + Ninja（工具链：`arm-none-eabi-gcc`）
+- **模拟器**：PC/Windows + SDL2 + LVGL，用于本地 UI 和应用逻辑调试
 - **UI 框架**：LVGL v9（移植在 `src/porting/`）
 - **RTOS**：FreeRTOS（含 CMSIS-RTOS V2 封装）
 - **固件升级**：OTA，生成 `update.bin`（AES 加密）
@@ -28,6 +29,7 @@ applyTo: "**"
 | 编译并通过 J-LINK 烧录 | `.\build.bat flash` |
 | 清除重编 + 烧录 | `.\build.bat rebuild flash` |
 | 烧录后串口自动测试（默认 COM11） | `.\tools\flash_and_serial_test.bat` |
+| 编译并运行模拟器 | `.\build.bat simulator` |
 
 **编译流程说明**：
 1. CMake 配置 + Ninja 构建
@@ -93,7 +95,10 @@ src/
 third/
   lvgl/          # LVGL 库源码
 tools/           # 辅助脚本（OTA）
+simulator/       # PC 模拟器入口、LVGL SDL 驱动和硬件接口 stub
+simulator.cmake  # 模拟器 CMake 配置
 build/           # 编译输出目录（CMake/Ninja 产物）
+simulator_build/ # 模拟器构建输出目录（本地临时产物，不提交）
 ```
 
 ---
