@@ -15,6 +15,7 @@ typedef struct {
     lv_obj_t *buttonMqttChat;
     lv_obj_t *buttonTouchTest;
     lv_obj_t *buttonSystem;
+    lv_obj_t *buttonSnake;
 } HomePageValues_t;
 
 
@@ -67,6 +68,13 @@ static void HomePageInit(void)
     lv_obj_t *systemBtnLabel = lv_label_create(values->buttonSystem);
     lv_label_set_text(systemBtnLabel, "System");
     lv_obj_add_event_cb(values->buttonSystem, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
+
+    values->buttonSnake = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->buttonSnake, 100, 60);
+    lv_obj_align(values->buttonSnake, LV_ALIGN_TOP_MID, 0, 340);
+    lv_obj_t *snakeBtnLabel = lv_label_create(values->buttonSnake);
+    lv_label_set_text(snakeBtnLabel, "Snake");
+    lv_obj_add_event_cb(values->buttonSnake, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 }
 
 
@@ -106,6 +114,9 @@ static void HomePageButtonEventHandler(lv_event_t *e)
         } else if (btn == values->buttonSystem) {
             printf("System button pressed\n");
             EnterNewPage(&g_systemPage);
+        } else if (btn == values->buttonSnake) {
+            printf("Snake button pressed\n");
+            EnterNewPage(&g_snakePage);
         }
     }
 }
