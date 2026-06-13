@@ -19,6 +19,7 @@
 #include "processor_usage.h"
 #include "battery.h"
 #include "at_command.h"
+#include "mqtt.h"
 #include "lvgl.h"
 
 #define CMD_MAX_ARGC        16
@@ -55,6 +56,7 @@ static void FindFilesFunc(int argc, char *argv[]);
 static void ProcessorUsageFunc(int argc, char *argv[]);
 static void BatteryFunc(int argc, char *argv[]);
 static void AtSendFunc(int argc, char *argv[]);
+static void GetMqttAuthFunc(int argc, char *argv[]);
 
 
 static const TestCmdItem_t g_testCmdTable[] = {
@@ -78,6 +80,7 @@ static const TestCmdItem_t g_testCmdTable[] = {
     {"processor_usage:",        ProcessorUsageFunc      },
     {"battery",                 BatteryFunc             },
     {"at:",                     AtSendFunc              },
+    {"get_mqtt_auth",           GetMqttAuthFunc         },
 };
 
 TestCmdNode_t g_testCmdListHead = {0};
@@ -586,5 +589,16 @@ static void AtSendFunc(int argc, char *argv[])
         }
         AtCommandUnlock();
     }
+}
+
+static void GetMqttAuthFunc(int argc, char *argv[])
+{
+    char auth[96];
+
+    UNUSED(argc);
+    UNUSED(argv);
+
+    BuildMqttAuthString(auth, sizeof(auth));
+    printf("%s\n", auth);
 }
 

@@ -20,5 +20,6 @@ bool IsMqttConnected(void);
 bool DisconnectMqtt(void);
 bool PublishMqtt(const char *topic, uint8_t qos, bool retained, const char *payload);
 void GetMqttSenderId(char *buffer, size_t bufferSize);
+void BuildMqttAuthString(char *buffer, size_t bufferSize);
 
 #endif

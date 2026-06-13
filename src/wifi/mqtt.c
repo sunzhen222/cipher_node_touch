@@ -45,7 +45,7 @@ static void BuildMqttClientId(char *buffer, size_t bufferSize)
     snprintf(buffer, bufferSize, "%s%s", MQTT_CLIENT_ID_PREFIX, senderId);
 }
 
-static void BuildMqttAuthString(char *buffer, size_t bufferSize)
+void BuildMqttAuthString(char *buffer, size_t bufferSize)
 {
     uint32_t uid0 = HAL_GetUIDw0();
     uint32_t uid1 = HAL_GetUIDw1();
