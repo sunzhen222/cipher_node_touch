@@ -143,6 +143,7 @@ python -c "from pypdf import PdfReader; from pathlib import Path; p=Path('hardwa
 .\astyle.bat
 ```
 
+- 每次修改代码后，必须在编译或交付前执行一次 `.\astyle.bat`
 - 格式化样式：`-A3`（Allman/BSD 风格）
 - 按需排除自动生成文件，避免手工代码与生成代码混排格式化
 
