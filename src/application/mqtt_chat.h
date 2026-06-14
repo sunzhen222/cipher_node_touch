@@ -4,6 +4,8 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+#define MQTT_CHAT_MAX_ITEMS     10
+
 typedef struct MqttChatItem_t {
     char name[16];
     char *text;

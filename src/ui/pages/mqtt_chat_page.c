@@ -317,6 +317,13 @@ static void AddNewMqttChatLayout(MqttChatItem_t *item)
     lv_coord_t maxBubbleWidth = lv_display_get_horizontal_resolution(NULL) - 57 * 2;
     lv_coord_t maxTextWidth = maxBubbleWidth - 20;
 
+    if (lv_obj_get_child_count(values->chatList) >= MQTT_CHAT_MAX_ITEMS) {
+        lv_obj_t *oldestRow = lv_obj_get_child(values->chatList, 0);
+        if (oldestRow != NULL) {
+            lv_obj_delete(oldestRow);
+        }
+    }
+
     lv_obj_t *row = lv_obj_create(values->chatList);
     lv_obj_set_width(row, lv_pct(100));
     lv_obj_set_height(row, LV_SIZE_CONTENT);

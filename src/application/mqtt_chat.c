@@ -18,15 +18,18 @@
 
 static MqttChatItem_t *g_mqttChatListHead = NULL;
 static MqttChatItem_t *g_mqttNextGetNode = NULL;
+static uint32_t g_mqttChatItemCount = 0;
 
 static bool ParseMqttChatPayload(const char *payload, uint32_t payloadLen);
 static bool ParseAvatarColor(const char *colorString, uint32_t *color);
+static void RemoveOldestMqttChatItem(void);
 
 
 void MqttChatInit(void)
 {
     g_mqttChatListHead = NULL;
     g_mqttNextGetNode = NULL;
+    g_mqttChatItemCount = 0;
 }
 
 
@@ -42,6 +45,7 @@ void ClearMqttChatItems(void)
 
     g_mqttChatListHead = NULL;
     g_mqttNextGetNode = NULL;
+    g_mqttChatItemCount = 0;
 }
 
 
@@ -65,8 +69,13 @@ MqttChatItem_t *AddMqttChatItem(const char *name,
     item->headColor = headColor;
     item->next = NULL;
 
+    if (g_mqttChatItemCount >= MQTT_CHAT_MAX_ITEMS) {
+        RemoveOldestMqttChatItem();
+    }
+
     if (g_mqttChatListHead == NULL) {
         g_mqttChatListHead = item;
+        g_mqttChatItemCount++;
         return item;
     }
 
@@ -75,6 +84,7 @@ MqttChatItem_t *AddMqttChatItem(const char *name,
         tail = tail->next;
     }
     tail->next = item;
+    g_mqttChatItemCount++;
     return item;
 }
 
@@ -237,4 +247,26 @@ static bool ParseAvatarColor(const char *colorString, uint32_t *color)
 
     *color = value;
     return true;
+}
+
+static void RemoveOldestMqttChatItem(void)
+{
+    MqttChatItem_t *oldest = g_mqttChatListHead;
+
+    if (oldest == NULL) {
+        g_mqttChatItemCount = 0;
+        return;
+    }
+
+    g_mqttChatListHead = oldest->next;
+    if (g_mqttNextGetNode == oldest) {
+        g_mqttNextGetNode = oldest->next;
+    }
+
+    SRAM_FREE(oldest->text);
+    SRAM_FREE(oldest);
+
+    if (g_mqttChatItemCount > 0) {
+        g_mqttChatItemCount--;
+    }
 }
