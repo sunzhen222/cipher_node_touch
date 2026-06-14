@@ -5,6 +5,8 @@
 #include "stdint.h"
 #include "stdbool.h"
 
+#define LORA_CHAT_MAX_ITEMS     10
+
 typedef struct LoraChatItem_t {
     char name[16];
     char *text;

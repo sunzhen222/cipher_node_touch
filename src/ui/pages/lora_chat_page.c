@@ -23,6 +23,8 @@ typedef struct {
     lv_obj_t *inputTa;
     lv_obj_t *keyboard;
     lv_obj_t *sendBtn;
+    lv_timer_t *repeatSendTimer;
+    uint32_t sendBtnRepeatCount;
 } LoraChatPageValues_t;
 
 
@@ -36,6 +38,9 @@ static void InputKeyboardEventHandler(lv_event_t *e);
 static void ChatListEventHandler(lv_event_t *e);
 static void ScrollChatListToBottom(lv_obj_t *chatList);
 static void InputSendBtnEventHandler(lv_event_t *e);
+static void RepeatSendTimerHandler(lv_timer_t *timer);
+static void StopRepeatSendTimer(LoraChatPageValues_t *values);
+static bool SendCurrentLoraChatInput(LoraChatPageValues_t *values, bool clearInput);
 static void UpdateSendButtonState(LoraChatPageValues_t *values);
 static void HideInputKeyboardAndRestoreLayout(LoraChatPageValues_t *values);
 static void ChatSettingsButtonHandler(lv_event_t *e);
@@ -68,6 +73,8 @@ static void LoraChatPageInit(void)
     values->inputTa = NULL;
     values->keyboard = NULL;
     values->sendBtn = NULL;
+    values->repeatSendTimer = NULL;
+    values->sendBtnRepeatCount = 0;
 
     LoraChatLayout();
 }
@@ -75,6 +82,7 @@ static void LoraChatPageInit(void)
 static void LoraChatPageDeinit(void)
 {
     LoraChatPageValues_t *values = lv_obj_get_user_data(GetPageBackground());
+    StopRepeatSendTimer(values);
     SRAM_FREE(values);
 }
 
@@ -162,7 +170,9 @@ static void LoraChatLayout(void)
     lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x4A4A4A), LV_STATE_DISABLED);
     lv_obj_set_style_text_color(values->sendBtn, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_text_color(values->sendBtn, lv_color_hex(0x9A9A9A), LV_STATE_DISABLED);
-    lv_obj_add_event_cb(values->sendBtn, InputSendBtnEventHandler, LV_EVENT_CLICKED, values);
+    lv_obj_add_event_cb(values->sendBtn, InputSendBtnEventHandler, LV_EVENT_SHORT_CLICKED, values);
+    lv_obj_add_event_cb(values->sendBtn, InputSendBtnEventHandler, LV_EVENT_LONG_PRESSED_REPEAT, values);
+    lv_obj_add_event_cb(values->sendBtn, InputSendBtnEventHandler, LV_EVENT_RELEASED, values);
 
     lv_obj_t *sendLabel = lv_label_create(values->sendBtn);
     lv_label_set_text(sendLabel, "Send");
@@ -266,6 +276,13 @@ static void AddNewLoraChatLayout(LoraChatItem_t *item)
     lv_coord_t maxBubbleWidth = lv_display_get_horizontal_resolution(NULL) - 57 * 2;
     lv_coord_t maxTextWidth = maxBubbleWidth - 20;
 
+    if (lv_obj_get_child_count(values->chatList) >= LORA_CHAT_MAX_ITEMS) {
+        lv_obj_t *oldestRow = lv_obj_get_child(values->chatList, 0);
+        if (oldestRow != NULL) {
+            lv_obj_delete(oldestRow);
+        }
+    }
+
     lv_obj_t *row = lv_obj_create(values->chatList);
     lv_obj_set_width(row, lv_pct(100));
     lv_obj_set_height(row, LV_SIZE_CONTENT);
@@ -346,14 +363,70 @@ static void AddNewLoraChatLayout(LoraChatItem_t *item)
 static void InputSendBtnEventHandler(lv_event_t *e)
 {
     LoraChatPageValues_t *values = lv_event_get_user_data(e);
+    lv_event_code_t code = lv_event_get_code(e);
+
+    if (code == LV_EVENT_SHORT_CLICKED) {
+        StopRepeatSendTimer(values);
+        SendCurrentLoraChatInput(values, true);
+        values->sendBtnRepeatCount = 0;
+    } else if (code == LV_EVENT_LONG_PRESSED_REPEAT) {
+        printf("long pressed repeat\n");
+        values->sendBtnRepeatCount++;
+        if (values->sendBtnRepeatCount >= 10) {
+            values->sendBtnRepeatCount = 0;
+            if (values->repeatSendTimer == NULL && lv_textarea_get_text(values->inputTa)[0] != '\0') {
+                values->repeatSendTimer = lv_timer_create(RepeatSendTimerHandler, 1000, values);
+            }
+        }
+    } else if (code == LV_EVENT_RELEASED) {
+        values->sendBtnRepeatCount = 0;
+    }
+
+}
+
+static void RepeatSendTimerHandler(lv_timer_t *timer)
+{
+    LoraChatPageValues_t *values = lv_timer_get_user_data(timer);
+    if (!SendCurrentLoraChatInput(values, false)) {
+        StopRepeatSendTimer(values);
+    }
+}
+
+static void StopRepeatSendTimer(LoraChatPageValues_t *values)
+{
+    if (values == NULL || values->repeatSendTimer == NULL) {
+        return;
+    }
+
+    lv_timer_delete(values->repeatSendTimer);
+    values->repeatSendTimer = NULL;
+}
+
+static bool SendCurrentLoraChatInput(LoraChatPageValues_t *values, bool clearInput)
+{
+    if (values == NULL || values->inputTa == NULL) {
+        return false;
+    }
+
+    const char *text = lv_textarea_get_text(values->inputTa);
+    if (text[0] == '\0') {
+        return false;
+    }
+
     const char *username = DeviceSettingsGetLoraChatUsername();
     uint32_t avatarColor = DeviceSettingsGetLoraChatAvatarColor();
 
-    printf("Send clicked, text: %s\n", lv_textarea_get_text(values->inputTa));
-    LoraChatItem_t *newItem = AddChatItem(username, lv_textarea_get_text(values->inputTa), 0, true, avatarColor);
-    SendLoraChat(username, lv_textarea_get_text(values->inputTa), avatarColor);
+    printf("Send clicked, text: %s\n", text);
+    LoraChatItem_t *newItem = AddChatItem(username, text, 0, true, avatarColor);
+    SendLoraChat(username, text, avatarColor);
     SendUiMsg(UI_MSG_CODE_LORA_CHAT_ITEM, &newItem, sizeof(newItem));
-    lv_textarea_set_text(values->inputTa, "");
+
+    if (clearInput) {
+        lv_textarea_set_text(values->inputTa, "");
+        UpdateSendButtonState(values);
+    }
+
+    return true;
 }
 
 static void UpdateSendButtonState(LoraChatPageValues_t *values)

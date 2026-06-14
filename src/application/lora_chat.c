@@ -5,12 +5,16 @@
 
 static LoraChatItem_t *g_chatListHead = NULL;
 static LoraChatItem_t *g_nextGetNode = NULL;
+static uint32_t g_chatItemCount = 0;
+
+static void RemoveOldestChatItem(void);
 
 
 void LoraChatInit(void)
 {
     g_chatListHead = NULL;
     g_nextGetNode = NULL;
+    g_chatItemCount = 0;
 }
 
 
@@ -26,6 +30,7 @@ void ClearChatItems(void)
 
     g_chatListHead = NULL;
     g_nextGetNode = NULL;
+    g_chatItemCount = 0;
 }
 
 
@@ -47,8 +52,13 @@ LoraChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bo
     item->headColor = headColor;
     item->next = NULL;
 
+    if (g_chatItemCount >= LORA_CHAT_MAX_ITEMS) {
+        RemoveOldestChatItem();
+    }
+
     if (g_chatListHead == NULL) {
         g_chatListHead = item;
+        g_chatItemCount++;
         return item;
     }
 
@@ -57,6 +67,7 @@ LoraChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bo
         tail = tail->next;
     }
     tail->next = item;
+    g_chatItemCount++;
     return item;
 }
 
@@ -90,4 +101,26 @@ void TestLoraChat(void)
     AddChatItem("Bob", "OK.", 86, false, 0x6155F5);
     AddChatItem("Bob", "OK.", 86, false, 0x6155F5);
     AddChatItem("Bob", "OK.", 86, false, 0x6155F5);
+}
+
+static void RemoveOldestChatItem(void)
+{
+    LoraChatItem_t *oldest = g_chatListHead;
+
+    if (oldest == NULL) {
+        g_chatItemCount = 0;
+        return;
+    }
+
+    g_chatListHead = oldest->next;
+    if (g_nextGetNode == oldest) {
+        g_nextGetNode = oldest->next;
+    }
+
+    SRAM_FREE(oldest->text);
+    SRAM_FREE(oldest);
+
+    if (g_chatItemCount > 0) {
+        g_chatItemCount--;
+    }
 }
