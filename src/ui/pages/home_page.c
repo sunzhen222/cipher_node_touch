@@ -55,12 +55,19 @@ static void HomePageInit(void)
     lv_label_set_text(mqttChatBtnLabel, "MQTT Chat");
     lv_obj_add_event_cb(values->buttonMqttChat, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
-    values->buttonTouchTest = lv_button_create(GetPageBackground());
-    lv_obj_set_size(values->buttonTouchTest, 100, 60);
-    lv_obj_align(values->buttonTouchTest, LV_ALIGN_TOP_LEFT, 45, 240);
-    lv_obj_t *touchTestBtnLabel = lv_label_create(values->buttonTouchTest);
-    lv_label_set_text(touchTestBtnLabel, "Touch Test");
-    lv_obj_add_event_cb(values->buttonTouchTest, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
+    //values->buttonTouchTest = lv_button_create(GetPageBackground());
+    //lv_obj_set_size(values->buttonTouchTest, 100, 60);
+    //lv_obj_align(values->buttonTouchTest, LV_ALIGN_TOP_LEFT, 45, 240);
+    //lv_obj_t *touchTestBtnLabel = lv_label_create(values->buttonTouchTest);
+    //lv_label_set_text(touchTestBtnLabel, "Touch Test");
+    //lv_obj_add_event_cb(values->buttonTouchTest, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
+
+    values->buttonSnake = lv_button_create(GetPageBackground());
+    lv_obj_set_size(values->buttonSnake, 100, 60);
+    lv_obj_align(values->buttonSnake, LV_ALIGN_TOP_LEFT, 45, 240);
+    lv_obj_t *snakeBtnLabel = lv_label_create(values->buttonSnake);
+    lv_label_set_text(snakeBtnLabel, "Snake");
+    lv_obj_add_event_cb(values->buttonSnake, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 
     values->buttonSystem = lv_button_create(GetPageBackground());
     lv_obj_set_size(values->buttonSystem, 100, 60);
@@ -68,13 +75,6 @@ static void HomePageInit(void)
     lv_obj_t *systemBtnLabel = lv_label_create(values->buttonSystem);
     lv_label_set_text(systemBtnLabel, "System");
     lv_obj_add_event_cb(values->buttonSystem, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
-
-    values->buttonSnake = lv_button_create(GetPageBackground());
-    lv_obj_set_size(values->buttonSnake, 100, 60);
-    lv_obj_align(values->buttonSnake, LV_ALIGN_TOP_MID, 0, 340);
-    lv_obj_t *snakeBtnLabel = lv_label_create(values->buttonSnake);
-    lv_label_set_text(snakeBtnLabel, "Snake");
-    lv_obj_add_event_cb(values->buttonSnake, HomePageButtonEventHandler, LV_EVENT_CLICKED, NULL);
 }
 
 
