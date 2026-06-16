@@ -1,6 +1,7 @@
 #include "wifi_test.h"
 #include "test_cmd.h"
 #include "mqtt.h"
+#include "wifi_connect.h"
 #include "wifi_search.h"
 #include "stdio.h"
 #include "string.h"
@@ -36,10 +37,22 @@ static void SearchWifiTest(void)
     FreeWifiList(&wifiHead);
 }
 
+static void ConnectWifiTest(int argc, char *argv[])
+{
+    if (argc < 2) {
+        printf("wifi connect usage: #wifi:connect <ssid> <password>\n");
+        return;
+    }
+
+    printf("connecting wifi ssid=%s...\n", argv[0]);
+    bool connectOk = ConnectWifi(argv[0], argv[1]);
+    printf("wifi connect %s\n", connectOk ? "ok" : "failed");
+}
+
 static void WifiTestCmd(int argc, char *argv[])
 {
     if (argc < 1) {
-        printf("wifi usage: #wifi:mqtt_connect | #wifi:search\n");
+        printf("wifi usage: #wifi:mqtt_connect | #wifi:search | #wifi:connect <ssid> <password>\n");
         return;
     }
 
@@ -51,6 +64,11 @@ static void WifiTestCmd(int argc, char *argv[])
 
     if (strcmp(argv[0], "search") == 0) {
         SearchWifiTest();
+        return;
+    }
+
+    if (strcmp(argv[0], "connect") == 0) {
+        ConnectWifiTest(argc - 1, &argv[1]);
         return;
     }
 
