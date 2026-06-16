@@ -23,6 +23,7 @@ typedef struct {
 static char g_iv[] = "c50e69d1f00dedb09869353f8771b9b4";
 
 uint8_t g_protocolRcvBuffer[PROTOCOL_MAX_LENGTH];
+static int8_t g_currentRxRssi = 0;
 
 
 static void ProtocolParse(uint8_t *data, uint16_t len);
@@ -87,6 +88,16 @@ void ProtocolReceivedData(const uint8_t *data, uint32_t len)
             rcvCount++;
         }
     }
+}
+
+void ProtocolSetCurrentRxRssi(int8_t rssi)
+{
+    g_currentRxRssi = rssi;
+}
+
+int8_t ProtocolGetCurrentRxRssi(void)
+{
+    return g_currentRxRssi;
 }
 
 

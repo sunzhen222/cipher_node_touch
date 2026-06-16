@@ -34,7 +34,7 @@ void ClearChatItems(void)
 }
 
 
-LoraChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor)
+LoraChatItem_t *AddChatItem(const char *name, const char *text, int8_t rssi, bool self, uint32_t headColor)
 {
     LoraChatItem_t *item = SRAM_MALLOC(sizeof(LoraChatItem_t));
     const char *safeName = (name != NULL) ? name : "";
@@ -92,15 +92,15 @@ void TestLoraChat(void)
 {
     ClearChatItems();
 
-    AddChatItem("Alice", "Hi, are you there?\nhaha", 92, true, 0xFF2C2C);
-    AddChatItem("Bob", "Yep, I am here.1222222223333333333311111111111111111111", 88, false, 0x6155F5);
-    AddChatItem("Alice", "Great, test passed.", 91, true, 0xFF2C2C);
-    AddChatItem("Bob", "Nice and clean.", 86, false, 0x6155F5);
-    AddChatItem("Alice", "See you later.", 90, true, 0xFF2C2C);
-    AddChatItem("Bob", "OK.", 86, false, 0x6155F5);
-    AddChatItem("Bob", "OK.", 86, false, 0x6155F5);
-    AddChatItem("Bob", "OK.", 86, false, 0x6155F5);
-    AddChatItem("Bob", "OK.", 86, false, 0x6155F5);
+    AddChatItem("Alice", "Hi, are you there?\nhaha", -72, true, 0xFF2C2C);
+    AddChatItem("Bob", "Yep, I am here.1222222223333333333311111111111111111111", -75, false, 0x6155F5);
+    AddChatItem("Alice", "Great, test passed.", -71, true, 0xFF2C2C);
+    AddChatItem("Bob", "Nice and clean.", -78, false, 0x6155F5);
+    AddChatItem("Alice", "See you later.", -73, true, 0xFF2C2C);
+    AddChatItem("Bob", "OK.", -80, false, 0x6155F5);
+    AddChatItem("Bob", "OK.", -80, false, 0x6155F5);
+    AddChatItem("Bob", "OK.", -80, false, 0x6155F5);
+    AddChatItem("Bob", "OK.", -80, false, 0x6155F5);
 }
 
 static void RemoveOldestChatItem(void)

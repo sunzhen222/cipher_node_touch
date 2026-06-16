@@ -5,6 +5,7 @@
 #include "user_memory.h"
 #include "lora_chat.h"
 #include "lora.h"
+#include "protocol_parse.h"
 #include "ui_msg.h"
 #include "user_utils.h"
 
@@ -91,7 +92,7 @@ void CommandLoraChat(FrameHead_t *head, const uint8_t *tlvData)
     CopyTlvBytes(avatarColorTlv, avatarColor, sizeof(avatarColor));
     color = ((uint32_t)avatarColor[0] << 16) | ((uint32_t)avatarColor[1] << 8) | avatarColor[2];
 
-    LoraChatItem_t *newItem = AddChatItem(username, text, 0, false, color);
+    LoraChatItem_t *newItem = AddChatItem(username, text, ProtocolGetCurrentRxRssi(), false, color);
     SendUiMsg(UI_MSG_CODE_LORA_CHAT_ITEM, &newItem, sizeof(newItem));
     SRAM_FREE(text);
 }

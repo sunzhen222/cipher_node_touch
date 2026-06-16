@@ -320,6 +320,17 @@ static void AddNewLoraChatLayout(LoraChatItem_t *item)
         lv_obj_align(nameLabel, LV_ALIGN_TOP_LEFT, 64, 8);
     }
 
+    if (!item->self && DeviceSettingsGetLoraChatShowRssi()) {
+        char rssiText[16];
+        lv_obj_t *rssiLabel = lv_label_create(row);
+
+        snprintf(rssiText, sizeof(rssiText), "(RSSI: %d)", item->rssi);
+        lv_label_set_text(rssiLabel, rssiText);
+        lv_obj_set_style_text_color(rssiLabel, lv_color_hex(0x888888), 0);
+        lv_obj_update_layout(nameLabel);
+        lv_obj_align_to(rssiLabel, nameLabel, LV_ALIGN_OUT_RIGHT_MID, 5, 0);
+    }
+
     lv_obj_t *bubble = lv_obj_create(row);
     lv_obj_set_width(bubble, LV_SIZE_CONTENT);
     lv_obj_set_style_max_width(bubble, maxBubbleWidth, 0);

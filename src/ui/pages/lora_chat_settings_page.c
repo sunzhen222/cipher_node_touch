@@ -20,6 +20,7 @@ typedef struct {
     lv_obj_t *avatarPreviewLabel;
     lv_obj_t *avatarColorDropdown;
     lv_obj_t *usernameInput;
+    lv_obj_t *showRssiSwitch;
     lv_obj_t *secretKeyInput;
     lv_obj_t *frequencyInput;
     lv_obj_t *netIdInput;
@@ -43,6 +44,7 @@ static void NetIdInputNumberHandler(uint32_t input);
 static void AvatarColorDropdownEventHandler(lv_event_t *e);
 static void UsernameInputEventHandler(lv_event_t *e);
 static void UsernameInputTextHandler(const char *input);
+static void ShowRssiSwitchEventHandler(lv_event_t *e);
 static void SecretKeyInputEventHandler(lv_event_t *e);
 static void SecretKeyInputTextHandler(const char *input);
 static void SfDropdownEventHandler(lv_event_t *e);
@@ -145,6 +147,18 @@ static void LoraChatSettingsPageInit(void)
     lv_obj_align(values->usernameInput, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
     lv_textarea_set_text(values->usernameInput, DeviceSettingsGetLoraChatUsername());
     lv_obj_add_event_cb(values->usernameInput, UsernameInputEventHandler, LV_EVENT_CLICKED, NULL);
+
+    y += rowGapY;
+    label = lv_label_create(GetPageBackground());
+    lv_label_set_text(label, "Show RSSI");
+    lv_obj_align(label, LV_ALIGN_TOP_LEFT, 32, y);
+    values->showRssiSwitch = lv_switch_create(GetPageBackground());
+    lv_obj_set_size(values->showRssiSwitch, 64, 32);
+    lv_obj_align(values->showRssiSwitch, LV_ALIGN_TOP_RIGHT, -32, y + inputYOffset);
+    if (DeviceSettingsGetLoraChatShowRssi()) {
+        lv_obj_add_state(values->showRssiSwitch, LV_STATE_CHECKED);
+    }
+    lv_obj_add_event_cb(values->showRssiSwitch, ShowRssiSwitchEventHandler, LV_EVENT_VALUE_CHANGED, NULL);
 
     y += rowGapY;
     label = lv_label_create(GetPageBackground());
@@ -271,6 +285,7 @@ static void SaveBtnEventHandler(lv_event_t *e)
     uint32_t netId = strtoul(lv_textarea_get_text(values->netIdInput), NULL, 10);
     uint32_t sf = GetSelectedSfValue(values->sfDropdown);
     uint32_t bw = GetSelectedBwValue(values->bwDropdown);
+    bool showRssi = lv_obj_has_state(values->showRssiSwitch, LV_STATE_CHECKED);
     bool needUpdateLora = false;
 
     UNUSED(e);
@@ -285,6 +300,7 @@ static void SaveBtnEventHandler(lv_event_t *e)
     printf("loraNetId: %lu\n", netId);
     printf("loraSf: %lu\n", sf);
     printf("loraBw: %lu\n", bw);
+    printf("showRssi: %u\n", showRssi);
     if (frequency != DeviceSettingsGetLoraFreq() ||
             sf != DeviceSettingsGetLoraSpreadingFactor() ||
             bw != DeviceSettingsGetLoraBandwidth()) {
@@ -293,6 +309,7 @@ static void SaveBtnEventHandler(lv_event_t *e)
 
     DeviceSettingsSetLoraChatAvatarColor(avatarColor);
     DeviceSettingsSetLoraChatUsername(username);
+    DeviceSettingsSetLoraChatShowRssi(showRssi);
     DeviceSettingsSetLoraSecretKey(secretKey);
     DeviceSettingsSetLoraFreq(frequency);
     DeviceSettingsSetLoraNetId(netId);
@@ -371,6 +388,12 @@ static void UsernameInputTextHandler(const char *input)
 
     lv_textarea_set_text(values->usernameInput, input == NULL ? "" : input);
     UpdateAvatarPreview();
+    UpdateUnsavedState();
+}
+
+static void ShowRssiSwitchEventHandler(lv_event_t *e)
+{
+    UNUSED(e);
     UpdateUnsavedState();
 }
 
@@ -488,12 +511,16 @@ static void UpdateUnsavedState(void)
     uint32_t netId = strtoul(lv_textarea_get_text(values->netIdInput), NULL, 10);
     uint32_t sf = GetSelectedSfValue(values->sfDropdown);
     uint32_t bw = GetSelectedBwValue(values->bwDropdown);
+    bool showRssi = lv_obj_has_state(values->showRssiSwitch, LV_STATE_CHECKED);
 
     bool unsaved = false;
     if (avatarColor != DeviceSettingsGetLoraChatAvatarColor()) {
         unsaved = true;
     }
     if (strcmp(username, DeviceSettingsGetLoraChatUsername()) != 0) {
+        unsaved = true;
+    }
+    if (showRssi != DeviceSettingsGetLoraChatShowRssi()) {
         unsaved = true;
     }
     if (strcmp(secretKey, DeviceSettingsGetLoraSecretKey()) != 0) {

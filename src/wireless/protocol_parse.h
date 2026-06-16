@@ -17,5 +17,7 @@ enum {
 typedef void (*CommandCallbackFunc_t)(FrameHead_t *head, const uint8_t *tlvData);
 
 void ProtocolReceivedData(const uint8_t *data, uint32_t len);
+void ProtocolSetCurrentRxRssi(int8_t rssi);
+int8_t ProtocolGetCurrentRxRssi(void);
 
 #endif

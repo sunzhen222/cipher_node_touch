@@ -376,16 +376,20 @@ static void LoraCallback(uint16_t type, uint8_t *buf, uint16_t len)
             return;
         }
         if ((enable == LLCC68_BOOL_FALSE) && len) {
+            float rssi = 0;
+            float snr = 0;
+
             LORA_RX_LED_ON();
+            if (llcc68_lora_get_status(&rssi, &snr) == 0) {
+                ProtocolSetCurrentRxRssi((int8_t)rssi);
+                printf("rssi:%.2f, snr:%.2f\n", rssi, snr);
+            } else {
+                ProtocolSetCurrentRxRssi(0);
+                printf("lora get status err\n");
+            }
             ProtocolReceivedData(buf, len);
             PrintArray("received data", buf, len);
             LORA_RX_LED_OFF();
-            float rssi, snr;
-            if (llcc68_lora_get_status(&rssi, &snr) == 0) {
-                printf("rssi:%.2f, snr:%.2f\n", rssi, snr);
-            } else {
-                printf("lora get status err\n");
-            }
         } else {
             printf("lora rx error:%d\n", enable);
         }

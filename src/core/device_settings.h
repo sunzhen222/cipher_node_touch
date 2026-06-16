@@ -16,6 +16,9 @@ void DeviceSettingsSetLoraChatAvatarColor(uint32_t color);
 const char *DeviceSettingsGetLoraChatUsername(void);
 void DeviceSettingsSetLoraChatUsername(const char *username);
 
+bool DeviceSettingsGetLoraChatShowRssi(void);
+void DeviceSettingsSetLoraChatShowRssi(bool enabled);
+
 uint32_t DeviceSettingsGetMqttChatAvatarColor(void);
 void DeviceSettingsSetMqttChatAvatarColor(uint32_t color);
 

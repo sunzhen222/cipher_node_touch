@@ -10,7 +10,7 @@
 typedef struct LoraChatItem_t {
     char name[16];
     char *text;
-    uint8_t rssi;
+    int8_t rssi;
     bool self;
     uint32_t headColor;
     struct LoraChatItem_t *next;
@@ -18,7 +18,7 @@ typedef struct LoraChatItem_t {
 
 void LoraChatInit(void);
 void ClearChatItems(void);
-LoraChatItem_t *AddChatItem(const char *name, const char *text, uint8_t rssi, bool self, uint32_t headColor);
+LoraChatItem_t *AddChatItem(const char *name, const char *text, int8_t rssi, bool self, uint32_t headColor);
 void StartGetChatItem(void);
 LoraChatItem_t *GetNextChatItem(void);
 
