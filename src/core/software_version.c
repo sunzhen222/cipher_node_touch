@@ -2,7 +2,7 @@
 #include "stdio.h"
 
 #define SOFTWARE_VERSION_MAJOR      1
-#define SOFTWARE_VERSION_MINOR      2
+#define SOFTWARE_VERSION_MINOR      3
 #define SOFTWARE_VERSION_BUILD      0
 
 const char *GetSoftwareVersionString(void)

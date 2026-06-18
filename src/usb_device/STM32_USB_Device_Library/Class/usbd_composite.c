@@ -15,7 +15,7 @@
 #define USBD_CMPSIT_VID                         1155
 #define USBD_CMPSIT_LANGID_STRING               1033
 #define USBD_CMPSIT_MANUFACTURER_STRING         "LS Force"
-#define USBD_CMPSIT_PID_FS                      22336
+#define USBD_CMPSIT_PID_FS                      22337
 #define USBD_CMPSIT_PRODUCT_STRING_FS           "LSF BLDC Driver"
 #define USBD_CMPSIT_CONFIGURATION_STRING_FS     "Composite Config"
 #define USBD_CMPSIT_INTERFACE_STRING_FS         "Composite Interface"
@@ -70,7 +70,7 @@ __ALIGN_BEGIN uint8_t USBD_CMPSIT_FS_DeviceDesc[USB_LEN_DEV_DESC] __ALIGN_END = 
     LOBYTE(USBD_CMPSIT_PID_FS),       /*idProduct*/
     HIBYTE(USBD_CMPSIT_PID_FS),       /*idProduct*/
     0x00,                     /*bcdDevice rel. 2.00*/
-    0x02,                     /* bNumInterfaces */
+    0x02,
     USBD_IDX_MFC_STR,         /*Index of manufacturer  string*/
     USBD_IDX_PRODUCT_STR,     /*Index of product string*/
     USBD_IDX_SERIAL_STR,          /*Index of serial number string*/
@@ -235,7 +235,7 @@ __ALIGN_BEGIN static uint8_t USBD_CMPSIT_CfgDesc[USB_CMPSIT_CONFIG_DESC_SIZ] __A
     USB_DESC_TYPE_CONFIGURATION,                /* bDescriptorType: Configuration */
     USB_CMPSIT_CONFIG_DESC_SIZ,                    /* wTotalLength */
     0x00,
-    0x03,                                       /* bNumInterfaces: 2 interfaces */
+    0x03,                                       /* bNumInterfaces: 3 interfaces */
     0x01,                                       /* bConfigurationValue: Configuration value */
     0x00,                                       /* iConfiguration: Index of string descriptor
                                                  describing the configuration */
@@ -336,16 +336,6 @@ __ALIGN_BEGIN static uint8_t USBD_CMPSIT_CfgDesc[USB_CMPSIT_CONFIG_DESC_SIZ] __A
     HIBYTE(CDC_DATA_FS_MAX_PACKET_SIZE),
     0x00,                                        /* bInterval */
     //75
-    /* Interface Association Descriptor: Mass Storage device */
-    0x08,   /* bLength: IAD size */
-    0x0B,   /* bDescriptorType: Interface Association Descriptor */
-    0x02,   /* bFirstInterface */
-    0x01,   /* bInterfaceCount */
-    0x08,   /* bFunctionClass: */
-    0x06,   /* bFunctionSubClass: */
-    0x50,   /* bFunctionProtocol: */
-    0x07,   /* iFunction */
-    //83
     /********************  Mass Storage interface ********************/
     0x09,                                            /* bLength: Interface Descriptor size */
     0x04,                                            /* bDescriptorType: */
@@ -357,7 +347,7 @@ __ALIGN_BEGIN static uint8_t USBD_CMPSIT_CfgDesc[USB_CMPSIT_CONFIG_DESC_SIZ] __A
     0x50,                                            /* nInterfaceProtocol */
     0x07,                                            /* iInterface: */
     /********************  Mass Storage Endpoints ********************/
-    //92
+    //84
     0x07,                                            /* Endpoint descriptor length = 7 */
     0x05,                                            /* Endpoint descriptor type */
     MSC_EPIN_ADDR,                                   /* Endpoint address (IN, address 1) */
@@ -365,7 +355,7 @@ __ALIGN_BEGIN static uint8_t USBD_CMPSIT_CfgDesc[USB_CMPSIT_CONFIG_DESC_SIZ] __A
     LOBYTE(MSC_MAX_FS_PACKET),
     HIBYTE(MSC_MAX_FS_PACKET),
     0x00,                                            /* Polling interval in milliseconds */
-    //99
+    //91
     0x07,                                            /* Endpoint descriptor length = 7 */
     0x05,                                            /* Endpoint descriptor type */
     MSC_EPOUT_ADDR,                                  /* Endpoint address (OUT, address 1) */
@@ -373,7 +363,7 @@ __ALIGN_BEGIN static uint8_t USBD_CMPSIT_CfgDesc[USB_CMPSIT_CONFIG_DESC_SIZ] __A
     LOBYTE(MSC_MAX_FS_PACKET),
     HIBYTE(MSC_MAX_FS_PACKET),
     0x00                                             /* Polling interval in milliseconds */
-    //106
+    //98
 };
 __ALIGN_BEGIN static uint8_t USBD_CMPSIT_DeviceQualifierDesc[USB_LEN_DEV_QUALIFIER_DESC] __ALIGN_END = {
     USB_LEN_DEV_QUALIFIER_DESC,
