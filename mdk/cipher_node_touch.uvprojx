@@ -405,6 +405,11 @@
               <FilePath>..\src\application\draw_on_lcd.c</FilePath>
             </File>
             <File>
+              <FileName>lock_screen.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\application\lock_screen.c</FilePath>
+            </File>
+            <File>
               <FileName>lora_chat.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\application\lora_chat.c</FilePath>
@@ -1334,6 +1339,11 @@
               <FileName>mqtt_chat_settings_page.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\ui\pages\mqtt_chat_settings_page.c</FilePath>
+            </File>
+            <File>
+              <FileName>snake_page.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\ui\pages\snake_page.c</FilePath>
             </File>
             <File>
               <FileName>system_page.c</FileName>

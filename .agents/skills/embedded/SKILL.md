@@ -186,6 +186,21 @@ python -c "from pypdf import PdfReader; from pathlib import Path; p=Path('hardwa
 
 ---
 
+## CMake 与 Keil 工程同步规范
+
+- 修改 `CMakeLists.txt`、新增/删除/重命名 MCU 源文件或新增头文件目录时，必须同步检查并更新 `mdk/cipher_node_touch.uvprojx`，不能只保证 CMake 构建通过。
+- 将新增 `.c` 文件加入 Keil 工程中对应的现有 `<Group>`，并保持 `<FileName>`、`<FileType>` 和相对 `<FilePath>` 正确；删除或重命名文件时同步清理旧条目。
+- CMake 新增 `include_directories()` 或 `add_definitions()` 时，同步更新 Keil target 的 `<IncludePath>` 或 `<Define>`；涉及编译器差异时保留 GCC/Arm Compiler 各自需要的实现，不要机械加入测试程序、模拟器文件或 GCC 专用 syscall 文件。
+- 更新后对照 CMake 的 MCU 源文件集合检查 Keil 工程漏项，并使用 Keil 命令行执行一次编译或全量重编。默认命令示例：
+
+```powershell
+& 'C:\Keil_v5\UV4\UV4.exe' -j0 -r 'mdk\cipher_node_touch.uvprojx' -o 'build.log'
+```
+
+- 验证标准：构建日志出现 `0 Error(s)`，新增文件确实有对应的 `compiling <file>.c...` 记录；完成后删除临时日志，不提交 `Objects/`、`Listings/` 等生成物。
+
+---
+
 ## 常见问题
 
 - **`copy` 未执行复制**：脚本会按容量区间自动识别目标盘（默认 750KB~800KB）。若未找到，会提示 `No drive found ... Skip copy.`，请确认设备已通过 USB 挂载且容量落在该区间，或按需调整 `build.bat` 中的 `target_min_bytes` / `target_max_bytes`。
