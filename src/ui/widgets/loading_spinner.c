@@ -59,10 +59,8 @@ lv_obj_t *CreateLoadingSpinner(lv_obj_t *parent, uint32_t timeout)
     lv_obj_set_style_arc_width(progressArc, SPINNER_ARC_WIDTH, LV_PART_INDICATOR);
     lv_obj_set_style_arc_opa(progressArc, LV_OPA_COVER, LV_PART_INDICATOR);
 
-    values = SRAM_MALLOC(sizeof(LoadingSpinnerValue_t));
     values->root = bg;
     values->progressArc = progressArc;
-
 
     values->animTimer = lv_timer_create(SpinnerAnimTimerCb, SPINNER_ANIM_INTERVAL_MS, values);
     lv_obj_set_user_data(bg, values);

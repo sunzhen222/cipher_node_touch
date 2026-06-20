@@ -1,14 +1,18 @@
 #include "confirm_win.h"
-#include "user_assert.h"
 
-#define CONFIRM_WIN_WIDTH      220
-#define CONFIRM_WIN_HEIGHT     150
+#define CONFIRM_WIN_WIDTH              220
+#define CONFIRM_WIN_HEIGHT             150
+#define CONFIRM_WIN_TEXT_EXTRA_HEIGHT  100
+#define CONFIRM_WIN_PARENT_MARGIN      20
 
 static void DefaultCancelHandler(lv_event_t *e);
 
 lv_obj_t *CreateConfirmWin(lv_obj_t *parent, const ConfirmWin_t *desc)
 {
     lv_obj_t *bg, *win, *label, *btn, *img;
+    int32_t labelHeight;
+    int32_t winHeight;
+    int32_t maxHeight;
 
     bg = lv_obj_create(parent);
     lv_obj_set_size(bg, lv_obj_get_width(parent), lv_obj_get_height(parent));
@@ -16,7 +20,7 @@ lv_obj_t *CreateConfirmWin(lv_obj_t *parent, const ConfirmWin_t *desc)
     lv_obj_set_style_bg_opa(bg, LV_OPA_50, 0);
 
     win = lv_obj_create(bg);
-    lv_obj_set_size(win, CONFIRM_WIN_WIDTH, CONFIRM_WIN_HEIGHT);
+    lv_obj_set_width(win, CONFIRM_WIN_WIDTH);
     lv_obj_align(win, LV_ALIGN_CENTER, 0, 0);
     lv_obj_set_style_bg_color(win, lv_color_make(0xEE, 0xEE, 0xEE), 0);
     lv_obj_set_style_radius(win, 10, 0);
@@ -29,9 +33,17 @@ lv_obj_t *CreateConfirmWin(lv_obj_t *parent, const ConfirmWin_t *desc)
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, 0);
     lv_obj_set_style_text_color(label, lv_color_black(), 0);
     lv_obj_update_layout(label);
-    int32_t labelHeight = lv_obj_get_height(label);
-    ASSERT(CONFIRM_WIN_HEIGHT - labelHeight - 50 > 0);
-    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, (CONFIRM_WIN_HEIGHT - labelHeight - 50) / 2);
+    labelHeight = lv_obj_get_height(label);
+    winHeight = labelHeight + CONFIRM_WIN_TEXT_EXTRA_HEIGHT;
+    if (winHeight < CONFIRM_WIN_HEIGHT) {
+        winHeight = CONFIRM_WIN_HEIGHT;
+    }
+    maxHeight = lv_obj_get_height(parent) - CONFIRM_WIN_PARENT_MARGIN;
+    if (winHeight > maxHeight) {
+        winHeight = maxHeight;
+    }
+    lv_obj_set_height(win, winHeight);
+    lv_obj_align(label, LV_ALIGN_TOP_MID, 0, (winHeight - labelHeight - 50) / 2);
 
     if (desc->OkHandler == NULL && desc->CancelHandler == NULL) {
         btn = lv_btn_create(win);
