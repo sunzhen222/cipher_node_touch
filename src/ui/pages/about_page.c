@@ -14,6 +14,9 @@
 #include "confirm_win.h"
 #include "loading_spinner.h"
 #include "sha256.h"
+#ifdef SIMULATOR
+#include "SDL2/SDL.h"
+#endif
 
 #define STM32_UID_BASE             0x1FFF7A10
 #define INTERNAL_FLASH_START       0x08000000U
@@ -176,6 +179,8 @@ static int32_t CalculateFlashSha256(const void *inData, uint32_t inDataLen)
     }
     result.image = *(const FlashImage_t *)inData;
 #ifdef SIMULATOR
+    //delay 5 seconds to simulate the calculation time
+    SDL_Delay(5000);
     result.success = false;
 #else
     const uint8_t *current;

@@ -28,12 +28,20 @@ static bool g_wifiConnected = false;
 static bool g_mqttConnected = false;
 static char g_wifiSsid[32] = "";
 
+typedef struct {
+    BackgroundAsyncFunc_t func;
+    void *inData;
+    uint32_t inDataLen;
+    uint32_t delay;
+} SimulatorAsync_t;
+
 void ShowAssert(const char *file, uint32_t line);
 
 static void ensure_flash_file(void);
 static void flash_read(uint8_t *buffer, uint32_t addr, uint32_t size);
 static void flash_write(const uint8_t *buffer, uint32_t addr, uint32_t size);
 static void flash_fill(uint32_t addr, uint32_t size, uint8_t value);
+static int async_thread(void *argument);
 
 static void copy_string(char *dest, size_t destSize, const char *src)
 {
@@ -387,21 +395,52 @@ void CreateBackgroundTask(void) {}
 bool InBackgroundTask(void) { return true; }
 void AsyncExecute(BackgroundAsyncFunc_t func, const void *inData, uint32_t inDataLen, uint32_t delay)
 {
-    void *copy = NULL;
-    (void)delay;
+    SimulatorAsync_t *async;
+    SDL_Thread *thread;
 
     if (func == NULL) {
         return;
     }
 
+    async = malloc(sizeof(SimulatorAsync_t));
+    if (async == NULL) {
+        ShowAssert(__FILE__, __LINE__);
+        return;
+    }
+    memset(async, 0, sizeof(SimulatorAsync_t));
+    async->func = func;
+    async->inDataLen = inDataLen;
+    async->delay = delay;
+
     if (inData != NULL && inDataLen > 0) {
-        copy = malloc(inDataLen);
-        if (copy == NULL) {
+        async->inData = malloc(inDataLen);
+        if (async->inData == NULL) {
+            free(async);
             ShowAssert(__FILE__, __LINE__);
             return;
         }
-        memcpy(copy, inData, inDataLen);
+        memcpy(async->inData, inData, inDataLen);
     }
-    func(copy, inDataLen);
-    free(copy);
+
+    thread = SDL_CreateThread(async_thread, "background_async", async);
+    if (thread == NULL) {
+        free(async->inData);
+        free(async);
+        ShowAssert(__FILE__, __LINE__);
+        return;
+    }
+    SDL_DetachThread(thread);
+}
+
+static int async_thread(void *argument)
+{
+    SimulatorAsync_t *async = argument;
+
+    if (async->delay > 0) {
+        SDL_Delay(async->delay);
+    }
+    async->func(async->inData, async->inDataLen);
+    free(async->inData);
+    free(async);
+    return 0;
 }
