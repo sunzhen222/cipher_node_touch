@@ -165,7 +165,7 @@ static void LoraChatLayout(void)
     lv_obj_set_size(values->sendBtn, SEND_BTN_WIDTH, INPUT_BAR_HEIGHT - 16);
     lv_obj_align(values->sendBtn, LV_ALIGN_RIGHT_MID, 0, 0);
     lv_obj_set_style_radius(values->sendBtn, 5, 0);
-    lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(DeviceSettingsGetLoraChatAvatarColor()), 0);
+    lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x16803C), 0);
     lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x134C26), LV_STATE_PRESSED);
     lv_obj_set_style_bg_color(values->sendBtn, lv_color_hex(0x4A4A4A), LV_STATE_DISABLED);
     lv_obj_set_style_text_color(values->sendBtn, lv_color_hex(0xFFFFFF), 0);
