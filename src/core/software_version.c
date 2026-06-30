@@ -3,7 +3,7 @@
 
 #define SOFTWARE_VERSION_MAJOR      1
 #define SOFTWARE_VERSION_MINOR      3
-#define SOFTWARE_VERSION_BUILD      1
+#define SOFTWARE_VERSION_BUILD      2
 
 const char *GetSoftwareVersionString(void)
 {
