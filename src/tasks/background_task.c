@@ -87,13 +87,11 @@ static void BackgroundTask(void *argument)
         }
         switch (rcvMsg.id) {
         case BACKGROUND_MSG_SECOND: {
-            static uint32_t tempHumTick = 0;
+            static uint32_t sensorTick = 0;
             static uint32_t wifiTick = 0;
-            tempHumTick++;
+            sensorTick++;
             wifiTick++;
-            if (tempHumTick % 2 == 0) {
-                Sht30AppRefresh(false);
-            }
+            Sht30AppRefresh(false);
             if (wifiTick % 10 == 0) {
                 UiMsgWifiStatus_t wifiStatus = {0};
                 WifiConnectInfo_t info = {0};

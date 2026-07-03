@@ -12,5 +12,6 @@ extern Page_t g_mqttChatSettingsPage;
 extern Page_t g_touchTestPage;
 extern Page_t g_wifiPage;
 extern Page_t g_snakePage;
+extern Page_t g_sensorPage;
 
 #endif
