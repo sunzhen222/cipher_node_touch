@@ -26,8 +26,9 @@ applyTo: "**"
 | 清除重新编译 | `.\build.bat rebuild` |
 | 编译并复制到设备（U盘 OTA 烧录） | `.\build.bat copy` |
 | 编译并通过 J-LINK 烧录 | `.\build.bat flash` |
-| 清除重编 + 烧录 | `.\build.bat rebuild flash` |
 | 烧录后串口自动测试（默认 COM11） | `.\tools\flash_and_serial_test.bat` |
+
+`.\build.bat` 支持组合多个参数。脚本会遍历所有传入参数，分别识别 `simulator`、`rebuild`、`copy`、`flash` 独立开关，因此可按需组合使用，例如清除重编后烧录、构建后复制并烧录等。注意：带 `simulator` 参数时会进入模拟器构建流程，生成并启动 `cipher_node_touch.exe` 后直接退出，`copy` 和 `flash` 不会继续执行。
 
 **编译流程说明**：
 1. CMake 配置 + Ninja 构建
